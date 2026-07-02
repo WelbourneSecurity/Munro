@@ -1,0 +1,55 @@
+site_name: Munro
+site_description: A clean, map-first hiking tracker for UK peak bagging.
+repo_url: https://github.com/WelbourneSecurity/Munro
+repo_name: WelbourneSecurity/Munro
+
+docs_dir: wiki
+
+theme:
+  name: material
+  palette:
+    # Dark by default, to match the product aesthetic
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: green
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: green
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  icon:
+    logo: material/terrain
+    repo: fontawesome/brands/github
+  features:
+    - navigation.sections
+    - navigation.footer
+    - navigation.top
+    - toc.integrate
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Product:
+      - Vision: vision.md
+      - MVP: mvp.md
+      - Features: features.md
+      - Roadmap: roadmap.md
+  - Building it:
+      - Data: data.md
+      - Design: design.md
+      - Tech stack: tech-stack.md
+      - Platforms: platforms.md
