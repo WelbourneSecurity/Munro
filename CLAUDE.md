@@ -25,7 +25,9 @@ documentation site:
 - `CLAUDE.md` / `AGENTS.md` — this file (AGENTS.md is a symlink; edit
   CLAUDE.md only, never replace the symlink with a real file)
 - `wiki/` — the full product brief as MkDocs pages (vision, MVP, features,
-  data, design, tech stack, platforms, roadmap)
+  data, design, tech stack, platforms, roadmap), plus
+  `wiki/implementation-plan.md` — the agentic task breakdown for building
+  the MVP; start there before implementing anything
 - `mkdocs.yml` — MkDocs config (Material theme, `docs_dir: wiki`)
 - `requirements.txt` — Python deps for the docs site
 
@@ -50,13 +52,19 @@ mkdocs build --strict             # build to site/; fails on broken nav/links
 
 ## When application code starts
 
-The intended stack (see `wiki/tech-stack.md` and `wiki/platforms.md`):
+The build is planned in `wiki/implementation-plan.md`, which fixes the
+stack (research-verified July 2026) and breaks the MVP into tasks with
+prompts, tiers and dependencies — follow it rather than re-deciding. In
+brief:
 
-- React or Next.js + TypeScript + Tailwind CSS
-- MapLibre GL JS (preferred) or Leaflet for the map
-- LocalStorage/IndexedDB — local-first, no accounts or backend in the MVP
-- Static JSON/TypeScript data files for peaks; `html-to-image` (or similar)
-  for export
+- React + Vite + TypeScript (strict) + Tailwind v4
+- MapLibre GL JS via `@vis.gl/react-maplibre`; OpenFreeMap dark basemap
+  (key-free) + AWS Terrarium terrain with `maplibre-contour`
+- Zustand + `persist` (localStorage) — local-first, no accounts or backend
+- Static JSON data for peaks (DoBIH, CC BY 4.0); canvas-composited image
+  export
+- Vitest + Playwright + ESLint 10 + Prettier; GitHub Actions CI/CD with a
+  GitHub Pages testing deployment and per-PR previews
 - Web-first responsive app, then PWA, then wrapped/native iPhone and Android
 
 Conventions to preserve when that work begins:
