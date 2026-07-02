@@ -1,339 +1,113 @@
-# Munro: Project Brief
+# Munro
 
-## Overview
+A clean, map-first hiking tracker for UK peak bagging.
 
-Munro is a clean, map-first hiking tracker for UK peak bagging. The app allows users to view major UK mountain and fell lists on a topographic-style map, mark peaks as bagged, track progress by national park or hill list, and export a shareable image showing their completed peaks.
+Munro lets you view the UK's major mountain and fell lists on a dark,
+topographic-style map, mark peaks as bagged, track your progress by hill list
+or national park, and export a polished, shareable image of your completed
+peaks.
 
-The first version should stay deliberately simple: a flawless tracker, not a social network, route planner, GPX library or navigation tool.
+The first version is deliberately simple: a flawless tracker — not a social
+network, route planner, GPX library or navigation tool. See
+[SOUL.md](SOUL.md) for the philosophy behind that choice.
 
-## Core Idea
+## Description
 
-Users open the app, choose a hill list or national park, and see all relevant peaks plotted on a dark, minimal topographic map. Unbagged peaks appear muted grey. Bagged peaks illuminate in a soft green accent. The user can click a peak, view basic information, mark it as bagged, and see their progress update.
+Open the app, choose a hill list or national park, and see every relevant
+peak plotted on a minimal topographic map. Unbagged peaks sit muted grey;
+bagged peaks illuminate in a soft green. Click a peak to view its details,
+mark it as bagged, and watch your progress update.
 
-The app should feel like a premium outdoor logbook with a technical map aesthetic.
+Munro is being developed as a single product accessible from the **web**, on
+**iPhone** and on **Android** devices. The MVP targets the Lake District and
+the 214 Wainwrights, expanding afterwards to Munros, Corbetts, Grahams,
+Donalds, Nuttalls, Hewitts, Marilyns and more.
 
-## Product Name
+Full product detail lives in the [project wiki](wiki/index.md):
 
-Munro
+| Page | Contents |
+| --- | --- |
+| [Vision](wiki/vision.md) | Core idea, target users, what Munro is and isn't |
+| [MVP](wiki/mvp.md) | MVP scope, recommended region, pages, user stories, success criteria |
+| [Features](wiki/features.md) | Map view, peak tracking, progress dashboard, image export, local-first storage |
+| [Data](wiki/data.md) | Peak and progress schemas, map data sources and licensing |
+| [Design](wiki/design.md) | Visual style, styling guidance, what to avoid |
+| [Tech stack](wiki/tech-stack.md) | Recommended libraries and architecture |
+| [Platforms](wiki/platforms.md) | Web, iPhone and Android strategy |
+| [Roadmap](wiki/roadmap.md) | Non-goals for the MVP and possible future features |
 
-## Target Users
+## Visuals
 
-* UK hikers and hillwalkers
-* Peak baggers
-* Wainwright, Munro, Corbett, Graham, Donald, Nuttall and Marilyn completers
-* Outdoor enthusiasts who want a visual record of progress
-* Users who want a clean alternative to spreadsheet-based tracking
+No screenshots yet — the project is in the planning stage. The target look is
+a dark charcoal topographic map with grey contour lines, muted grey markers
+for unbagged peaks and pastel green for bagged ones. See
+[Design](wiki/design.md).
 
-## MVP Scope
+## Installation
 
-The MVP should focus on one complete, polished experience:
+The application itself has not been built yet. What you can install today is
+the documentation site, which is built with [MkDocs](https://www.mkdocs.org/)
+and the Material theme:
 
-1. View a topographic-style UK national park map
-2. Display a curated list of peaks for that area
-3. Mark peaks as bagged or unbagged
-4. Store progress locally in the browser
-5. Show progress statistics
-6. Export a clean image of the selected national park/list with bagged peaks highlighted
-7. Work well on desktop and mobile
-
-## Recommended MVP Region
-
-Start with the Lake District and the 214 Wainwrights.
-
-Reasons:
-
-* Strong recognisable challenge
-* Good bounded geography
-* Manageable dataset size
-* Ideal for testing the export feature
-* Clear visual appeal
-
-After the Wainwright MVP is stable, expand to:
-
-* Munros
-* Munro Tops
-* Corbetts
-* Grahams
-* Donalds
-* Furths
-* Nuttalls
-* Hewitts
-* Marilyns
-* UK county tops
-
-## Core Features
-
-### 1. Map View
-
-The map should show a dark, minimal topographic visual style with:
-
-* Contour lines
-* Subtle terrain shading where possible
-* National park boundary
-* Peak markers
-* Peak labels at appropriate zoom levels
-* Muted styling for incomplete peaks
-* Soft green styling for completed peaks
-
-The visual direction should be monochrome, restrained and premium. Avoid cartoon hiking app styling.
-
-### 2. Peak Tracking
-
-Each peak should have:
-
-* Name
-* Height in metres
-* Height in feet
-* Hill list classification
-* Region or national park
-* Latitude and longitude
-* Optional OS grid reference
-* Bagged status
-* Date bagged
-* Optional notes
-
-For the MVP, notes and dates can be optional. Bagged/unbagged is the core interaction.
-
-### 3. Progress Dashboard
-
-The app should show:
-
-* Total peaks in selected list
-* Number bagged
-* Number remaining
-* Completion percentage
-* Recent bagged peaks if dates are used
-* Filter by bagged, unbagged or all
-
-### 4. Export Image
-
-Users should be able to export a clean image of the current national park or hill list.
-
-The export should include:
-
-* Map area
-* Bagged peaks highlighted in green
-* Unbagged peaks in grey
-* Title, for example “Lake District Wainwrights”
-* Progress count, for example “37 / 214 bagged”
-* Date exported
-* Munro branding
-
-The exported image should be suitable for sharing on LinkedIn, Instagram, Discord or personal blogs.
-
-### 5. Local-First Storage
-
-The first version should use local browser storage rather than accounts.
-
-Use:
-
-* LocalStorage or IndexedDB for user progress
-* Import/export JSON backup
-* No authentication in the MVP
-
-This keeps the project simple and avoids unnecessary backend complexity.
-
-## Data Strategy
-
-### Peak Data
-
-The peak dataset should be stored as structured local data first, for example JSON or TypeScript data files.
-
-Each record should follow a consistent schema:
-
-```ts
-type Peak = {
-  id: string;
-  name: string;
-  list: string[];
-  region: string;
-  nationalPark?: string;
-  heightM: number;
-  heightFt?: number;
-  lat: number;
-  lon: number;
-  gridRef?: string;
-  source?: string;
-};
+```sh
+pip install -r requirements.txt
 ```
 
-### Progress Data
+## Usage
 
-User progress should be separate from the source peak data:
+Serve the documentation locally with live reload:
 
-```ts
-type PeakProgress = {
-  peakId: string;
-  bagged: boolean;
-  baggedDate?: string;
-  notes?: string;
-};
+```sh
+mkdocs serve
 ```
 
-### Map Data
+Then open <http://127.0.0.1:8000>. To build the static site into `site/`:
 
-The app should use reliable mapping data and respect licensing.
+```sh
+mkdocs build
+```
 
-Preferred sources to investigate:
+Once the app exists, this section will cover running it for web, iOS and
+Android.
 
-* Ordnance Survey Data Hub
-* OS Maps API
-* OS Terrain 50
-* OS Terrain 5 if higher terrain detail is needed later
-* Database of British and Irish Hills
-* Official national park boundary datasets where available
+## Support
 
-For the MVP, do not attempt to generate accurate “peak boundaries”. Treat peaks as summit points. Peak boundary lighting can be considered later using terrain-derived catchments, prominence regions or Voronoi-style approximations, but that is not needed for the first tracker.
+Questions and ideas are welcome — please open a GitHub issue on this
+repository.
 
-## Visual Style
+## Roadmap
 
-Munro should feel:
+1. **Wainwrights MVP** — Lake District map, bag/unbag tracking, local-first
+   storage, progress stats and image export, working well on desktop and
+   mobile browsers.
+2. **More hill lists** — Munros, Munro Tops, Corbetts, Grahams, Donalds,
+   Furths, Nuttalls, Hewitts, Marilyns and UK county tops.
+3. **Native reach** — installable experience on iPhone and Android (see
+   [Platforms](wiki/platforms.md)).
+4. **Later** — accounts and cloud sync, GPX upload, Strava import, offline
+   support, poster exports and more: see the full [Roadmap](wiki/roadmap.md).
 
-* Dark
-* Minimal
-* Topographic
-* Technical
-* Outdoors-focused
-* Calm and premium
+## Contributing
 
-Suggested styling:
+The project is at the planning stage, so contributions right now are ideas,
+data-source suggestions and design feedback via issues. Before contributing,
+read [SOUL.md](SOUL.md) — Munro has a strong point of view about staying
+small and polished, and contributions should fit it. Agent/AI contributors
+should read [CLAUDE.md](CLAUDE.md) (also available as [AGENTS.md](AGENTS.md)).
 
-* Dark charcoal background
-* Grey contour lines
-* Muted grey unbagged peaks
-* Pastel green bagged peaks
-* Clean sans-serif typography
-* Small technical labels
-* Thin borders
-* Minimal animations
-* Smooth hover states
+## Authors and acknowledgment
 
-Avoid:
+Peak data will be sourced with thanks from the
+[Database of British and Irish Hills](https://www.hills-database.co.uk/) and
+mapping from [Ordnance Survey](https://osdatahub.os.uk/) open data, subject
+to their licences.
 
-* Bright gamified colours
-* Overly playful icons
-* Heavy 3D effects
-* Bloated dashboards
-* Social media clutter
-* Complex route planning in MVP
+## License
 
-## Suggested Tech Stack
+Not yet decided. A licence will be chosen before the first code release.
 
-Recommended simple stack:
+## Project status
 
-* React or Next.js
-* TypeScript
-* Tailwind CSS
-* MapLibre GL JS or Leaflet
-* LocalStorage or IndexedDB
-* html-to-image or similar export library
-* Static JSON/TypeScript data files for peaks
-
-If using vector tiles or advanced map styling:
-
-* MapLibre GL JS is preferred
-
-If keeping the first version very simple:
-
-* Leaflet is acceptable
-
-## MVP Pages
-
-### Home
-
-Purpose:
-
-* Explain what Munro is
-* Show quick stats
-* CTA to open tracker
-
-### Tracker
-
-Purpose:
-
-* Main map interface
-* Peak list
-* Filters
-* Bag/unbag actions
-* Progress summary
-* Export image button
-
-### Data / Lists
-
-Purpose:
-
-* Show supported hill lists
-* Explain data sources and limitations
-
-### Settings
-
-Purpose:
-
-* Export/import user progress
-* Reset local progress
-* Toggle visual preferences
-
-## Key User Stories
-
-1. As a hiker, I want to see all Wainwrights on a map so I can understand what I have left to complete.
-2. As a hiker, I want to mark a peak as bagged so my progress is saved.
-3. As a hiker, I want bagged peaks to light up visually so the map feels rewarding.
-4. As a hiker, I want to export an image of my progress so I can share it.
-5. As a hiker, I want to back up my progress so I do not lose my record.
-6. As a hiker, I want to filter remaining peaks so I can plan future walks.
-
-## Non-Goals for MVP
-
-Munro should not initially include:
-
-* Route planning
-* Turn-by-turn navigation
-* GPX recording
-* User accounts
-* Social feeds
-* Comments
-* Public profiles
-* Paid subscriptions
-* Weather forecasting
-* Strava integration
-* Offline mobile app support
-* Accurate summit catchment boundaries
-
-These can be revisited later.
-
-## Success Criteria
-
-The MVP is successful when:
-
-* The map loads quickly
-* Peaks are accurately positioned
-* Bagged state is reliable
-* Progress persists after refresh
-* Exported images look polished
-* The interface works well on mobile and desktop
-* The codebase is clean and easy to extend
-* Adding another hill list is straightforward
-
-## Future Features
-
-Possible later features:
-
-* User accounts and cloud sync
-* GPX upload
-* Strava import
-* Route suggestions
-* Offline support
-* Peak photos
-* Public completion profiles
-* National park poster exports
-* Completion certificates
-* Mobile PWA install
-* Terrain-derived peak regions
-* Multiple export themes
-* Personal hiking journal
-
-## Build Philosophy
-
-Munro should be built as a polished tracker first.
-
-Do not overbuild. Do not chase every outdoor app feature. The unique value is the visual satisfaction of seeing the UK’s major peaks light up as the user bags them.
+**Planning.** This repository currently contains the product brief (as a
+documentation site) and no application code. The next milestone is the
+Wainwrights MVP described in [MVP](wiki/mvp.md).
