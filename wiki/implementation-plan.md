@@ -1463,15 +1463,16 @@ concurrently in separate worktrees.
 | Wave | Tasks | Notes |
 | --- | --- | --- |
 | A | T0.1 · T1.4 · T1.5 · T2.3 | T0.1 is the critical path; the other three don't touch the app |
-| B | T0.2 · T0.3 · T0.4 · T0.5 · T0.6 · T2.1 | all fan out from T0.1 |
-| C | T0.7 · T0.8 · T2.2 · T3.7 | T0.8 closes Phase 0 |
-| D | T1.1 · T1.2 · T2.4 · T2.5 · T3.1 · T3.2 | CI live from here; map work starts |
-| E | T1.3 · T1.6 · T3.3 · T3.4 · T3.5 · T3.6 | the core tracker converges |
-| F | T4.1 · T4.2 · T4.3 · T4.4 · T5.1 | pages + export capture |
+| B | T0.2 · T0.3 · T0.4 · T0.5 · T0.6 | all fan out from T0.1 |
+| C | T0.7 · T2.1 · T3.7 | T2.1's tests need T0.5's Vitest setup merged |
+| D | T0.8 · T2.2 · T3.1 · T3.2 | T0.8 closes Phase 0; map work starts |
+| E | T1.1 · T1.2 · T2.4 · T2.5 · T3.3 · T3.4 · T3.5 · T3.6 | CI live from here; the core tracker converges |
+| F | T1.3 · T1.6 · T4.1 · T4.2 · T4.3 · T4.4 · T5.1 | previews, pages, export capture |
 | G | T5.2 · T6.2 | composition; a11y can start |
-| H | T5.3 · T6.1 · T6.3 | export UI, real e2e, mobile polish |
-| I | T6.4 · T7.1 | measure, reconcile docs |
-| J | T7.2 | acceptance |
+| H | T5.3 | export UI ships the last feature |
+| I | T6.1 · T6.3 · T6.4 | real e2e, mobile polish, perf measurement |
+| J | T7.1 | reconcile docs |
+| K | T7.2 | acceptance |
 
 Merge discipline: waves are about *starting* work; merge PRs as they pass
 CI, rebasing within a wave when tasks touch neighbouring files (most don't
