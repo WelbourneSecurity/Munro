@@ -33,6 +33,9 @@ theme:
     - toc.integrate
     - content.code.copy
 
+extra_css:
+  - assets/stylesheets/munro.css
+
 markdown_extensions:
   - admonition
   - tables
