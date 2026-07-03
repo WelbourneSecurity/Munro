@@ -164,19 +164,19 @@ Two firm boundaries: `src/domain/` has no React and no MapLibre imports
 
 ## Decisions needing a human
 
-Agents must not make these calls; they block the tasks noted:
+Agents must not make these calls. All three were put to the project owner
+and **resolved in July 2026** (PR #2 discussion):
 
-1. **Licence** — README says "not yet decided". MIT is recommended (research
-   confirmed no conflict with CC BY 4.0 data or OGL boundaries — data
-   licences apply to data, code licence to code). Blocks T7.1's final
-   README; nothing else.
-2. **GitHub repo settings** (admin access): set Pages source to "Deploy from
-   branch: gh-pages" (required by the PR-preview approach), create the
-   `main` ruleset requiring the `checks`/`build`/`e2e` status checks, and
-   confirm Actions are enabled. T1.6 produces the exact checklist.
-3. **OpenFreeMap acceptance** — it is free with no SLA. Accept for the MVP
-   testing deployment? (Fallback is self-hosted PMTiles; T3.2 keeps the tile
-   source swappable either way.)
+1. **Licence** — **Resolved: MIT.** Research confirmed no conflict with the
+   CC BY 4.0 hill data or OGL boundaries (data licences apply to data, the
+   code licence to code). `LICENSE` is committed; nothing blocks T7.1.
+2. **GitHub repo settings** — **Resolved: applied by the owner** (Pages
+   source "Deploy from branch: gh-pages", `main` ruleset with required
+   status checks, Actions enabled). T1.6 still documents them in
+   `wiki/operations.md` so the configuration is reproducible.
+3. **OpenFreeMap acceptance** — **Resolved: accepted** for the MVP testing
+   deployment. The self-hosted PMTiles fallback stays documented and the
+   tile source stays swappable (T3.2).
 
 ---
 
@@ -1380,8 +1380,7 @@ build --strict.
 
 ### T7.1 — Full documentation reconciliation
 
-**Tier:** M · **Depends on:** everything · **Blocked by human decision 1
-(licence) for the README licence section**
+**Tier:** M · **Depends on:** everything
 
 **Scope:** The final docs gate. Reconcile the whole written surface with
 the shipped reality: README (installation/usage for the app, screenshots

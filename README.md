@@ -105,7 +105,10 @@ to their licences.
 
 ## License
 
-Not yet decided. A licence will be chosen before the first code release.
+[MIT](LICENSE). Note that the licence covers this repository's code and
+documentation; hill data and map data used by the app remain under their own
+licences (Database of British and Irish Hills, CC BY 4.0; Ordnance Survey /
+Natural England open data, OGL v3) — see [Data](wiki/data.md).
 
 ## Project status
 
