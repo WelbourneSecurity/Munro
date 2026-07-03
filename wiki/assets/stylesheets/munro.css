@@ -1,0 +1,159 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&display=swap");
+
+:root {
+  --munro-ink: #222f30;
+  --munro-paper: #f7f7f5;
+  --munro-white: #ffffff;
+  --munro-shadow: 0 22px 70px rgba(14, 24, 22, 0.24);
+}
+
+[data-md-color-scheme="slate"],
+[data-md-color-scheme="default"] {
+  --md-default-bg-color: var(--munro-paper);
+  --md-default-fg-color: var(--munro-ink);
+  --md-primary-fg-color: var(--munro-paper);
+  --md-accent-fg-color: var(--munro-ink);
+}
+
+body:has(.munro-home) .md-header,
+body:has(.munro-home) .md-sidebar,
+body:has(.munro-home) .md-footer,
+body:has(.munro-home) .md-top {
+  display: none;
+}
+
+body:has(.munro-home) .md-main,
+body:has(.munro-home) .md-main__inner,
+body:has(.munro-home) .md-content,
+body:has(.munro-home) .md-content__inner {
+  margin: 0;
+  max-width: none;
+  padding: 0;
+}
+
+.md-content__inner::before {
+  display: none;
+}
+
+.munro-home {
+  background: var(--munro-paper);
+  margin: 0 calc(50% - 50vw);
+  min-height: 100svh;
+  overflow: hidden;
+  padding: clamp(0.7rem, 1.75vw, 1.5rem);
+}
+
+.munro-hero {
+  background: #15201f;
+  border-radius: clamp(1rem, 2vw, 1.65rem);
+  box-shadow: var(--munro-shadow);
+  color: var(--munro-white);
+  min-height: calc(100svh - clamp(1.4rem, 3.5vw, 3rem));
+  overflow: hidden;
+  position: relative;
+}
+
+.munro-hero::before {
+  background:
+    linear-gradient(90deg, rgba(3, 9, 8, 0.5), rgba(3, 9, 8, 0.12) 48%, rgba(3, 9, 8, 0.08)),
+    linear-gradient(0deg, rgba(3, 9, 8, 0.66), transparent 45%),
+    linear-gradient(180deg, rgba(3, 9, 8, 0.25), transparent 28%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+.munro-hero__bg {
+  display: block;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: center center;
+  position: absolute;
+  transform: scale(1.012);
+  width: 100%;
+}
+
+.munro-home .munro-hero__site-cta {
+  align-items: center;
+  backdrop-filter: blur(18px);
+  background: rgba(247, 247, 245, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  border-radius: 999px;
+  color: var(--munro-ink);
+  display: inline-flex;
+  font-size: clamp(0.66rem, 0.9vw, 0.78rem);
+  font-weight: 850;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  min-height: 3rem;
+  padding: 0.86rem 1.18rem;
+  position: absolute;
+  right: clamp(1rem, 2.5vw, 2.4rem);
+  text-transform: uppercase;
+  top: clamp(1rem, 2.1vw, 1.85rem);
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+  z-index: 2;
+}
+
+.munro-home .munro-hero__site-cta:hover,
+.munro-home .munro-hero__site-cta:focus {
+  background: var(--munro-white);
+  color: var(--munro-ink);
+  transform: translateY(-1px);
+}
+
+.munro-hero h1 {
+  bottom: clamp(1.2rem, 3vw, 3rem);
+  color: var(--munro-white);
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: clamp(4rem, 11vw, 10.2rem);
+  font-weight: 400;
+  left: clamp(1.2rem, 3vw, 3rem);
+  letter-spacing: 0;
+  line-height: 0.86;
+  margin: 0;
+  max-width: min(78rem, 88vw);
+  position: absolute;
+  text-shadow: 0 2px 32px rgba(0, 0, 0, 0.46);
+  z-index: 2;
+}
+
+@media screen and (max-width: 59.9375em) {
+  .munro-home {
+    padding: 0.55rem;
+  }
+
+  .munro-hero {
+    min-height: calc(100svh - 1.1rem);
+  }
+
+  .munro-hero::before {
+    background:
+      linear-gradient(90deg, rgba(3, 9, 8, 0.54), rgba(3, 9, 8, 0.18)),
+      linear-gradient(0deg, rgba(3, 9, 8, 0.76), transparent 52%),
+      linear-gradient(180deg, rgba(3, 9, 8, 0.34), transparent 32%);
+  }
+
+  .munro-home .munro-hero__site-cta {
+    min-height: 2.75rem;
+    padding: 0.78rem 0.95rem;
+    right: 0.85rem;
+    top: 0.85rem;
+  }
+
+  .munro-hero h1 {
+    bottom: 1rem;
+    font-size: clamp(3.4rem, 18vw, 6.4rem);
+    left: 1rem;
+    max-width: 8ch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .munro-home .munro-hero__site-cta {
+    transition: none;
+  }
+}
