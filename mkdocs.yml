@@ -49,6 +49,7 @@ nav:
       - Features: features.md
       - Roadmap: roadmap.md
   - Building it:
+      - Implementation plan: implementation-plan.md
       - Data: data.md
       - Design: design.md
       - Tech stack: tech-stack.md

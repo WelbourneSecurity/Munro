@@ -29,6 +29,7 @@ Full product detail lives in the [project wiki](wiki/index.md):
 | --- | --- |
 | [Vision](wiki/vision.md) | Core idea, target users, what Munro is and isn't |
 | [MVP](wiki/mvp.md) | MVP scope, recommended region, pages, user stories, success criteria |
+| [Implementation plan](wiki/implementation-plan.md) | Verified tech decisions, CI/CD design, and the full agentic task breakdown for building the MVP |
 | [Features](wiki/features.md) | Map view, peak tracking, progress dashboard, image export, local-first storage |
 | [Data](wiki/data.md) | Peak and progress schemas, map data sources and licensing |
 | [Design](wiki/design.md) | Visual style, styling guidance, what to avoid |
@@ -110,4 +111,6 @@ Not yet decided. A licence will be chosen before the first code release.
 
 **Planning.** This repository currently contains the product brief (as a
 documentation site) and no application code. The next milestone is the
-Wainwrights MVP described in [MVP](wiki/mvp.md).
+Wainwrights MVP described in [MVP](wiki/mvp.md); the build itself is broken
+down into tasks in the
+[implementation plan](wiki/implementation-plan.md).
