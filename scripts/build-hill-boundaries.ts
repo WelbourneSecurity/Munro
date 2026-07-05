@@ -84,7 +84,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function angularDifference(first: number, second: number) {
-  const diff = Math.abs((((first - second) % 360) + 540) % 360) - 180;
+  const diff = Math.abs(((((first - second) % 360) + 540) % 360) - 180);
   return diff;
 }
 
