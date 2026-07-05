@@ -17,26 +17,51 @@ core product value, and the MVP non-goals in `wiki/roadmap.md` are firm.
 
 ## Repository state
 
-**Planning stage — there is no application code yet.** The repository is a
-documentation site:
+**MVP implementation has started.** The repository contains the documentation
+site, the React/Vite app scaffold, and the first map/data foundation:
 
 - `README.md` — short front door, structured per makeareadme.com
 - `SOUL.md` — project philosophy; consult it for any product decision
-- `CLAUDE.md` / `AGENTS.md` — this file (AGENTS.md is a symlink; edit
-  CLAUDE.md only, never replace the symlink with a real file)
+- `CLAUDE.md` / `AGENTS.md` — this file is the source of agent instructions;
+  edit `CLAUDE.md` only
+- `index.html` — Vite app entry
+- `src/` — React app; `src/domain/` stays pure and framework-free
+- `src/data/` — generated Wainwright peak data, Lake District boundary data
+  and attribution constants
+- `src/map/` — the MapLibre/OpenFreeMap tracker wrapper, terrain/contour setup
+  and map layers; keep MapLibre imports isolated here
+- `src/store/` — local-first Zustand progress and preferences stores
 - `wiki/` — the full product brief as MkDocs pages (vision, MVP, features,
   data, design, tech stack, platforms, roadmap), plus
   `wiki/implementation-plan.md` — the agentic task breakdown for building
   the MVP; start there before implementing anything
 - `mkdocs.yml` — MkDocs config (Material theme, `docs_dir: wiki`)
 - `requirements.txt` — Python deps for the docs site
+- `package.json` — app scripts and JavaScript tooling
 
 ## Commands
 
 ```sh
-pip install -r requirements.txt   # install MkDocs + Material theme
-mkdocs serve                      # docs at http://127.0.0.1:8000, live reload
-mkdocs build --strict             # build to site/; fails on broken nav/links
+npm ci                  # install app dependencies
+npm run dev             # Vite dev server
+npm run build           # typecheck and production build
+npm run preview         # preview production build
+npm run typecheck       # TypeScript project references, no emit
+npm run lint            # ESLint 10 flat config
+npm run lint:fix        # ESLint autofix
+npm run format          # Prettier write
+npm run format:check    # Prettier check
+npm run test            # Vitest unit/component tests
+npm run test:watch      # Vitest watch mode
+npm run test:coverage   # Vitest coverage thresholds
+npm run test:e2e        # production build + Playwright smoke test
+npm run data:peaks      # refresh Wainwright data from DoBIH
+npm run data:boundary   # refresh Lake District boundary data from Natural England
+npm run data:hill-boundaries # refresh generated Wainwright hill profiles
+npm run verify          # typecheck -> lint -> format:check -> test -> build
+pip install -r requirements.txt
+mkdocs serve            # docs at http://127.0.0.1:8000, live reload
+mkdocs build --strict   # build to site/; fails on broken nav/links
 ```
 
 `site/` is build output and is gitignored — never commit it.
@@ -50,31 +75,35 @@ mkdocs build --strict             # build to site/; fails on broken nav/links
   links and nav entries.
 - Keep the tone of the docs like the product: plain, calm, no hype.
 
-## When application code starts
+## Application code
 
-The build is planned in `wiki/implementation-plan.md`, which fixes the
-stack (research-verified July 2026) and breaks the MVP into tasks with
-prompts, tiers and dependencies — follow it rather than re-deciding. In
-brief:
+The build is planned in `wiki/implementation-plan.md`, which fixes the stack
+(research-verified July 2026) and breaks the MVP into tasks with prompts, tiers
+and dependencies — follow it rather than re-deciding. In brief:
 
 - React + Vite + TypeScript (strict) + Tailwind v4
 - MapLibre GL JS via `@vis.gl/react-maplibre`; OpenFreeMap dark basemap
-  (key-free) + AWS Terrarium terrain with `maplibre-contour`
+  (key-free); AWS Terrarium terrain with `maplibre-contour`
 - Zustand + `persist` (localStorage) — local-first, no accounts or backend
-- Static JSON data for peaks (DoBIH, CC BY 4.0); canvas-composited image
-  export
+- Static JSON data for peaks (DoBIH, CC BY 4.0); Natural England boundary
+  data (OGL v3); canvas-composited image export
 - Vitest + Playwright + ESLint 10 + Prettier; GitHub Actions CI/CD with a
   GitHub Pages testing deployment and per-PR previews
 - Web-first responsive app, then PWA, then wrapped/native iPhone and Android
 
-Conventions to preserve when that work begins:
+Conventions to preserve:
 
 - Peak source data and user progress are **separate** records — see the
   `Peak` and `PeakProgress` schemas in `wiki/data.md`; don't merge them.
 - Adding a new hill list must stay a data-only change, not a refactor.
-- Respect data licensing (Database of British and Irish Hills, OS open
-  data) — attribution requirements are noted in `wiki/data.md`.
+- Hill lighting uses generated summit-centred hill profiles clipped to the
+  Lake District boundary. Treat them as approximate visual lighting profiles,
+  not authoritative legal, route or geomorphological boundaries.
+- Respect data licensing (Database of British and Irish Hills, OpenFreeMap /
+  OpenStreetMap, AWS Terrain Tiles / Mapzen, Natural England OGL data) —
+  attribution requirements are noted in `wiki/data.md` and centralized in
+  `src/data/attribution.ts`.
 - Visual style is dark, monochrome, topographic and restrained — grey for
   unbagged, soft green for bagged. No gamified colours. See
   `wiki/design.md`.
-- Update this file with real build/test/lint commands as soon as they exist.
+- Keep this file current when commands, data sources or architecture change.

@@ -34,3 +34,17 @@ The visual direction should be monochrome, restrained and premium — a
 premium outdoor logbook with a technical map aesthetic, not a cartoon hiking
 app. This applies identically on the web, iPhone and Android: one design
 language on every screen.
+
+## Implementation tokens
+
+The web app defines the first design tokens in `src/index.css` using Tailwind
+v4's CSS `@theme` block:
+
+- `--color-surface`, `--color-panel` and `--color-line` for the dark shell and
+  thin UI borders.
+- `--color-contour`, `--color-unbagged` and `--color-muted` for map-adjacent
+  greys.
+- `--color-bagged` for the single soft green completion accent.
+- `--color-primary` and `--color-secondary` for text.
+- `--font-sans`, `--font-label` and `--text-label` for clean interface
+  typography and small technical labels.

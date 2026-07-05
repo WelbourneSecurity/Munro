@@ -25,36 +25,75 @@ Donalds, Nuttalls, Hewitts, Marilyns and more.
 
 Full product detail lives in the [project wiki](wiki/index.md):
 
-| Page | Contents |
-| --- | --- |
-| [Vision](wiki/vision.md) | Core idea, target users, what Munro is and isn't |
-| [MVP](wiki/mvp.md) | MVP scope, recommended region, pages, user stories, success criteria |
+| Page                                               | Contents                                                                                        |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| [Vision](wiki/vision.md)                           | Core idea, target users, what Munro is and isn't                                                |
+| [MVP](wiki/mvp.md)                                 | MVP scope, recommended region, pages, user stories, success criteria                            |
 | [Implementation plan](wiki/implementation-plan.md) | Verified tech decisions, CI/CD design, and the full agentic task breakdown for building the MVP |
-| [Features](wiki/features.md) | Map view, peak tracking, progress dashboard, image export, local-first storage |
-| [Data](wiki/data.md) | Peak and progress schemas, map data sources and licensing |
-| [Design](wiki/design.md) | Visual style, styling guidance, what to avoid |
-| [Tech stack](wiki/tech-stack.md) | Recommended libraries and architecture |
-| [Platforms](wiki/platforms.md) | Web, iPhone and Android strategy |
-| [Roadmap](wiki/roadmap.md) | Non-goals for the MVP and possible future features |
+| [Features](wiki/features.md)                       | Map view, peak tracking, progress dashboard, image export, local-first storage                  |
+| [Data](wiki/data.md)                               | Peak and progress schemas, map data sources and licensing                                       |
+| [Design](wiki/design.md)                           | Visual style, styling guidance, what to avoid                                                   |
+| [Tech stack](wiki/tech-stack.md)                   | Recommended libraries and architecture                                                          |
+| [Platforms](wiki/platforms.md)                     | Web, iPhone and Android strategy                                                                |
+| [Roadmap](wiki/roadmap.md)                         | Non-goals for the MVP and possible future features                                              |
 
 ## Visuals
 
-No screenshots yet — the project is in the planning stage. The target look is
-a dark charcoal topographic map with grey contour lines, muted grey markers
-for unbagged peaks and pastel green for bagged ones. See
-[Design](wiki/design.md).
+The first map implementation is in place: a dark OpenFreeMap basemap, the Lake
+District boundary, and all 214 Wainwright summit points from DoBIH. The target
+look remains a dark charcoal topographic map with muted grey markers for
+unbagged peaks, pastel green for bagged ones, and restrained terrain
+hillshade/contours for mountain context. See [Design](wiki/design.md).
 
 ## Installation
 
-The application itself has not been built yet. What you can install today is
-the documentation site, which is built with [MkDocs](https://www.mkdocs.org/)
-and the Material theme:
+Install the web app dependencies:
+
+```sh
+npm ci
+```
+
+The documentation site is built with [MkDocs](https://www.mkdocs.org/) and the
+Material theme:
 
 ```sh
 pip install -r requirements.txt
 ```
 
 ## Usage
+
+Run the app locally:
+
+```sh
+npm run dev
+```
+
+Build and preview the production app:
+
+```sh
+npm run build
+npm run preview
+```
+
+Run the Phase 0 verification suite:
+
+```sh
+npm run typecheck
+npm run lint
+npm run format:check
+npm run test
+npm run test:coverage
+npm run test:e2e
+npm run verify
+```
+
+Refresh reviewed source data:
+
+```sh
+npm run data:peaks
+npm run data:boundary
+npm run data:hill-boundaries
+```
 
 Serve the documentation locally with live reload:
 
@@ -65,11 +104,8 @@ mkdocs serve
 Then open <http://127.0.0.1:8000>. To build the static site into `site/`:
 
 ```sh
-mkdocs build
+mkdocs build --strict
 ```
-
-Once the app exists, this section will cover running it for web, iOS and
-Android.
 
 ## Support
 
@@ -90,18 +126,20 @@ repository.
 
 ## Contributing
 
-The project is at the planning stage, so contributions right now are ideas,
-data-source suggestions and design feedback via issues. Before contributing,
-read [SOUL.md](SOUL.md) — Munro has a strong point of view about staying
-small and polished, and contributions should fit it. Agent/AI contributors
-should read [CLAUDE.md](CLAUDE.md) (also available as [AGENTS.md](AGENTS.md)).
+Before contributing, read [SOUL.md](SOUL.md) and
+[CONTRIBUTING.md](CONTRIBUTING.md). Munro has a strong point of view about
+staying small and polished, and contributions should fit it. Agent/AI
+contributors should read [CLAUDE.md](CLAUDE.md) (also available as
+[AGENTS.md](AGENTS.md)).
 
 ## Authors and acknowledgment
 
-Peak data will be sourced with thanks from the
-[Database of British and Irish Hills](https://www.hills-database.co.uk/) and
-mapping from [Ordnance Survey](https://osdatahub.os.uk/) open data, subject
-to their licences.
+Peak data is sourced with thanks from the
+[Database of British and Irish Hills](https://www.hill-bagging.co.uk/dobih/)
+under CC BY 4.0. Boundary data is from Natural England's National Parks
+(England) dataset under OGL v3. Basemap tiles are served by
+[OpenFreeMap](https://openfreemap.org/) using OpenStreetMap data. Terrain
+context uses [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/).
 
 ## License
 
@@ -109,8 +147,8 @@ Not yet decided. A licence will be chosen before the first code release.
 
 ## Project status
 
-**Planning.** This repository currently contains the product brief (as a
-documentation site) and no application code. The next milestone is the
-Wainwrights MVP described in [MVP](wiki/mvp.md); the build itself is broken
-down into tasks in the
+**MVP foundation in progress.** The repository now contains the documentation
+site, React/Vite app scaffold, validated Wainwright data, Lake District
+boundary data, local progress storage, and the first MapLibre/OpenFreeMap
+tracker view with terrain hillshade and contours. The remaining MVP work is tracked in the
 [implementation plan](wiki/implementation-plan.md).
