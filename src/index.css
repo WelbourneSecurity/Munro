@@ -1,0 +1,66 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-surface: #111713;
+  --color-panel: #17201b;
+  --color-line: #34433a;
+  --color-contour: #65786b;
+  --color-primary: #f1f4ee;
+  --color-secondary: #c8d0c6;
+  --color-muted: #96a095;
+  --color-unbagged: #aab3aa;
+  --color-bagged: #a7d8b6;
+
+  --font-sans: 'Aptos', 'Aptos Display', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-label: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+
+  --text-label: 0.75rem;
+  --text-label--line-height: 1rem;
+  --text-label--font-weight: 650;
+}
+
+:root {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100svh;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.maplibregl-ctrl,
+.maplibregl-ctrl button {
+  border-radius: 0;
+}
+
+.maplibregl-ctrl-attrib {
+  background: rgb(17 23 19 / 88%) !important;
+  color: var(--color-secondary) !important;
+  font-family: var(--font-label);
+  font-size: 0.625rem;
+}
+
+.maplibregl-ctrl-attrib a {
+  color: var(--color-bagged) !important;
+}

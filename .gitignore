@@ -4,3 +4,13 @@ site/
 # Python
 .venv/
 __pycache__/
+
+# Node / Vite
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Test output
+coverage/
+playwright-report/
+test-results/
