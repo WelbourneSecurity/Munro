@@ -141,7 +141,7 @@ export function MapView() {
       return;
     }
 
-    bag(selectedPeak.id, new Date().toISOString().slice(0, 10));
+    bag(selectedPeak.id, new Intl.DateTimeFormat('en-CA').format(new Date()));
   }
 
   return (
