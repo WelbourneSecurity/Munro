@@ -16,6 +16,23 @@ interface PeakListPanelProps {
   onSelectPeak: (peakId: string) => void;
 }
 
+const baggedDateFormatter = new Intl.DateTimeFormat('en-GB', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+function formatBaggedDate(isoDate: string) {
+  const parsed = new Date(`${isoDate}T00:00:00Z`);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return undefined;
+  }
+
+  return baggedDateFormatter.format(parsed);
+}
+
 const filterOptions: { label: string; value: PeakFilter }[] = [
   { label: 'All', value: 'all' },
   { label: 'Bagged', value: 'bagged' },
@@ -105,36 +122,43 @@ export function PeakListPanel({
               {group.region.replace('Lake District - ', '')}
             </h3>
             <ul className="space-y-1">
-              {group.items.map((item) => (
-                <li key={item.peak.id}>
-                  <button
-                    className={`grid min-h-12 w-full grid-cols-[1fr_auto] items-center gap-3 border px-3 py-2 text-left transition-colors ${
-                      selectedPeakId === item.peak.id
-                        ? 'border-bagged bg-surface'
-                        : 'border-line bg-panel hover:border-muted'
-                    }`}
-                    type="button"
-                    onClick={() => {
-                      onSelectPeak(item.peak.id);
-                    }}
-                  >
-                    <span>
-                      <span className="text-primary block text-sm font-semibold">
-                        {item.peak.name}
-                      </span>
-                      <span className="text-muted text-xs">
-                        {Math.round(item.peak.heightM)}m
-                      </span>
-                    </span>
-                    <span
-                      className={`h-2.5 w-2.5 ${
-                        item.bagged ? 'bg-bagged' : 'bg-unbagged'
+              {group.items.map((item) => {
+                const baggedDate = item.progress?.baggedDate
+                  ? formatBaggedDate(item.progress.baggedDate)
+                  : undefined;
+
+                return (
+                  <li key={item.peak.id}>
+                    <button
+                      className={`grid min-h-12 w-full grid-cols-[1fr_auto] items-center gap-3 border px-3 py-2 text-left transition-colors ${
+                        selectedPeakId === item.peak.id
+                          ? 'border-bagged bg-surface'
+                          : 'border-line bg-panel hover:border-muted'
                       }`}
-                      aria-label={item.bagged ? 'Bagged' : 'Unbagged'}
-                    />
-                  </button>
-                </li>
-              ))}
+                      type="button"
+                      onClick={() => {
+                        onSelectPeak(item.peak.id);
+                      }}
+                    >
+                      <span>
+                        <span className="text-primary block text-sm font-semibold">
+                          {item.peak.name}
+                        </span>
+                        <span className="text-muted text-xs">
+                          {Math.round(item.peak.heightM)}m
+                          {baggedDate ? ` · ${baggedDate}` : ''}
+                        </span>
+                      </span>
+                      <span
+                        className={`h-2.5 w-2.5 ${
+                          item.bagged ? 'bg-bagged' : 'bg-unbagged'
+                        }`}
+                        aria-label={item.bagged ? 'Bagged' : 'Unbagged'}
+                      />
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}

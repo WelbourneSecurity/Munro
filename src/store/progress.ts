@@ -11,6 +11,7 @@ export interface ProgressState {
   progressByPeakId: Record<string, PeakProgress>;
   bag: (peakId: string, date?: string) => void;
   unbag: (peakId: string) => void;
+  setBaggedDate: (peakId: string, date?: string) => void;
   setNotes: (peakId: string, notes?: string) => void;
   importProgress: (backup: unknown) => void;
   exportProgress: () => Backup;
@@ -46,6 +47,30 @@ export const useProgressStore = create<ProgressState>()(
           void removed;
 
           return { progressByPeakId: remaining };
+        });
+      },
+      setBaggedDate: (peakId, date) => {
+        set((state) => {
+          const current = state.progressByPeakId[peakId];
+
+          if (!current) {
+            return state;
+          }
+
+          const next = { ...current };
+
+          if (date) {
+            next.baggedDate = date;
+          } else {
+            delete next.baggedDate;
+          }
+
+          return {
+            progressByPeakId: {
+              ...state.progressByPeakId,
+              [peakId]: next,
+            },
+          };
         });
       },
       setNotes: (peakId, notes) => {

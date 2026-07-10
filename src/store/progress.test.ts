@@ -59,6 +59,46 @@ describe('useProgressStore', () => {
     expect(isBagged('dobih-missing')).toBe(false);
   });
 
+  it('edits and clears the bagged date while keeping bagged state', () => {
+    useProgressStore.getState().bag('dobih-2319', '2026-07-05');
+    useProgressStore.getState().setBaggedDate('dobih-2319', '2026-07-08');
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: true,
+      baggedDate: '2026-07-08',
+    });
+
+    useProgressStore.getState().setBaggedDate('dobih-2319');
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: true,
+    });
+
+    useProgressStore.getState().setBaggedDate('dobih-2319', '');
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: true,
+    });
+  });
+
+  it('ignores bagged-date edits for peaks with no progress record', () => {
+    useProgressStore.getState().setBaggedDate('dobih-missing', '2026-07-08');
+
+    expect(
+      useProgressStore.getState().progressByPeakId['dobih-missing'],
+    ).toBeUndefined();
+  });
+
+  it('persists bagged dates to localStorage', () => {
+    useProgressStore.getState().bag('dobih-2319');
+    useProgressStore.getState().setBaggedDate('dobih-2319', '2026-07-08');
+
+    expect(localStorage.getItem(PROGRESS_STORAGE_KEY)).toContain('2026-07-08');
+  });
+
   it('trims, stores and clears notes separately from bagged state', () => {
     useProgressStore.getState().bag('dobih-2319');
     useProgressStore.getState().setNotes('dobih-2319', '  Clear day from the ridge  ');

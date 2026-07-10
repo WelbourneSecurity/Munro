@@ -5,6 +5,7 @@ import wainwrights from '../data/wainwrights.json';
 import { calculateProgress, type Peak } from '../domain';
 import { MapView } from '../map';
 import { useProgressStore } from '../store';
+import { DataPage } from './DataPage';
 import { SettingsPage } from './SettingsPage';
 
 type RouteId = 'home' | 'tracker' | 'data' | 'settings';
@@ -90,9 +91,7 @@ function renderRoute(route: RouteId): ReactNode {
   }
 
   if (route === 'data') {
-    return (
-      <StubPage title="Data" description="Source data and backup tools land here." />
-    );
+    return <DataPage />;
   }
 
   if (route === 'settings') {
@@ -135,16 +134,6 @@ function HomePage() {
       >
         Open tracker
       </a>
-    </section>
-  );
-}
-
-function StubPage({ title, description }: { title: string; description: string }) {
-  return (
-    <section className="mx-auto max-w-3xl px-4 py-14">
-      <p className="font-label text-label text-muted">Munro</p>
-      <h1 className="text-primary mt-2 text-3xl font-semibold">{title}</h1>
-      <p className="text-secondary mt-4 max-w-xl text-sm leading-6">{description}</p>
     </section>
   );
 }

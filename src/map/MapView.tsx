@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AttributionControl,
   Layer,
@@ -54,9 +54,12 @@ setupTerrainProtocols();
 
 export function MapView() {
   const mapRef = useRef<MapRef>(null);
+  const notesRef = useRef<HTMLTextAreaElement>(null);
   const progressByPeakId = useProgressStore((state) => state.progressByPeakId);
   const bag = useProgressStore((state) => state.bag);
   const unbag = useProgressStore((state) => state.unbag);
+  const setBaggedDate = useProgressStore((state) => state.setBaggedDate);
+  const setNotes = useProgressStore((state) => state.setNotes);
   const terrainEnabled = usePreferencesStore((state) => state.terrainEnabled);
   const setTerrainEnabled = usePreferencesStore((state) => state.setTerrainEnabled);
   const [selectedPeakId, setSelectedPeakId] = useState(peaks[0]?.id);
@@ -85,6 +88,39 @@ export function MapView() {
   const selectedPeak = peaks.find((peak) => peak.id === selectedPeakId) ?? peaks[0];
   const selectedProgress = selectedPeak ? progressByPeakId[selectedPeak.id] : undefined;
   const isSelectedBagged = selectedProgress?.bagged === true;
+
+  // The notes textarea only commits on blur, which never fires when the page
+  // is reloaded, closed or a backgrounded PWA is killed — flush pending text
+  // to the store before the page goes away so notes persist across reloads.
+  useEffect(() => {
+    const peakId = selectedPeak?.id;
+
+    if (!peakId) {
+      return;
+    }
+
+    function flushNotes() {
+      const textarea = notesRef.current;
+
+      if (textarea && peakId) {
+        setNotes(peakId, textarea.value || undefined);
+      }
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') {
+        flushNotes();
+      }
+    }
+
+    window.addEventListener('pagehide', flushNotes);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', flushNotes);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [selectedPeak?.id, setNotes]);
 
   const mapStyle = useMemo<StyleSpecification>(
     () =>
@@ -272,6 +308,50 @@ export function MapView() {
                 <dd>{selectedPeak.region}</dd>
               </div>
             </dl>
+            {isSelectedBagged ? (
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label
+                    className="font-label text-label text-muted block"
+                    htmlFor="peak-bagged-date"
+                  >
+                    Date bagged
+                  </label>
+                  <input
+                    id="peak-bagged-date"
+                    className="border-line bg-panel text-secondary focus-visible:outline-bagged mt-2 min-h-11 w-full border px-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    type="date"
+                    value={selectedProgress.baggedDate ?? ''}
+                    onChange={(event) => {
+                      setBaggedDate(
+                        selectedPeak.id,
+                        event.currentTarget.value || undefined,
+                      );
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    className="font-label text-label text-muted block"
+                    htmlFor="peak-notes"
+                  >
+                    Notes
+                  </label>
+                  <textarea
+                    key={selectedPeak.id}
+                    ref={notesRef}
+                    id="peak-notes"
+                    className="border-line bg-panel text-secondary placeholder:text-muted focus-visible:outline-bagged mt-2 min-h-11 w-full border px-3 py-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    defaultValue={selectedProgress.notes ?? ''}
+                    placeholder="Optional"
+                    rows={2}
+                    onBlur={(event) => {
+                      setNotes(selectedPeak.id, event.currentTarget.value || undefined);
+                    }}
+                  />
+                </div>
+              </div>
+            ) : null}
             <button
               className="border-line bg-panel text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mt-5 min-h-11 w-full border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               type="button"
