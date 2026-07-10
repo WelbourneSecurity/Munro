@@ -9,4 +9,12 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   base: '/',
   plugins: [react(), tailwindcss()],
+  build: {
+    // The main chunk is dominated by maplibre-gl and the bundled hill-profile
+    // data — both accepted as the product (see "Performance budget" in
+    // wiki/operations.md). Vite's default 500 kB warning would fire on every
+    // build and carry no signal; this limit sits just above the measured
+    // chunk size so the warning returns only when the budget is exceeded.
+    chunkSizeWarningLimit: 2500,
+  },
 });
