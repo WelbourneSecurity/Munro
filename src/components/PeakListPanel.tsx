@@ -70,7 +70,7 @@ export function PeakListPanel({
         <label className="font-label text-label text-muted flex items-center gap-2">
           Sort
           <select
-            className="border-line bg-surface text-secondary min-h-9 border px-2 text-sm"
+            className="border-line bg-surface text-secondary focus-visible:outline-bagged min-h-11 border px-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
             value={sort}
             onChange={(event) => {
               setSort(event.currentTarget.value as PeakSort);
@@ -82,14 +82,21 @@ export function PeakListPanel({
         </label>
       </div>
 
-      <div className="border-line mb-3 grid grid-cols-3 border">
+      <div
+        aria-label="Filter peaks"
+        className="border-line mb-3 grid grid-cols-3 border"
+        role="group"
+      >
         {filterOptions.map((option) => (
           <button
             key={option.value}
-            className={`font-label text-label border-r-line min-h-10 border-r px-2 transition-colors last:border-r-0 ${
+            aria-pressed={filter === option.value}
+            className={`font-label text-label border-r-line min-h-11 border-r px-2 transition-colors last:border-r-0 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 ${
               filter === option.value
-                ? 'bg-bagged text-surface'
-                : 'bg-panel text-secondary hover:text-primary'
+                ? // The inset focus ring sits on the bagged fill, so it uses
+                  // the dark surface token — outline-bagged would vanish.
+                  'bg-bagged text-surface focus-visible:outline-surface'
+                : 'bg-panel text-secondary hover:text-primary focus-visible:outline-bagged'
             }`}
             type="button"
             onClick={() => {
@@ -130,7 +137,7 @@ export function PeakListPanel({
                 return (
                   <li key={item.peak.id}>
                     <button
-                      className={`grid min-h-12 w-full grid-cols-[1fr_auto] items-center gap-3 border px-3 py-2 text-left transition-colors ${
+                      className={`focus-visible:outline-bagged grid min-h-12 w-full grid-cols-[1fr_auto] items-center gap-3 border px-3 py-2 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 ${
                         selectedPeakId === item.peak.id
                           ? 'border-bagged bg-surface'
                           : 'border-line bg-panel hover:border-muted'
@@ -149,11 +156,14 @@ export function PeakListPanel({
                           {baggedDate ? ` · ${baggedDate}` : ''}
                         </span>
                       </span>
+                      {/* Filled square for bagged, hollow outline for unbagged,
+                          so the state is not conveyed by colour alone. */}
                       <span
                         className={`h-2.5 w-2.5 ${
-                          item.bagged ? 'bg-bagged' : 'bg-unbagged'
+                          item.bagged ? 'bg-bagged' : 'border-unbagged border'
                         }`}
                         aria-label={item.bagged ? 'Bagged' : 'Unbagged'}
+                        role="img"
                       />
                     </button>
                   </li>

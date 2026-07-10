@@ -7,7 +7,9 @@ interface ProgressStatsProps {
 export function ProgressStats({ stats }: ProgressStatsProps) {
   return (
     <div>
-      <div className="mb-3 flex items-end justify-between gap-4">
+      {/* aria-live announces the new count to screen readers when a peak is
+          bagged or unbagged from the list panel or the map. */}
+      <div aria-live="polite" className="mb-3 flex items-end justify-between gap-4">
         <p className="font-label text-label text-bagged">
           {stats.bagged} / {stats.total} bagged
         </p>
@@ -15,7 +17,7 @@ export function ProgressStats({ stats }: ProgressStatsProps) {
       </div>
       <div className="bg-surface h-1.5" aria-hidden="true">
         <div
-          className="bg-bagged h-full transition-[width] duration-300"
+          className="bg-bagged h-full transition-[width] duration-300 motion-reduce:transition-none"
           style={{ width: `${String(stats.percentage)}%` }}
         />
       </div>

@@ -26,6 +26,65 @@ if (!firstPeakId) {
   throw new Error('Expected wainwrights.json to contain at least one peak');
 }
 
+describe('MapView panel accessibility', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useProgressStore.getState().resetAll();
+  });
+
+  // The generous timeout absorbs coverage-instrumented full-list renders on
+  // a busy machine; the interactions themselves are synchronous.
+  it(
+    'bags and unbags the selected peak from the panel without the map',
+    { timeout: 15_000 },
+    () => {
+      const { getByRole } = render(<MapView />);
+
+      // "Ard Crags" is a list row; selecting it works from the keyboardable list.
+      fireEvent.click(getByRole('button', { name: /Ard Crags/ }));
+      fireEvent.click(getByRole('button', { name: 'Mark bagged' }));
+
+      expect(useProgressStore.getState().progressByPeakId['dobih-2460']?.bagged).toBe(
+        true,
+      );
+
+      fireEvent.click(getByRole('button', { name: 'Mark unbagged' }));
+
+      expect(
+        useProgressStore.getState().progressByPeakId['dobih-2460']?.bagged,
+      ).toBeUndefined();
+    },
+  );
+
+  it(
+    'exposes a collapsible bottom-sheet toggle for small screens',
+    { timeout: 15_000 },
+    () => {
+      const { getByRole } = render(<MapView />);
+      const toggle = getByRole('button', { name: 'Hide panel' });
+
+      expect(toggle).toHaveAttribute('aria-expanded', 'true');
+      expect(toggle).toHaveAttribute('aria-controls', 'tracker-panel-content');
+
+      fireEvent.click(toggle);
+
+      expect(getByRole('button', { name: 'Show panel' })).toHaveAttribute(
+        'aria-expanded',
+        'false',
+      );
+      expect(document.getElementById('tracker-panel-content')?.className).toContain(
+        'max-lg:hidden',
+      );
+
+      fireEvent.click(getByRole('button', { name: 'Show panel' }));
+
+      expect(document.getElementById('tracker-panel-content')?.className).not.toContain(
+        'max-lg:hidden',
+      );
+    },
+  );
+});
+
 function notesFor(peakId: string) {
   return useProgressStore.getState().progressByPeakId[peakId]?.notes;
 }

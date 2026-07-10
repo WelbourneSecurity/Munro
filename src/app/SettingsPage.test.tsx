@@ -26,6 +26,10 @@ describe('SettingsPage', () => {
     await user.upload(getByLabelText('Choose backup JSON'), file);
 
     expect(getByText('Ready to import 1 records, 1 bagged.')).toBeVisible();
+    // The outcome message lives in a polite live region so it is announced.
+    expect(getByRole('status')).toHaveTextContent(
+      'Ready to import 1 records, 1 bagged.',
+    );
 
     await user.click(getByRole('button', { name: 'Confirm import' }));
 

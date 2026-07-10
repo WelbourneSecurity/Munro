@@ -56,9 +56,9 @@ export function App() {
 
   return (
     <div className="bg-surface text-primary min-h-svh">
-      <header className="border-line bg-panel flex min-h-14 items-center justify-between gap-4 border-b px-4">
+      <header className="border-line bg-panel flex min-h-14 items-center justify-between gap-4 border-b px-4 pt-[env(safe-area-inset-top)] pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))]">
         <a
-          className="font-label text-primary focus-visible:outline-bagged text-sm font-semibold tracking-normal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+          className="font-label text-primary focus-visible:outline-bagged -ml-1 inline-flex min-h-11 min-w-11 items-center px-1 text-sm font-semibold tracking-normal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
           href="#/tracker"
         >
           Munro
@@ -68,7 +68,7 @@ export function App() {
             <a
               key={item.id}
               aria-current={route === item.id ? 'page' : undefined}
-              className={`font-label text-label min-h-10 px-3 py-3 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+              className={`font-label text-label inline-flex min-h-11 items-center px-3 py-3 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 ${
                 route === item.id
                   ? 'text-bagged'
                   : 'text-muted hover:text-primary focus-visible:outline-bagged'
