@@ -1,0 +1,27 @@
+# Companion to docs.yml, needed because "docs" is a required status check
+# on main (see wiki/operations.md). docs.yml is path-filtered to docs
+# inputs, and GitHub never creates a check run for a workflow its path
+# filter skips — a required "docs" check would sit at "Expected — waiting
+# for status" forever and block every non-docs PR. This workflow carries
+# the inverse filter and reports a same-named no-op "docs" job instead,
+# GitHub's documented workaround for skipped-but-required checks:
+# https://docs.github.com/en/actions/using-workflows/troubleshooting-workflows#handling-skipped-but-required-checks
+#
+# Keep the paths-ignore list identical to the paths list in docs.yml.
+
+name: Docs
+
+on:
+  pull_request:
+    paths-ignore:
+      - wiki/**
+      - mkdocs.yml
+      - requirements.txt
+
+permissions: {}
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No docs inputs changed; nothing to build."

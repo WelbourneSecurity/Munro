@@ -10,7 +10,7 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
   testDir: './tests/e2e',
   use: {
-    baseURL: 'http://127.0.0.1:4173/Munro/',
+    baseURL: 'http://127.0.0.1:4173/',
     trace: 'on-first-retry',
     ...(chromiumExecutable
       ? { launchOptions: { executablePath: chromiumExecutable } }
@@ -20,7 +20,7 @@ export default defineConfig({
     command: 'npm run preview -- --host 127.0.0.1 --port 4173',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
-    url: 'http://127.0.0.1:4173/Munro/',
+    url: 'http://127.0.0.1:4173/',
   },
   projects: [
     {

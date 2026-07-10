@@ -1,0 +1,56 @@
+# Per-PR preview deployments to https://munro.welbournesecurity.com/pr-preview/pr-<N>/.
+#
+# rossjrw/pr-preview-action deploys into pr-preview/pr-<N>/ on the gh-pages
+# branch, posts a sticky comment with the URL, and removes the directory when
+# the PR closes. The main deploy (deploy.yml) uses clean-exclude to leave
+# pr-preview/ alone.
+#
+# Fork PRs get no preview, deliberately: the pull_request token on a fork PR
+# has no write access, and that is a security feature. Never "fix" this with
+# pull_request_target — it would run untrusted fork code with write
+# permissions.
+#
+# The preview build inherits public/, so a CNAME file ends up inside
+# pr-preview/pr-<N>/CNAME on gh-pages. That is harmless — GitHub Pages only
+# honours the CNAME at the branch root, which the main deploy owns.
+
+name: PR preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    # Skip fork PRs entirely (no write token — see header comment).
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        if: github.event.action != 'closed'
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+        if: github.event.action != 'closed'
+      # "npm run build" is tsc -b && vite build; the extra args after --
+      # reach vite build, overriding the '/' base from vite.config.ts.
+      - run: npm run build -- --base=/pr-preview/pr-${{ github.event.number }}/
+        if: github.event.action != 'closed'
+      # On closed events the action skips the build inputs and just removes
+      # the preview directory.
+      - uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: dist
+          # Without this the action guesses welbournesecurity.github.io/Munro
+          # for the sticky comment and QR code; tell it the custom domain.
+          pages-base-url: munro.welbournesecurity.com
