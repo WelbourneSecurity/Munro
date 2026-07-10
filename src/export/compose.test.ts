@@ -220,6 +220,17 @@ describe('composeExport', () => {
     expect(date).toMatchObject({ fillStyle: '#96a095', textAlign: 'right' });
   });
 
+  it('draws the map border and divider in the --color-line token colour', async () => {
+    // compose.ts duplicates the @theme hex values because a 2D canvas cannot
+    // read CSS custom properties; #5b7666 is --color-line in src/index.css.
+    const { context } = await composeOnFakeCanvas();
+    const border = context.ops.find((op) => op.op === 'strokeRect');
+    const divider = context.ops.find((op) => op.op === 'fillRect' && op.args[3] === 1);
+
+    expect(border?.strokeStyle).toBe('#5b7666');
+    expect(divider?.fillStyle).toBe('#5b7666');
+  });
+
   it('draws every attribution constant into the pixels', async () => {
     const { context } = await composeOnFakeCanvas();
     const drawnText = textOps(context)

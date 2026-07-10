@@ -22,7 +22,7 @@ import type { MapSnapshot } from './snapshot';
 // canvas cannot read CSS custom properties without a live DOM element, so the
 // hex values are duplicated here — keep them in sync with src/index.css.
 const COLOR_SURFACE = '#111713'; // --color-surface
-const COLOR_LINE = '#34433a'; // --color-line
+const COLOR_LINE = '#5b7666'; // --color-line
 const COLOR_PRIMARY = '#f1f4ee'; // --color-primary
 const COLOR_SECONDARY = '#c8d0c6'; // --color-secondary
 const COLOR_MUTED = '#96a095'; // --color-muted
