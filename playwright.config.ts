@@ -29,5 +29,17 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
       },
     },
+    {
+      // iPhone-13-class emulation for the phone-critical journeys only. The
+      // suite stays chromium-only, so browserName overrides the profile's
+      // webkit default and the PLAYWRIGHT_CHROMIUM_EXECUTABLE escape hatch
+      // above keeps working for this project too.
+      name: 'mobile',
+      testMatch: /(smoke|core-flow)\.spec\.ts/,
+      use: {
+        ...devices['iPhone 13'],
+        browserName: 'chromium',
+      },
+    },
   ],
 });
