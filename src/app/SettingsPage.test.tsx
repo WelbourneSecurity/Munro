@@ -83,7 +83,7 @@ describe('SettingsPage', () => {
     });
   });
 
-  it('offers summit detection off by default with a plain explanation', () => {
+  it('shows the summit detection toggle unchecked with a plain explanation', () => {
     const { getByLabelText, getByText } = render(<SettingsPage />);
 
     expect(getByLabelText('Summit detection')).not.toBeChecked();

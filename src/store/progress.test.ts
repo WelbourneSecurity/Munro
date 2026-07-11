@@ -274,7 +274,9 @@ describe('usePreferencesStore', () => {
   });
 
   it('keeps summit detection off by default and persists only the boolean', () => {
-    expect(usePreferencesStore.getState().summitDetectionEnabled).toBe(false);
+    // Strictly opt-in: assert the store's own initial state, not the value
+    // the beforeEach set — this fails if the default ever flips to true.
+    expect(usePreferencesStore.getInitialState().summitDetectionEnabled).toBe(false);
 
     usePreferencesStore.getState().setSummitDetectionEnabled(true);
 

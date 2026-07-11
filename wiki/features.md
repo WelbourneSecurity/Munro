@@ -87,6 +87,10 @@ Constraints that keep it in character:
 
 - Opt-in only; turning the setting off stops location watching
   immediately, and a hard permission denial switches it off by itself.
+- A fix bags at most one peak — the nearest summit — and only when it
+  points to that summit unambiguously. A fix that could belong to more
+  than one summit, such as one taken on the col between two neighbouring
+  peaks, bags nothing and detection waits for a closer fix.
 - Location is used only in the moment, on the device. No position
   history or last-known location is ever stored — only the boolean
   preference and the ordinary progress record persist.

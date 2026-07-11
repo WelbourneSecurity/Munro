@@ -18,8 +18,27 @@ function makePeak(id: string, lat: number, lon: number, name = id): Peak {
   };
 }
 
+// One degree of latitude is roughly 111,195 m at the mean Earth radius, so
+// this factor converts a metre offset into a latitude offset for test peaks.
+const METRES_PER_DEGREE_LAT = 111_195;
+
+function metresNorth(lat: number, metres: number) {
+  return lat + metres / METRES_PER_DEGREE_LAT;
+}
+
 const highFell = makePeak('dobih-1', 54.5, -3.1, 'High Fell');
 const farFell = makePeak('dobih-2', 54.6, -3.3, 'Far Fell');
+// 336 m north of High Fell — the same separation as Steeple and Scoat
+// Fell, the closest Wainwright pair.
+const nextFell = makePeak('dobih-3', metresNorth(highFell.lat, 336), -3.1, 'Next Fell');
+// 200 m north of High Fell — closer than any Wainwright pair, the kind of
+// separation another hill list could plausibly contain.
+const closeFell = makePeak(
+  'dobih-4',
+  metresNorth(highFell.lat, 200),
+  -3.1,
+  'Close Fell',
+);
 const peaks = [highFell, farFell];
 
 function installGeolocation() {
@@ -141,6 +160,53 @@ describe('useSummitDetection', () => {
       baggedDate: '2020-01-01',
       notes: 'First round',
     });
+    expect(result.current.detectedPeaks).toEqual([]);
+  });
+
+  it('bags nothing from an ambiguous fix on the col between two summits', () => {
+    const geo = installGeolocation();
+    usePreferencesStore.getState().setSummitDetectionEnabled(true);
+
+    const { result } = renderHook(() => useSummitDetection([highFell, nextFell]));
+
+    // Halfway between the two summits, 168 m from each, with a routine
+    // fell-top accuracy of 100 m: both fall inside the widened radius,
+    // but the hiker has reached neither summit.
+    geo.sendPosition(metresNorth(highFell.lat, 168), highFell.lon, 100);
+
+    expect(useProgressStore.getState().progressByPeakId).toEqual({});
+    expect(result.current.detectedPeaks).toEqual([]);
+  });
+
+  it('bags only the nearest summit when a fuzzy fix covers two peaks', () => {
+    const geo = installGeolocation();
+    usePreferencesStore.getState().setSummitDetectionEnabled(true);
+
+    const { result } = renderHook(() => useSummitDetection([highFell, closeFell]));
+
+    // Standing on High Fell with a 150 m accuracy: the widened radius
+    // also covers Close Fell, but only the summit actually reached bags.
+    geo.sendPosition(highFell.lat, highFell.lon, 150);
+
+    expect(useProgressStore.getState().progressByPeakId[highFell.id]?.bagged).toBe(
+      true,
+    );
+    expect(useProgressStore.getState().progressByPeakId[closeFell.id]).toBeUndefined();
+    expect(result.current.detectedPeaks.map((peak) => peak.id)).toEqual([highFell.id]);
+  });
+
+  it('does not bag a neighbouring summit from an already-bagged summit', () => {
+    const geo = installGeolocation();
+    useProgressStore.getState().bag(highFell.id, '2020-01-01');
+    usePreferencesStore.getState().setSummitDetectionEnabled(true);
+
+    const { result } = renderHook(() => useSummitDetection([highFell, closeFell]));
+
+    // On the already-bagged High Fell, a fuzzy fix reaches Close Fell's
+    // widened radius — but the hiker is on High Fell, not Close Fell.
+    geo.sendPosition(highFell.lat, highFell.lon, 150);
+
+    expect(useProgressStore.getState().progressByPeakId[closeFell.id]).toBeUndefined();
     expect(result.current.detectedPeaks).toEqual([]);
   });
 
