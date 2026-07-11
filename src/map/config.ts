@@ -7,9 +7,13 @@ export const AWS_TERRARIUM_TILE_URL =
 export const TILE_SOURCE_FALLBACK = 'Self-hosted PMTiles/OpenMapTiles extract';
 export const TERRAIN_SOURCE_FALLBACK = 'Self-hosted DEM/contour tiles';
 
+// Must contain the whole committed park boundary polygon
+// (src/data/boundaries/lake-district.geojson, bbox lon -3.4956..-2.5826,
+// lat 54.1915..54.7637): the live map clamps its viewport to these bounds
+// and the export frames them, so a tighter box would cut the outline off.
 export const LAKE_DISTRICT_BOUNDS: [[number, number], [number, number]] = [
   [-3.58, 54.18],
-  [-2.72, 54.82],
+  [-2.55, 54.82],
 ];
 
 export const LAKE_DISTRICT_INITIAL_VIEW = {

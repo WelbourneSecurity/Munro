@@ -123,6 +123,22 @@ describe('MapView notes persistence', () => {
     expect(notesFor(firstPeakId)).toBe('Typed then reloaded');
   });
 
+  it('flushes pending notes on a focus-preserving hash navigation that unmounts the view', () => {
+    const { getByLabelText, unmount } = render(<MapView />);
+    const textarea = getByLabelText('Notes');
+
+    textarea.focus();
+    fireEvent.change(textarea, { target: { value: 'Typed then pressed Back' } });
+
+    // Browser Back/Forward (or a mobile back gesture) fires hashchange without
+    // blurring the textarea, then the router unmounts MapView. Removing a
+    // focused element fires no blur, so the hashchange flush must commit.
+    window.dispatchEvent(new Event('hashchange'));
+    unmount();
+
+    expect(notesFor(firstPeakId)).toBe('Typed then pressed Back');
+  });
+
   it('flushes pending notes when the page becomes hidden', () => {
     const { getByLabelText } = render(<MapView />);
 

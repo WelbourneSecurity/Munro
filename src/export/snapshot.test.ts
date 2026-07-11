@@ -1,5 +1,8 @@
+import type { FeatureCollection, Polygon } from 'geojson';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 
+import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
+import wainwrights from '../data/wainwrights.json';
 import { LAKE_DISTRICT_BOUNDS } from '../map/config';
 import { captureMap, frameBoundary, waitForMapIdle } from './snapshot';
 
@@ -304,6 +307,36 @@ describe('frameBoundary', () => {
     const fitOrder = map.fitBounds.mock.invocationCallOrder[0] ?? 0;
     for (const getter of [map.getCenter, map.getZoom, map.getBearing, map.getPitch]) {
       expect(getter.mock.invocationCallOrder[0]).toBeLessThan(fitOrder);
+    }
+  });
+});
+
+describe('LAKE_DISTRICT_BOUNDS export frame', () => {
+  const [[west, south], [east, north]] = LAKE_DISTRICT_BOUNDS;
+
+  it('contains the whole committed park boundary, so exports never truncate the outline', () => {
+    const boundary = JSON.parse(boundaryRaw) as FeatureCollection<Polygon>;
+    const vertices = boundary.features.flatMap((feature) =>
+      feature.geometry.coordinates.flat(),
+    );
+
+    expect(vertices.length).toBeGreaterThan(100);
+
+    const lons = vertices.map(([lon]) => lon ?? Number.NaN);
+    const lats = vertices.map(([, lat]) => lat ?? Number.NaN);
+
+    expect(Math.min(...lons)).toBeGreaterThanOrEqual(west);
+    expect(Math.max(...lons)).toBeLessThanOrEqual(east);
+    expect(Math.min(...lats)).toBeGreaterThanOrEqual(south);
+    expect(Math.max(...lats)).toBeLessThanOrEqual(north);
+  });
+
+  it('contains every Wainwright summit', () => {
+    for (const peak of wainwrights.peaks) {
+      expect(peak.lon, `${peak.name} longitude`).toBeGreaterThanOrEqual(west);
+      expect(peak.lon, `${peak.name} longitude`).toBeLessThanOrEqual(east);
+      expect(peak.lat, `${peak.name} latitude`).toBeGreaterThanOrEqual(south);
+      expect(peak.lat, `${peak.name} latitude`).toBeLessThanOrEqual(north);
     }
   });
 });

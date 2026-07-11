@@ -97,6 +97,10 @@ export function MapView() {
   // The notes textarea only commits on blur, which never fires when the page
   // is reloaded, closed or a backgrounded PWA is killed — flush pending text
   // to the store before the page goes away so notes persist across reloads.
+  // hashchange covers focus-preserving navigations (browser Back/Forward,
+  // mobile back gesture): they unmount MapView without blurring the focused
+  // textarea, and the listener runs while the textarea is still attached
+  // because the router's re-render is batched until after the event.
   useEffect(() => {
     const peakId = selectedPeak?.id;
 
@@ -119,10 +123,12 @@ export function MapView() {
     }
 
     window.addEventListener('pagehide', flushNotes);
+    window.addEventListener('hashchange', flushNotes);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('pagehide', flushNotes);
+      window.removeEventListener('hashchange', flushNotes);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [selectedPeak?.id, setNotes]);
