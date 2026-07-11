@@ -4,7 +4,7 @@
     "license": "CC BY 4.0",
     "sourceUrl": "https://www.hill-bagging.co.uk/dobih",
     "downloadedFrom": "https://www.hill-bagging.co.uk/dobih-downloads/hillcsv.zip",
-    "changes": "Trimmed to Hewitts (UK and Isle of Man only, Republic of Ireland excluded) and reformatted from DoBIH v18.4",
+    "changes": "Trimmed to Hewitts (England, Wales and Northern Ireland only, Republic of Ireland excluded) and reformatted from DoBIH v18.4",
     "generatedAt": "2026-07-11",
     "count": 336
   },

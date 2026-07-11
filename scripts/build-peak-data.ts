@@ -232,7 +232,7 @@ const HILL_LIST_CONFIGS: readonly HillListConfig[] = [
     name: 'Hewitts',
     flagColumn: 'Hew',
     include: inUkOrIsleOfMan,
-    scopeNote: UK_SCOPE_NOTE,
+    scopeNote: 'England, Wales and Northern Ireland only, Republic of Ireland excluded',
     outputFile: 'hewitts.json',
     expectedCount: 336,
     heightRangeM: [609, 1086],

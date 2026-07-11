@@ -30,8 +30,8 @@ record is validated with the app `Peak` schema. The committed files are:
 - `src/data/marilyns.json` — 1,621 Marilyns
 
 A peak's `list` array records every configured list it belongs to (some
-Corbetts and Grahams are also Donalds), so progress on a shared peak follows
-it across lists. Files whose content is unchanged apart from `generatedAt`
+Corbetts and Grahams are also Donalds, and most Wainwrights are also Hewitts
+or Marilyns), so progress on a shared peak follows it across lists. Files whose content is unchanged apart from `generatedAt`
 are left untouched. The generated metadata records that each file is trimmed
 and reformatted from DoBIH v18.4 under CC BY 4.0.
 

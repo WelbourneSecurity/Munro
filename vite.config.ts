@@ -38,8 +38,8 @@ export default defineConfig({
       },
       workbox: {
         // Precache the app shell plus the lazy-loaded hill-list chunks.
-        // Each list's peak data is a dynamic-import chunk (~20-120 kB, plus
-        // ~590 kB for the UK-wide Marilyns), so it never bloats the initial
+        // Each list's peak data is a dynamic-import chunk (~20-80 kB, plus
+        // ~380 kB for the UK-wide Marilyns), so it never bloats the initial
         // shell load; precaching them in the background keeps switching
         // lists working offline.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],

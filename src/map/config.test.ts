@@ -5,10 +5,13 @@ import { LIST_FIT_OPTIONS, MAP_MAX_ZOOM, MAP_MIN_ZOOM, listMaxBounds } from './c
 const TILE_SIZE = 512;
 
 // Reference map viewports: a 1280px and a 1920px screen minus the 24rem
-// side panel and header. Bounds must fit on both.
+// side panel and header, plus a 2560x1080 ultrawide whose extreme aspect
+// ratio is what stresses the maxBounds margin for wide bounds like the
+// UK-spanning Marilyns. Bounds must fit on all of them.
 const VIEWPORTS = [
   { width: 896, height: 608 },
   { width: 1536, height: 824 },
+  { width: 2176, height: 864 },
 ];
 
 interface Viewport {
