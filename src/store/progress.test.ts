@@ -92,6 +92,32 @@ describe('useProgressStore', () => {
     ).toBeUndefined();
   });
 
+  it('rejects schema-invalid bagged dates so exports stay restorable', () => {
+    useProgressStore.getState().bag('dobih-2319', '2026-07-05');
+    useProgressStore.getState().setBaggedDate('dobih-2319', '20266-07-11');
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: true,
+      baggedDate: '2026-07-05',
+    });
+
+    useProgressStore.getState().bag('dobih-0010', '20266-07-11');
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-0010']).toBeUndefined();
+
+    const backup = useProgressStore.getState().exportProgress();
+
+    expect(() => {
+      useProgressStore.getState().importProgress(backup);
+    }).not.toThrow();
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: true,
+      baggedDate: '2026-07-05',
+    });
+  });
+
   it('persists bagged dates to localStorage', () => {
     useProgressStore.getState().bag('dobih-2319');
     useProgressStore.getState().setBaggedDate('dobih-2319', '2026-07-08');
@@ -156,6 +182,85 @@ describe('useProgressStore', () => {
     const stored = localStorage.getItem(PROGRESS_STORAGE_KEY);
 
     expect(stored).toContain('dobih-2319');
+  });
+
+  it('recovers from a mis-shaped persisted value without poisoning the store', async () => {
+    localStorage.setItem(
+      PROGRESS_STORAGE_KEY,
+      JSON.stringify({
+        state: { progressByPeakId: null, bag: 'not-a-function' },
+        version: BACKUP_VERSION,
+      }),
+    );
+
+    await useProgressStore.persist.rehydrate();
+
+    expect(useProgressStore.getState().progressByPeakId).toEqual({});
+    expect(typeof useProgressStore.getState().bag).toBe('function');
+    expect(() => getProgressList()).not.toThrow();
+  });
+
+  it('drops invalid persisted records but keeps valid ones on rehydrate', async () => {
+    localStorage.setItem(
+      PROGRESS_STORAGE_KEY,
+      JSON.stringify({
+        state: {
+          progressByPeakId: {
+            'dobih-2319': { peakId: 'dobih-2319', bagged: true },
+            'dobih-bad': { peakId: '', bagged: 'yes' },
+            'dobih-null': null,
+          },
+        },
+        version: BACKUP_VERSION,
+      }),
+    );
+
+    await useProgressStore.persist.rehydrate();
+
+    expect(useProgressStore.getState().progressByPeakId).toEqual({
+      'dobih-2319': { peakId: 'dobih-2319', bagged: true },
+    });
+  });
+
+  it('sanitizes persisted state written under a different version', async () => {
+    localStorage.setItem(
+      PROGRESS_STORAGE_KEY,
+      JSON.stringify({
+        state: { progressByPeakId: null },
+        version: BACKUP_VERSION + 1,
+      }),
+    );
+
+    await useProgressStore.persist.rehydrate();
+
+    expect(useProgressStore.getState().progressByPeakId).toEqual({});
+    expect(() => getProgressList()).not.toThrow();
+  });
+
+  it('keeps schema-valid records when migrating a version-mismatched store', async () => {
+    localStorage.setItem(
+      PROGRESS_STORAGE_KEY,
+      JSON.stringify({
+        state: {
+          progressByPeakId: {
+            'dobih-2319': { peakId: 'dobih-2319', bagged: true },
+            'dobih-0010': {
+              peakId: 'dobih-0010',
+              bagged: true,
+              baggedDate: '20266-07-11',
+            },
+          },
+        },
+        version: BACKUP_VERSION + 1,
+      }),
+    );
+
+    await useProgressStore.persist.rehydrate();
+
+    expect(useProgressStore.getState().progressByPeakId).toEqual({
+      'dobih-2319': { peakId: 'dobih-2319', bagged: true },
+    });
+    expect(localStorage.getItem(PROGRESS_STORAGE_KEY)).not.toContain('20266-07-11');
   });
 });
 
