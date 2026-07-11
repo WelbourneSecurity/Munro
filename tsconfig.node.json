@@ -18,6 +18,7 @@
     "types": ["node", "vitest/globals"]
   },
   "include": [
+    "capacitor.config.ts",
     "eslint.config.js",
     "playwright.config.ts",
     "tests/e2e/**/*.ts",

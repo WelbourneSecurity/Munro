@@ -46,6 +46,11 @@ layout), its test suites, the CI/CD workflows and the documentation site:
 - `mkdocs.yml` — MkDocs config (Material theme, `docs_dir: wiki`)
 - `requirements.txt` — Python deps for the docs site
 - `package.json` — app scripts and JavaScript tooling
+- `capacitor.config.ts` — Capacitor wrapper config for the mobile apps; the
+  native `android/` and `ios/` projects are generated in CI, gitignored and
+  never committed
+- `.github/workflows/mobile-packaging.yml` — packages an Android APK and an
+  unsigned iOS IPA on every push to `main` (see `wiki/platforms.md`)
 
 ## Commands
 
@@ -63,7 +68,12 @@ npm run test            # Vitest unit/component tests
 npm run test:watch      # Vitest watch mode
 npm run test:coverage   # Vitest coverage thresholds
 npm run test:e2e        # production build + Playwright smoke test
-npm run data:peaks      # refresh hill-list peak data from DoBIH (all lists, or pass list ids)
+npm run build:mobile    # production build with a relative base for Capacitor
+npm run mobile:android  # generate android/ + sync web build + patch manifest (CI; needs Android SDK locally)
+npm run mobile:android:apk # gradle assembleDebug -> debug-signed APK (CI)
+npm run mobile:ios      # generate ios/ + sync web build + patch Info.plist (CI; needs Xcode locally)
+npm run mobile:ios:ipa  # xcodebuild archive (unsigned) -> build/munro-unsigned.ipa (CI)
+npm run data:peaks      # refresh Wainwright data from DoBIH
 npm run data:boundary   # refresh Lake District boundary data from Natural England
 npm run data:hill-boundaries # refresh generated Wainwright hill profiles
 npm run data:icons      # regenerate committed PWA icons in public/
@@ -97,9 +107,14 @@ July 2026); the shipped stack is described in `wiki/tech-stack.md`. In brief:
   data (OGL v3); canvas-composited image export
 - Vitest + Playwright + ESLint 10 + Prettier; GitHub Actions CI/CD with a
   GitHub Pages testing deployment and per-PR previews
-- Web-first responsive app, shipped as an installable PWA with an offline
-  app shell (`vite-plugin-pwa`, `autoUpdate` registration), then
-  wrapped/native iPhone and Android
+- Web-first responsive app, then PWA, then wrapped iPhone and Android apps:
+  Capacitor 8 wraps `dist/` (see `capacitor.config.ts`);
+  `.github/workflows/mobile-packaging.yml` builds a debug-signed APK and an
+  unsigned IPA per push to `main` — native projects are generated in CI with
+  `npx cap add`, never committed. Plain `navigator.geolocation` works in the
+  Capacitor WebView (no plugin); CI patches the location permissions into
+  the generated AndroidManifest.xml / Info.plist. Details in
+  `wiki/platforms.md`.
 
 Conventions to preserve:
 

@@ -41,13 +41,73 @@ How it behaves:
 - **Production-only.** Registration lives in `src/pwa/` and is guarded so
   dev servers and tests never install a worker.
 
-### 3. Store presence via a wrapper (later, if needed)
+### 3. Store presence via a wrapper
 
-If App Store / Play Store distribution becomes worthwhile, wrap the existing
-web app with [Capacitor](https://capacitorjs.com/) (or similar) rather than
-rewriting. A full native rewrite (e.g. React Native) should only be
-considered if the web map experience proves insufficient on mobile — with
-MapLibre GL JS this is unlikely for a tracker.
+The web app is wrapped with [Capacitor](https://capacitorjs.com/) — see
+[Mobile packaging](#mobile-packaging) below for how the Android and iOS
+builds are produced. A full native rewrite (e.g. React Native) should only
+be considered if the web map experience proves insufficient on mobile —
+with MapLibre GL JS this is unlikely for a tracker.
+
+## Mobile packaging
+
+Capacitor wraps the built web app (`dist/`) into native Android and iOS
+shells. The configuration lives in `capacitor.config.ts` (app id
+`uk.co.welbournesecurity.munro`, app name `Munro`). The native `android/`
+and `ios/` projects are **not committed** — CI generates them fresh with
+`npx cap add` on every run, so there is no second codebase to maintain.
+
+### How the CI works
+
+`.github/workflows/mobile-packaging.yml` runs on every push to `main` (and
+on manual dispatch) and produces two artifacts:
+
+- **Android** (`ubuntu-latest`, Node 24, Temurin JDK 21): builds the web
+  app with a relative base path (`npm run build:mobile` — the GitHub Pages
+  base `/Munro/` would break inside the Capacitor WebView), generates the
+  Android project, syncs the web build into it, patches
+  `AndroidManifest.xml` with `ACCESS_FINE_LOCATION` and
+  `ACCESS_COARSE_LOCATION`, and runs `gradlew assembleDebug`. The result is
+  uploaded as the **`munro-android-apk`** artifact.
+- **iOS** (`macos-26` — Capacitor 8 requires Xcode 26): builds the web app,
+  generates the iOS project (Capacitor 8 uses Swift Package Manager, so no
+  CocoaPods), patches `Info.plist` with
+  `NSLocationWhenInUseUsageDescription`, archives with code signing
+  disabled, and zips `Payload/Munro.app` into `munro-unsigned.ipa`,
+  uploaded as the **`munro-ios-ipa`** artifact.
+
+The npm scripts behind those steps (`mobile:android`, `mobile:android:apk`,
+`mobile:ios`, `mobile:ios:ipa`) can also be run locally on a machine with
+the Android SDK or Xcode installed; delete a previously generated
+`android/` or `ios/` directory before re-running `mobile:android` /
+`mobile:ios`, since `cap add` refuses to overwrite one.
+
+### Installing the artifacts
+
+Download the artifact from the workflow run's **Artifacts** section on
+GitHub Actions, then:
+
+- **Android** — the APK is debug-signed and directly installable: copy
+  `app-debug.apk` to the device and open it (allow installs from unknown
+  sources when prompted), or install via `adb install app-debug.apk`.
+- **iOS** — the IPA is **unsigned**, because no signing secrets live in
+  this repository. It cannot be installed as-is: it must be signed and
+  sideloaded first, using AltStore/SideStore, Xcode (with a free or paid
+  Apple developer account), or a proper Apple developer certificate. This
+  is the honest limit of what CI can produce without signing secrets.
+
+### Geolocation in the wrapped apps
+
+Plain `navigator.geolocation` works inside the Capacitor WebView without
+the `@capacitor/geolocation` plugin, so the web code path stays the only
+code path. The native shells just need the permission declarations that CI
+patches in:
+
+- Android: Capacitor's WebView handles the runtime permission prompt
+  itself, provided `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION` are
+  declared in the manifest.
+- iOS: WKWebView surfaces geolocation through Core Location and needs only
+  `NSLocationWhenInUseUsageDescription` in `Info.plist`.
 
 ## How the MVP holds these open
 

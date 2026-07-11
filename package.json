@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:mobile": "tsc -b && vite build --base=./",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint . --max-warnings=0",
@@ -21,6 +22,10 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "npm run build && playwright test",
+    "mobile:android": "npm run build:mobile && cap add android && cap sync android && tsx scripts/patch-android-manifest.ts",
+    "mobile:android:apk": "cd android && ./gradlew assembleDebug",
+    "mobile:ios": "npm run build:mobile && cap add ios && cap sync ios && tsx scripts/patch-ios-plist.ts",
+    "mobile:ios:ipa": "bash scripts/package-ios-ipa.sh",
     "data:peaks": "tsx scripts/build-peak-data.ts",
     "data:boundary": "tsx scripts/fetch-boundary.ts",
     "data:hill-boundaries": "tsx scripts/build-hill-boundaries.ts",
@@ -29,6 +34,9 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
     "@turf/turf": "^7.3.5",
     "@vis.gl/react-maplibre": "^8.1.1",
     "csv-parse": "^7.0.1",
@@ -41,6 +49,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/vite": "^4.3.2",
