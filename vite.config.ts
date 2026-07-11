@@ -37,11 +37,13 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Precache the app shell only: HTML, bundled JS/CSS (peak and
-        // boundary JSON is bundled into the JS) and the committed icons.
+        // Precache the app shell plus the lazy-loaded hill-list chunks.
+        // Each list's peak data is a small dynamic-import chunk (~20-70 kB),
+        // so it never bloats the initial shell load; precaching them in the
+        // background keeps switching lists working offline.
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        // The bundled Wainwright + boundary data pushes the main chunk past
-        // workbox's 2 MiB default.
+        // The bundled boundary + hill-profile data pushes the main chunk
+        // past workbox's 2 MiB default.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // Deliberately no runtime caching: OpenFreeMap tiles, AWS terrain
         // tiles and style assets stay network-only, respecting the free

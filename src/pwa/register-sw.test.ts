@@ -8,7 +8,12 @@ import {
 function environment(
   overrides: Partial<ServiceWorkerEnvironment>,
 ): ServiceWorkerEnvironment {
-  return { isProduction: true, supportsServiceWorker: true, ...overrides };
+  return {
+    isProduction: true,
+    supportsServiceWorker: true,
+    isNativeWrapper: false,
+    ...overrides,
+  };
 }
 
 describe('detectServiceWorkerEnvironment', () => {
@@ -33,6 +38,12 @@ describe('shouldRegisterServiceWorker', () => {
         environment({ isProduction: false, supportsServiceWorker: false }),
       ),
     ).toBe(false);
+  });
+
+  it('skips registration inside the Capacitor native wrapper', () => {
+    expect(shouldRegisterServiceWorker(environment({ isNativeWrapper: true }))).toBe(
+      false,
+    );
   });
 });
 

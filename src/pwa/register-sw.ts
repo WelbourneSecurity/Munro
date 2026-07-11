@@ -11,6 +11,8 @@
 export interface ServiceWorkerEnvironment {
   isProduction: boolean;
   supportsServiceWorker: boolean;
+  /** True inside the Capacitor WebView, where assets are already on disk. */
+  isNativeWrapper: boolean;
 }
 
 type RegisterSwModule = typeof import('virtual:pwa-register');
@@ -20,13 +22,21 @@ export function detectServiceWorkerEnvironment(): ServiceWorkerEnvironment {
     isProduction: import.meta.env.PROD,
     supportsServiceWorker:
       typeof navigator !== 'undefined' && 'serviceWorker' in navigator,
+    // Capacitor injects a `Capacitor` global into its WebView. The wrapped
+    // app serves everything from the app bundle, so a service worker would
+    // only re-cache files that are already local — skip it.
+    isNativeWrapper: typeof window !== 'undefined' && 'Capacitor' in window,
   };
 }
 
 export function shouldRegisterServiceWorker(
   environment: ServiceWorkerEnvironment,
 ): boolean {
-  return environment.isProduction && environment.supportsServiceWorker;
+  return (
+    environment.isProduction &&
+    environment.supportsServiceWorker &&
+    !environment.isNativeWrapper
+  );
 }
 
 export function registerServiceWorker(
