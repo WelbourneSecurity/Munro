@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { FeatureCollection } from 'geojson';
 import { fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 
@@ -6,11 +7,28 @@ import wainwrights from '../data/wainwrights.json';
 import { useProgressStore } from '../store';
 import { MapView } from './MapView';
 
+// Record the data handed to each Source so tests can inspect the marker /
+// hill-area feature properties the map would render.
+const sourceData = new Map<string, FeatureCollection>();
+
 vi.mock('@vis.gl/react-maplibre', () => ({
   Map: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
   AttributionControl: () => null,
   NavigationControl: () => null,
-  Source: ({ children }: { children?: ReactNode }) => <>{children}</>,
+  Source: ({
+    id,
+    data,
+    children,
+  }: {
+    id?: string;
+    data?: unknown;
+    children?: ReactNode;
+  }) => {
+    if (id && data && typeof data === 'object') {
+      sourceData.set(id, data as FeatureCollection);
+    }
+    return <>{children}</>;
+  },
   Layer: () => null,
 }));
 
@@ -55,6 +73,26 @@ describe('MapView panel accessibility', () => {
       ).toBeUndefined();
     },
   );
+
+  it('drops the selection highlight from the hill-area source while exporting', () => {
+    const { getByRole } = render(<MapView />);
+
+    // Select an unbagged peak: its hill area is flagged selected for the
+    // on-screen highlight.
+    fireEvent.click(getByRole('button', { name: /Ard Crags/ }));
+    const selectedBefore = sourceData
+      .get('wainwright-areas')
+      ?.features.filter((feature) => feature.properties?.selected === true);
+    expect(selectedBefore).toHaveLength(1);
+
+    // Opening the export dialog must clear it so the captured image never
+    // paints the selected (unbagged) peak with the bagged green.
+    fireEvent.click(getByRole('button', { name: 'Export image' }));
+    const selectedDuring = sourceData
+      .get('wainwright-areas')
+      ?.features.filter((feature) => feature.properties?.selected === true);
+    expect(selectedDuring).toHaveLength(0);
+  });
 
   it(
     'exposes a collapsible bottom-sheet toggle for small screens',

@@ -82,12 +82,16 @@ export function MapView() {
           properties: {
             ...feature.properties,
             bagged: peakId ? progressByPeakId[peakId]?.bagged === true : false,
-            selected: peakId === selectedPeakId,
+            // Suppress the transient selection highlight while the export
+            // dialog is open: it shares the bagged green, so a captured
+            // image would otherwise show the selected peak as if bagged and
+            // overstate progress.
+            selected: !exportOpen && peakId === selectedPeakId,
           },
         };
       }),
     }),
-    [progressByPeakId, selectedPeakId],
+    [progressByPeakId, selectedPeakId, exportOpen],
   );
   const stats = useMemo(() => calculateProgress(peaks, progress), [progress]);
   const selectedPeak = peaks.find((peak) => peak.id === selectedPeakId) ?? peaks[0];
