@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { parseBackup, type Backup } from '../domain';
+import type { SummitDetectionStatus } from '../hooks';
 import { usePreferencesStore, useProgressStore } from '../store';
 
 function backupFileName() {
@@ -12,12 +13,22 @@ function describeBackup(backup: Backup) {
   return `${String(backup.progress.length)} records, ${String(bagged)} bagged`;
 }
 
-export function SettingsPage() {
+export function SettingsPage({
+  summitDetectionStatus = 'off',
+}: {
+  summitDetectionStatus?: SummitDetectionStatus;
+} = {}) {
   const exportProgress = useProgressStore((state) => state.exportProgress);
   const importProgress = useProgressStore((state) => state.importProgress);
   const resetAll = useProgressStore((state) => state.resetAll);
   const terrainEnabled = usePreferencesStore((state) => state.terrainEnabled);
   const setTerrainEnabled = usePreferencesStore((state) => state.setTerrainEnabled);
+  const summitDetectionEnabled = usePreferencesStore(
+    (state) => state.summitDetectionEnabled,
+  );
+  const setSummitDetectionEnabled = usePreferencesStore(
+    (state) => state.setSummitDetectionEnabled,
+  );
   const [pendingBackup, setPendingBackup] = useState<Backup>();
   const [importMessage, setImportMessage] = useState('');
   const [resetText, setResetText] = useState('');
@@ -140,6 +151,35 @@ export function SettingsPage() {
               }}
             />
           </label>
+          <label className="text-secondary mt-4 flex min-h-11 items-center justify-between gap-4 text-sm">
+            Summit detection
+            <input
+              checked={summitDetectionEnabled}
+              className="accent-bagged h-5 w-5"
+              type="checkbox"
+              onChange={(event) => {
+                setSummitDetectionEnabled(event.currentTarget.checked);
+              }}
+            />
+          </label>
+          <p className="text-muted mt-2 text-sm leading-6">
+            When on, Munro watches your device location while the app is open and marks
+            a peak as bagged when you reach its summit. Your location is used only in
+            the moment, on this device — it is never stored or sent anywhere. Turning
+            this off stops location watching immediately.
+          </p>
+          {summitDetectionStatus === 'denied' ? (
+            <p className="text-muted mt-3 text-sm leading-6">
+              Location permission was denied, so summit detection switched itself off.
+              Allow location access for this site to use it.
+            </p>
+          ) : null}
+          {summitDetectionStatus === 'unavailable' ? (
+            <p className="text-muted mt-3 text-sm leading-6">
+              Location is not available in this browser, so summit detection cannot run
+              here.
+            </p>
+          ) : null}
         </section>
 
         <section className="border-line bg-panel border p-5">

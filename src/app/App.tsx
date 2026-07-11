@@ -1,7 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 
-import { ProgressStats, useActiveHillList } from '../components';
-import { calculateProgress } from '../domain';
+import { ProgressStats, SummitDetectionNotice } from '../components';
+import wainwrights from '../data/wainwrights.json';
+import { calculateProgress, type Peak } from '../domain';
+import { useSummitDetection, type SummitDetectionStatus } from '../hooks';
 import { MapView } from '../map';
 import { useProgressStore } from '../store';
 import { DataPage } from './DataPage';
@@ -50,6 +52,9 @@ function useHashRoute() {
 
 export function App() {
   const route = useHashRoute();
+  // Summit detection seam: pass the app's current peak data here. When
+  // multi-list support lands, hand in the active list's peaks instead.
+  const summitDetection = useSummitDetection(peaks);
 
   return (
     <div className="bg-surface text-primary min-h-svh">
@@ -77,12 +82,19 @@ export function App() {
           ))}
         </nav>
       </header>
-      <main>{renderRoute(route)}</main>
+      <main>{renderRoute(route, summitDetection.status)}</main>
+      <SummitDetectionNotice
+        peaks={summitDetection.detectedPeaks}
+        onDismiss={summitDetection.dismissDetections}
+      />
     </div>
   );
 }
 
-function renderRoute(route: RouteId): ReactNode {
+function renderRoute(
+  route: RouteId,
+  summitDetectionStatus: SummitDetectionStatus,
+): ReactNode {
   if (route === 'tracker') {
     return <MapView />;
   }
@@ -92,7 +104,7 @@ function renderRoute(route: RouteId): ReactNode {
   }
 
   if (route === 'settings') {
-    return <SettingsPage />;
+    return <SettingsPage summitDetectionStatus={summitDetectionStatus} />;
   }
 
   return <HomePage />;

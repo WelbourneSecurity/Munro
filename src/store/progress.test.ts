@@ -14,7 +14,7 @@ beforeEach(() => {
   localStorage.clear();
   useProgressStore.getState().resetAll();
   usePreferencesStore.getState().setTerrainEnabled(true);
-  usePreferencesStore.getState().setActiveListId('wainwrights');
+  usePreferencesStore.getState().setSummitDetectionEnabled(false);
 });
 
 describe('useProgressStore', () => {
@@ -273,34 +273,17 @@ describe('usePreferencesStore', () => {
     expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).toContain('false');
   });
 
-  it('defaults the active hill list to Wainwrights', () => {
-    expect(usePreferencesStore.getState().activeListId).toBe('wainwrights');
-  });
+  it('keeps summit detection off by default and persists only the boolean', () => {
+    expect(usePreferencesStore.getState().summitDetectionEnabled).toBe(false);
 
-  it('persists the active hill list without touching progress records', () => {
-    useProgressStore.getState().bag('dobih-2319');
-    usePreferencesStore.getState().setActiveListId('wainwrights');
+    usePreferencesStore.getState().setSummitDetectionEnabled(true);
 
-    expect(usePreferencesStore.getState().activeListId).toBe('wainwrights');
-    expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).toContain('wainwrights');
-    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
-      peakId: 'dobih-2319',
-      bagged: true,
-    });
-  });
-
-  it('falls back to the default list when the persisted id is unknown', async () => {
-    localStorage.setItem(
-      PREFERENCES_STORAGE_KEY,
-      JSON.stringify({
-        state: { activeListId: 'retired-list', terrainEnabled: false },
-        version: 1,
-      }),
+    expect(usePreferencesStore.getState().summitDetectionEnabled).toBe(true);
+    expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).toContain(
+      '"summitDetectionEnabled":true',
     );
-
-    await usePreferencesStore.persist.rehydrate();
-
-    expect(usePreferencesStore.getState().activeListId).toBe('wainwrights');
-    expect(usePreferencesStore.getState().terrainEnabled).toBe(false);
+    expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).not.toMatch(
+      /lat|lon|position|location/i,
+    );
   });
 });

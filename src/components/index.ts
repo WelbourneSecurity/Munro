@@ -2,5 +2,7 @@ export type ComponentsModule = never;
 export { HillListSwitcher } from './HillListSwitcher';
 export { PeakListPanel } from './PeakListPanel';
 export { ProgressStats } from './ProgressStats';
-export { useActiveHillList } from './useActiveHillList';
-export type { ActiveHillList } from './useActiveHillList';
+export {
+  SUMMIT_NOTICE_DURATION_MS,
+  SummitDetectionNotice,
+} from './SummitDetectionNotice';

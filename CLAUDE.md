@@ -28,9 +28,10 @@ layout), its test suites, the CI/CD workflows and the documentation site:
   edit `CLAUDE.md` only
 - `index.html` — Vite app entry
 - `src/` — React app; `src/domain/` stays pure and framework-free
-- `src/data/` — the hill-list registry (`lists.ts`), generated peak data
-  (Wainwrights, Munros, Corbetts, Grahams, Donalds), Lake District boundary
-  data and attribution constants
+- `src/data/` — generated Wainwright peak data, Lake District boundary data
+  and attribution constants
+- `src/hooks/` — React hooks bridging browser APIs to the domain and stores
+  (currently the opt-in GPS summit detection watcher)
 - `src/map/` — the MapLibre/OpenFreeMap tracker wrapper, terrain/contour setup
   and map layers; keep MapLibre imports isolated here
 - `src/store/` — local-first Zustand progress and preferences stores
@@ -122,4 +123,8 @@ Conventions to preserve:
 - Visual style is dark, monochrome, topographic and restrained — grey for
   unbagged, soft green for bagged. No gamified colours. See
   `wiki/design.md`.
+- Summit detection is strictly opt-in and never persists location data —
+  only the boolean preference and normal `PeakProgress` records are stored.
+  The detection logic in `src/domain/summits.ts` is list-agnostic; the
+  active peaks array is handed to `useSummitDetection` in `src/app/App.tsx`.
 - Keep this file current when commands, data sources or architecture change.

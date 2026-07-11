@@ -73,3 +73,24 @@ Use:
 - No authentication in the MVP
 
 This keeps the project simple and avoids unnecessary backend complexity.
+
+## 6. Summit detection (optional)
+
+A post-MVP convenience, strictly opt-in and off by default. When the
+"Summit detection" setting is enabled, the app watches the device's
+location while it is open and marks a peak as bagged when the hiker
+reaches its summit — within roughly 100 m, widened a little to allow for
+the reported GPS accuracy. Fixes with very poor accuracy never trigger a
+detection.
+
+Constraints that keep it in character:
+
+- Opt-in only; turning the setting off stops location watching
+  immediately, and a hard permission denial switches it off by itself.
+- Location is used only in the moment, on the device. No position
+  history or last-known location is ever stored — only the boolean
+  preference and the ordinary progress record persist.
+- Detection never overwrites an existing record: a peak already bagged
+  keeps its date and notes.
+- Confirmation is a quiet, soft-green notice consistent with the design
+  language — no sounds, badges or pop-ups.

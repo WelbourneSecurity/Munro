@@ -181,8 +181,9 @@ export function isBagged(peakId: string) {
 export interface PreferencesState {
   activeListId: HillListId;
   terrainEnabled: boolean;
-  setActiveListId: (listId: HillListId) => void;
+  summitDetectionEnabled: boolean;
   setTerrainEnabled: (enabled: boolean) => void;
+  setSummitDetectionEnabled: (enabled: boolean) => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>()(
@@ -190,11 +191,15 @@ export const usePreferencesStore = create<PreferencesState>()(
     (set) => ({
       activeListId: DEFAULT_HILL_LIST_ID,
       terrainEnabled: true,
-      setActiveListId: (listId) => {
-        set({ activeListId: listId });
-      },
+      // Strictly opt-in: GPS summit detection stays off until the user
+      // enables it in Settings. Only this boolean is ever persisted —
+      // never any location data.
+      summitDetectionEnabled: false,
       setTerrainEnabled: (enabled) => {
         set({ terrainEnabled: enabled });
+      },
+      setSummitDetectionEnabled: (enabled) => {
+        set({ summitDetectionEnabled: enabled });
       },
     }),
     {
