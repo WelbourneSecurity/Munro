@@ -75,9 +75,11 @@ export async function seedProgressStorage(
 /**
  * Hosts of the external tile/terrain services the map depends on: OpenFreeMap
  * vector tiles, sprites and glyphs, and the AWS Terrarium DEM tiles (see
- * src/map/config.ts and src/map/style/munro-dark.json). Failures reaching
- * these hosts are third-party availability, not app regressions — a sandboxed
- * proxy or a CDN hiccup must not fail the suite.
+ * src/map/config.ts and src/map/style/munro-dark.json). Failures *reaching*
+ * these hosts — connection-level errors, 5xx responses — are third-party
+ * availability, not app regressions: a sandboxed proxy or a CDN outage must
+ * not fail the suite. HTTP 4xx responses from them are NOT exempt (see
+ * HTTP_CLIENT_ERROR_MESSAGE).
  */
 const EXTERNAL_TILE_HOSTS = new Set(['tiles.openfreemap.org', 's3.amazonaws.com']);
 
@@ -89,6 +91,19 @@ const EXTERNAL_TILE_HOSTS = new Set(['tiles.openfreemap.org', 's3.amazonaws.com'
  */
 const NETWORK_FAILURE_MESSAGE =
   /Failed to load resource|Failed to fetch|AJAXError|net::ERR_/;
+
+/**
+ * HTTP 4xx responses, in both shapes they surface as: Chromium's "Failed to
+ * load resource: the server responded with a status of 404 ()" and MapLibre's
+ * "AJAXError: Not Found (404): https://…". A tile host answering 4xx is
+ * reachable but rejecting the request — a wrong tile path shipped in
+ * src/map/config.ts, an upstream path rename, or rate limiting — which users
+ * would see as peak markers on a blank background (the bundled GeoJSON layers
+ * still draw without a basemap). These are never exempt, so the e2e gate
+ * catches them. 5xx responses stay exempt as upstream availability.
+ */
+const HTTP_CLIENT_ERROR_MESSAGE =
+  /the server responded with a status of 4\d\d|AJAXError: [^)]*\(4\d\d\)/;
 
 /**
  * MapLibre's tile machinery (maplibre-contour's DEM worker in particular)
@@ -109,12 +124,15 @@ function isExternalTileHostUrl(url: string): boolean {
 }
 
 /**
- * True only for network failures attributable to an external tile host — via
- * the console message's location URL (Chromium sets it to the failing
- * resource for "Failed to load resource") or a URL embedded in the message
- * text (MapLibre's AJAXError, "Failed to fetch dynamically imported module").
- * A network-shaped failure with no external-host URL — a same-origin 404'd
- * asset, a broken code-split chunk — still counts as an error.
+ * True only for *availability* failures attributable to an external tile
+ * host — via the console message's location URL (Chromium sets it to the
+ * failing resource for "Failed to load resource") or a URL embedded in the
+ * message text (MapLibre's AJAXError, "Failed to fetch dynamically imported
+ * module"). HTTP 4xx responses are never exempt, even from a tile host: the
+ * host answered, so the request itself is wrong (see
+ * HTTP_CLIENT_ERROR_MESSAGE). A network-shaped failure with no external-host
+ * URL — a same-origin 404'd asset, a broken code-split chunk — still counts
+ * as an error.
  */
 export function isExternalTileFailure(text: string, locationUrl?: string): boolean {
   if (TILE_WORKER_TIMEOUT.test(text)) {
@@ -122,6 +140,10 @@ export function isExternalTileFailure(text: string, locationUrl?: string): boole
   }
 
   if (!NETWORK_FAILURE_MESSAGE.test(text)) {
+    return false;
+  }
+
+  if (HTTP_CLIENT_ERROR_MESSAGE.test(text)) {
     return false;
   }
 

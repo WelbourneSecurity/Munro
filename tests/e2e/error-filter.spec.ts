@@ -4,18 +4,13 @@ import { isExternalTileFailure } from './helpers';
 
 /**
  * Pure checks (no browser) on the error filter behind collectPageErrors: only
- * failures attributable to the external tile hosts are exempt; first-party
- * resource failures must surface as errors.
+ * availability failures (connection-level, 5xx) attributable to the external
+ * tile hosts are exempt; HTTP 4xx from those hosts and first-party resource
+ * failures must surface as errors.
  */
 
 test.describe('isExternalTileFailure', () => {
-  test('exempts a resource failure located at a tile host', () => {
-    expect(
-      isExternalTileFailure(
-        'Failed to load resource: the server responded with a status of 404',
-        'https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf',
-      ),
-    ).toBe(true);
+  test('exempts a connection-level failure located at a tile host', () => {
     expect(
       isExternalTileFailure(
         'Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED',
@@ -24,13 +19,49 @@ test.describe('isExternalTileFailure', () => {
     ).toBe(true);
   });
 
-  test('exempts MapLibre errors that embed a tile-host URL in the text', () => {
+  test('exempts a 5xx from a tile host as upstream availability', () => {
+    expect(
+      isExternalTileFailure(
+        'Failed to load resource: the server responded with a status of 503 ()',
+        'https://tiles.openfreemap.org/planet/10/507/328.pbf',
+      ),
+    ).toBe(true);
+    expect(
+      isExternalTileFailure(
+        'AJAXError: Service Unavailable (503): https://s3.amazonaws.com/elevation-tiles-prod/terrarium/10/507/328.png',
+        'http://127.0.0.1:4173/assets/index-abc123.js',
+      ),
+    ).toBe(true);
+  });
+
+  test('counts an HTTP 4xx from a tile host as an error', () => {
+    // A tile host that answers 4xx is up but rejecting the request — a wrong
+    // tile path in src/map/config.ts, an upstream rename, or rate limiting.
+    // Exempting these shipped a blank basemap green; they must fail the gate.
+    expect(
+      isExternalTileFailure(
+        'Failed to load resource: the server responded with a status of 404 ()',
+        'https://tiles.openfreemap.org/planet/10/507/328.pbf',
+      ),
+    ).toBe(false);
+    expect(
+      isExternalTileFailure(
+        'Failed to load resource: the server responded with a status of 404',
+        'https://tiles.openfreemap.org/fonts/Noto%20Sans%20Regular/0-255.pbf',
+      ),
+    ).toBe(false);
     expect(
       isExternalTileFailure(
         'AJAXError: Not Found (404): https://tiles.openfreemap.org/planet/10/507/328.pbf',
         'http://127.0.0.1:4173/assets/index-abc123.js',
       ),
-    ).toBe(true);
+    ).toBe(false);
+    expect(
+      isExternalTileFailure(
+        'Failed to load resource: the server responded with a status of 429 ()',
+        'https://tiles.openfreemap.org/styles/dark',
+      ),
+    ).toBe(false);
   });
 
   test('exempts the URL-less maplibre-contour worker timeout only at message start', () => {
