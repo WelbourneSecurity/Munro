@@ -5,7 +5,14 @@
 # into them, patches in the location permissions the app needs, and builds:
 #
 #   - munro-android-apk: a debug-signed APK, directly installable on any
-#     Android device that allows installs from unknown sources.
+#     Android device that allows installs from unknown sources. It is signed
+#     with the stable debug keystore committed at
+#     .github/android/debug.keystore (standard public debug credentials, no
+#     secret value) so that APKs from successive runs can upgrade each other
+#     in place — without it, Gradle would generate a random debug key on
+#     every fresh runner, upgrades would fail with
+#     INSTALL_FAILED_UPDATE_INCOMPATIBLE, and the forced uninstall would
+#     wipe the WebView localStorage that holds all bagged-peak progress.
 #   - munro-ios-ipa: an UNSIGNED IPA. No signing secrets live in this
 #     repository, so it cannot be installed as-is — it must be signed and
 #     sideloaded (AltStore/SideStore, Xcode, or an Apple developer
@@ -62,6 +69,19 @@ jobs:
       # GPS summit-detection feature.
       - name: Generate Android project
         run: npm run mobile:android
+
+      # Gradle's default debug signing config reads ~/.android/debug.keystore
+      # and generates a NEW random key when it is missing — which it always
+      # is on an ephemeral runner. That would give every run's APK a
+      # different signature, so installing a newer artifact over an older
+      # one would fail (INSTALL_FAILED_UPDATE_INCOMPATIBLE) and force an
+      # uninstall that deletes the user's local progress. Installing the
+      # committed stable keystore first keeps the signature identical across
+      # runs, so artifacts upgrade in place and progress survives.
+      - name: Install stable debug keystore
+        run: |
+          mkdir -p "$HOME/.android"
+          cp .github/android/debug.keystore "$HOME/.android/debug.keystore"
 
       # assembleDebug produces a debug-signed APK — installable on-device
       # without any signing secrets, which is the right default here.

@@ -111,7 +111,10 @@ July 2026); the shipped stack is described in `wiki/tech-stack.md`. In brief:
   Capacitor 8 wraps `dist/` (see `capacitor.config.ts`);
   `.github/workflows/mobile-packaging.yml` builds a debug-signed APK and an
   unsigned IPA per push to `main` — native projects are generated in CI with
-  `npx cap add`, never committed. Plain `navigator.geolocation` works in the
+  `npx cap add`, never committed. APKs are signed with the stable debug
+  keystore committed at `.github/android/debug.keystore` (public debug
+  credentials, never for release) so successive CI builds upgrade in place
+  without an uninstall that would wipe localStorage progress. Plain `navigator.geolocation` works in the
   Capacitor WebView (no plugin); CI patches the location permissions into
   the generated AndroidManifest.xml / Info.plist. Details in
   `wiki/platforms.md`.

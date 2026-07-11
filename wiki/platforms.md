@@ -67,8 +67,9 @@ on manual dispatch) and produces two artifacts:
   base `/Munro/` would break inside the Capacitor WebView), generates the
   Android project, syncs the web build into it, patches
   `AndroidManifest.xml` with `ACCESS_FINE_LOCATION` and
-  `ACCESS_COARSE_LOCATION`, and runs `gradlew assembleDebug`. The result is
-  uploaded as the **`munro-android-apk`** artifact.
+  `ACCESS_COARSE_LOCATION`, installs the stable debug keystore (see below)
+  and runs `gradlew assembleDebug`. The result is uploaded as the
+  **`munro-android-apk`** artifact.
 - **iOS** (`macos-26` — Capacitor 8 requires Xcode 26): builds the web app,
   generates the iOS project (Capacitor 8 uses Swift Package Manager, so no
   CocoaPods), patches `Info.plist` with
@@ -90,6 +91,18 @@ GitHub Actions, then:
 - **Android** — the APK is debug-signed and directly installable: copy
   `app-debug.apk` to the device and open it (allow installs from unknown
   sources when prompted), or install via `adb install app-debug.apk`.
+  Upgrading works in place: a newer artifact installs straight over an
+  older one without uninstalling, because every CI run signs with the same
+  **stable debug keystore** committed at `.github/android/debug.keystore`.
+  This matters more than it sounds — progress lives only in the app's
+  localStorage, and Android deletes that on uninstall, so a signature
+  mismatch between builds would cost the user their bagged peaks. The
+  keystore uses the standard public Android debug credentials (store and
+  key password `android`, alias `androiddebugkey`), holds no secret value
+  and must never be used to sign a release build. Note that an APK built
+  **locally** is signed with your machine's own `~/.android/debug.keystore`
+  and will not upgrade a CI-built install (or vice versa) — copy the
+  committed keystore over yours first if you need that.
 - **iOS** — the IPA is **unsigned**, because no signing secrets live in
   this repository. It cannot be installed as-is: it must be signed and
   sideloaded first, using AltStore/SideStore, Xcode (with a free or paid
