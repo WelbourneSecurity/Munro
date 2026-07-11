@@ -14,15 +14,16 @@ export const TERRAIN_SOURCE_FALLBACK = 'Self-hosted DEM/contour tiles';
 export const LIST_FIT_OPTIONS = { padding: 56, maxZoom: 9.4 } as const;
 
 // Zoom limits shared by every hill list. MAP_MIN_ZOOM must sit below the
-// zoom needed to fit the largest list's bounds (the Scotland-wide lists fit
-// at roughly zoom 5.6-6.2 on laptop viewports) and below every list's
+// zoom needed to fit the largest list's bounds (the UK-wide Marilyns fit at
+// roughly zoom 4.2-4.7 on laptop viewports) and below every list's
 // `initialView.zoom` — `src/map/config.test.ts` cross-checks the registry.
-export const MAP_MIN_ZOOM = 5;
+export const MAP_MIN_ZOOM = 4;
 export const MAP_MAX_ZOOM = 16;
 
 // How far the pan limits extend past a list's bounds, as a multiple of the
-// bounds' span on each side.
-const MAX_BOUNDS_MARGIN = 1.5;
+// bounds' span on each side. 2 leaves the whole-list fit reachable even for
+// the wide-aspect UK-wide bounds on wide viewports.
+const MAX_BOUNDS_MARGIN = 2;
 
 /**
  * Pan limits for a hill list: its bounds padded by `MAX_BOUNDS_MARGIN`.

@@ -14,6 +14,9 @@ Peak datasets are generated from the Database of British and Irish Hills
 - `src/data/corbetts.json` — 222 Corbetts
 - `src/data/grahams.json` — 231 Grahams
 - `src/data/donalds.json` — 89 Donalds
+- `src/data/ethels.json` — 95 Ethels (Peak District)
+- `src/data/hewitts.json` — 336 Hewitts (England, Wales & Northern Ireland)
+- `src/data/marilyns.json` — 1,621 Marilyns (UK & Isle of Man)
 
 The generation command is:
 
@@ -23,11 +26,17 @@ npm run data:peaks
 
 The script downloads the DoBIH CSV ZIP once and builds one file per list from
 a small per-list config: the DoBIH classification flag column (`W`, `M`, `C`,
-`G`, `D`), the exact published count, a summit-height sanity band and spot
-checks for well-known hills. DoBIH hill `Number` is preserved as `dobihId`
-and is also used to build the app `id`. A peak's `list` array records every
-configured list it belongs to — some Corbetts and Grahams are also Donalds —
-so a shared peak keeps one identity and one progress record across lists.
+`G`, `D`, `E`, `Hew`, `Ma`), the exact published count, a summit-height sanity
+band and spot checks for well-known hills. The Hewitts and Marilyns are
+British-Isles-wide classifications in DoBIH, so their configs also carry a
+scope filter that keeps UK hills (identifying Northern Ireland by its
+local-government districts, since DoBIH marks the whole island of Ireland as
+one country) plus the Isle of Man, and excludes the Republic of Ireland.
+DoBIH hill `Number` is preserved as `dobihId` and is also used to build the
+app `id`. A peak's `list` array records every configured list it belongs
+to — some Corbetts and Grahams are also Donalds, and most Wainwrights are
+also Hewitts or Marilyns — so a shared peak keeps one identity and one
+progress record across lists.
 
 Each peak record follows this schema (the authoritative Zod version lives in
 `src/domain/schemas.ts`):
@@ -93,9 +102,10 @@ records; stats are computed against the active list's peaks only.
 
 Hill lighting is per-list: only lists with generated profiles (currently
 the Wainwrights) render the lighting and boundary layers. Lists without
-profiles fall back to summit markers alone — the Munros, Corbetts, Grahams
-and Donalds all render this way today, framed by Highlands or Southern
-Scotland map-fit bounds from the registry.
+profiles fall back to summit markers alone — the Munros, Corbetts, Grahams,
+Donalds, Ethels, Hewitts and Marilyns all render this way today, framed by
+each list's map-fit bounds from the registry (from the Peak District up to
+the whole UK for the Marilyns).
 
 ## Boundary data
 

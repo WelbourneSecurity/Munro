@@ -28,6 +28,9 @@ describe('HillListSwitcher against the real registry', () => {
       'Corbetts',
       'Grahams',
       'Donalds',
+      'Ethels',
+      'Hewitts',
+      'Marilyns',
     ]);
   });
 });

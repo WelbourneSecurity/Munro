@@ -4,7 +4,10 @@ import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
 import wainwrightAreasRaw from '../data/boundaries/wainwright-areas.geojson?raw';
 import corbetts from '../data/corbetts.json';
 import donalds from '../data/donalds.json';
+import ethels from '../data/ethels.json';
 import grahams from '../data/grahams.json';
+import hewitts from '../data/hewitts.json';
+import marilyns from '../data/marilyns.json';
 import munros from '../data/munros.json';
 import wainwrights from '../data/wainwrights.json';
 import { peakSchema, type Peak } from './schemas';
@@ -108,7 +111,7 @@ interface PeakDataFile {
   peaks: Peak[];
 }
 
-interface ScottishListCase {
+interface GeneratedListCase {
   id: string;
   file: PeakDataFile;
   count: number;
@@ -118,7 +121,7 @@ interface ScottishListCase {
   bounds: [[number, number], [number, number]];
 }
 
-const scottishLists: ScottishListCase[] = [
+const generatedLists: GeneratedListCase[] = [
   {
     id: 'munros',
     file: munros,
@@ -159,9 +162,39 @@ const scottishLists: ScottishListCase[] = [
       [-2.0, 56.5],
     ],
   },
+  {
+    id: 'ethels',
+    file: ethels,
+    count: 95,
+    heightRangeM: [270, 637],
+    bounds: [
+      [-2.2, 53.0],
+      [-1.5, 53.62],
+    ],
+  },
+  {
+    id: 'hewitts',
+    file: hewitts,
+    count: 336,
+    heightRangeM: [609, 1086],
+    bounds: [
+      [-7.9, 50.6],
+      [-1.75, 55.55],
+    ],
+  },
+  {
+    id: 'marilyns',
+    file: marilyns,
+    count: 1621,
+    heightRangeM: [150, 1345],
+    bounds: [
+      [-8.7, 50.1],
+      [0.65, 60.9],
+    ],
+  },
 ];
 
-describe.each(scottishLists)(
+describe.each(generatedLists)(
   'committed $id data',
   ({ id, file, count, heightRangeM, bounds }) => {
     const peaks = file.peaks;
@@ -204,7 +237,7 @@ describe.each(scottishLists)(
   },
 );
 
-describe('Scottish list spot checks against DoBIH v18.4', () => {
+describe('generated list spot checks against DoBIH v18.4', () => {
   it('keeps Ben Nevis as the highest Munro', () => {
     const benNevis = munros.peaks.find((peak) => peak.dobihId === 278);
     const highest = [...munros.peaks].sort((a, b) => b.heightM - a.heightM)[0];
@@ -233,11 +266,45 @@ describe('Scottish list spot checks against DoBIH v18.4', () => {
     expect(merrick?.name).toBe('Merrick');
     expect(merrick?.heightM).toBe(843);
     expect(highest).toBe(merrick);
-    expect(merrick?.list).toEqual(['corbetts', 'donalds']);
+    expect(merrick?.list).toEqual(['corbetts', 'donalds', 'marilyns']);
     expect(corbetts.peaks.find((peak) => peak.dobihId === 1688)?.list).toEqual([
       'corbetts',
       'donalds',
+      'marilyns',
     ]);
+  });
+
+  it('keeps Kinder Scout as the highest Ethel', () => {
+    const kinderScout = ethels.peaks.find((peak) => peak.dobihId === 2807);
+    const highest = [...ethels.peaks].sort((a, b) => b.heightM - a.heightM)[0];
+
+    expect(kinderScout?.name).toBe('Kinder Scout');
+    expect(highest).toBe(kinderScout);
+  });
+
+  it('keeps Yr Wyddfa as the highest Hewitt and covers Northern Ireland', () => {
+    const highest = [...hewitts.peaks].sort((a, b) => b.heightM - a.heightM)[0];
+    const slieveDonard = hewitts.peaks.find((peak) => peak.dobihId === 20016);
+
+    expect(highest?.name).toContain('Yr Wyddfa');
+    expect(slieveDonard?.name).toBe('Slieve Donard');
+  });
+
+  it('scopes the Marilyns to the UK and Isle of Man', () => {
+    const benNevis = marilyns.peaks.find((peak) => peak.dobihId === 278);
+    const highest = [...marilyns.peaks].sort((a, b) => b.heightM - a.heightM)[0];
+
+    // Highest Marilyn is Ben Nevis; Northern Ireland (Slieve Donard) and
+    // the Isle of Man (Snaefell) are covered, while the Republic of
+    // Ireland's Marilyns (e.g. Carrauntoohil) are excluded.
+    expect(highest).toBe(benNevis);
+    expect(marilyns.peaks.find((peak) => peak.dobihId === 20016)?.name).toBe(
+      'Slieve Donard',
+    );
+    expect(marilyns.peaks.find((peak) => peak.dobihId === 1945)?.name).toBe('Snaefell');
+    expect(marilyns.peaks.some((peak) => peak.name.includes('Carrauntoohil'))).toBe(
+      false,
+    );
   });
 
   it('shares the dobih peak id namespace so progress records stay unique', () => {
@@ -247,6 +314,9 @@ describe('Scottish list spot checks against DoBIH v18.4', () => {
       ...corbetts.peaks,
       ...grahams.peaks,
       ...donalds.peaks,
+      ...ethels.peaks,
+      ...hewitts.peaks,
+      ...marilyns.peaks,
     ];
     const byId = new Map<string, Peak[]>();
 

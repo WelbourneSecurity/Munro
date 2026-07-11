@@ -22,9 +22,20 @@ interface HillListConfig {
   /**
    * DoBIH classification flag column. In the hillcsv download each
    * classification is a 0/1 column named by its DoBIH code: `W` Wainwright,
-   * `M` Munro, `C` Corbett, `G` Graham, `D` Donald.
+   * `M` Munro, `C` Corbett, `G` Graham, `D` Donald, `E` Ethel,
+   * `Hew` Hewitt, `Ma` Marilyn.
    */
   flagColumn: string;
+  /**
+   * Extra membership predicate beyond the flag column. Used to trim
+   * British-Isles-wide classifications (Marilyns, Hewitts) to UK coverage.
+   * Applies both to a list's own output and to the `list` membership arrays
+   * stamped on every generated peak, so cross-file membership stays
+   * consistent.
+   */
+  include?: (row: DobihRow) => boolean;
+  /** Appended to the metadata `changes` note when `include` trims the list. */
+  scopeNote?: string;
   outputFile: string;
   /** Exact list size cross-checked against published figures. */
   expectedCount: number;
@@ -34,6 +45,48 @@ interface HillListConfig {
   heightRangeM: [number, number];
   /** Throws when well-known peaks look wrong in the parsed output. */
   spotCheck: (peaks: Peak[]) => void;
+}
+
+/**
+ * DoBIH `Country` is `I` for the whole island of Ireland; Northern Ireland
+ * is only identifiable through its eleven local-government districts in the
+ * `County` column (border hills list several, `/`-separated — Cuilcagh sits
+ * in "Fermanagh and Omagh/Cavan", for example).
+ */
+const NORTHERN_IRELAND_DISTRICTS = new Set([
+  'Antrim and Newtownabbey',
+  'Ards and North Down',
+  'Armagh City, Banbridge and Craigavon',
+  'Belfast',
+  'Causeway Coast and Glens',
+  'Derry City and Strabane',
+  'Fermanagh and Omagh',
+  'Lisburn and Castlereagh',
+  'Mid and East Antrim',
+  'Mid Ulster',
+  'Newry, Mourne and Down',
+]);
+
+/**
+ * Keeps hills in the UK plus the Isle of Man: every non-Irish row (DoBIH
+ * countries `E`/`S`/`W`/`M` and border combinations such as `ES`), and Irish
+ * rows only when a Northern Ireland district appears in `County`. Republic
+ * of Ireland hills are excluded.
+ */
+function inUkOrIsleOfMan(row: DobihRow): boolean {
+  if (row.Country !== 'I') {
+    return true;
+  }
+
+  return (row.County ?? '')
+    .split('/')
+    .some((county) => NORTHERN_IRELAND_DISTRICTS.has(county.trim()));
+}
+
+const UK_SCOPE_NOTE = 'UK and Isle of Man only, Republic of Ireland excluded';
+
+function isListMember(row: DobihRow, config: HillListConfig): boolean {
+  return row[config.flagColumn] === '1' && (config.include?.(row) ?? true);
 }
 
 function findPeak(peaks: Peak[], dobihId: number, listName: string): Peak {
@@ -157,6 +210,75 @@ const HILL_LIST_CONFIGS: readonly HillListConfig[] = [
       }
     },
   },
+  {
+    id: 'ethels',
+    name: 'Ethels',
+    flagColumn: 'E',
+    outputFile: 'ethels.json',
+    expectedCount: 95,
+    heightRangeM: [270, 637],
+    spotCheck: (peaks) => {
+      const kinderScout = findPeak(peaks, 2807, 'Ethels');
+
+      if (highestOf(peaks) !== kinderScout || kinderScout.name !== 'Kinder Scout') {
+        throw new Error(`Highest Ethel check failed: ${highestOf(peaks).name}`);
+      }
+
+      findPeak(peaks, 2812, 'Ethels'); // Shining Tor
+    },
+  },
+  {
+    id: 'hewitts',
+    name: 'Hewitts',
+    flagColumn: 'Hew',
+    include: inUkOrIsleOfMan,
+    scopeNote: UK_SCOPE_NOTE,
+    outputFile: 'hewitts.json',
+    expectedCount: 336,
+    heightRangeM: [609, 1086],
+    spotCheck: (peaks) => {
+      const highest = highestOf(peaks);
+
+      if (!highest.name.includes('Yr Wyddfa')) {
+        throw new Error(`Highest Hewitt check failed: ${highest.name}`);
+      }
+
+      // Northern Ireland must stay covered (Mournes, Sperrins).
+      const slieveDonard = findPeak(peaks, 20016, 'Hewitts');
+
+      if (slieveDonard.name !== 'Slieve Donard') {
+        throw new Error('Slieve Donard spot-check failed.');
+      }
+
+      findPeak(peaks, 2359, 'Hewitts'); // Scafell Pike
+    },
+  },
+  {
+    id: 'marilyns',
+    name: 'Marilyns',
+    flagColumn: 'Ma',
+    include: inUkOrIsleOfMan,
+    scopeNote: UK_SCOPE_NOTE,
+    outputFile: 'marilyns.json',
+    expectedCount: 1621,
+    heightRangeM: [150, 1345],
+    spotCheck: (peaks) => {
+      const benNevis = findPeak(peaks, 278, 'Marilyns');
+
+      if (highestOf(peaks) !== benNevis) {
+        throw new Error(`Highest Marilyn check failed: ${highestOf(peaks).name}`);
+      }
+
+      // Coverage guards for the corners of the list's scope: Northern
+      // Ireland and the Isle of Man are in; the Republic of Ireland is out.
+      findPeak(peaks, 20016, 'Marilyns'); // Slieve Donard
+      findPeak(peaks, 1945, 'Marilyns'); // Snaefell
+
+      if (peaks.some((peak) => peak.name.includes('Carrauntoohil'))) {
+        throw new Error('Republic of Ireland Marilyns should be excluded.');
+      }
+    },
+  },
 ];
 
 type PeakDataFile = {
@@ -212,8 +334,8 @@ function toPeak(row: DobihRow, config: HillListConfig): Peak {
   const lon = parseRequiredNumber(row, 'Longitude');
   const name = row.Name?.trim();
   const gridRef = row['Grid ref']?.trim();
-  const list = HILL_LIST_CONFIGS.filter(
-    (candidate) => row[candidate.flagColumn] === '1',
+  const list = HILL_LIST_CONFIGS.filter((candidate) =>
+    isListMember(row, candidate),
   ).map((candidate) => candidate.id);
 
   if (!name || !gridRef) {
@@ -265,7 +387,7 @@ function readCsvFromZip(zipBytes: Uint8Array) {
 
 function parseList(rows: DobihRow[], config: HillListConfig): Peak[] {
   const peaks = rows
-    .filter((row) => row[config.flagColumn] === '1')
+    .filter((row) => isListMember(row, config))
     .map((row) => toPeak(row, config))
     .sort((a, b) => a.name.localeCompare(b.name, 'en-GB'));
 
@@ -368,7 +490,7 @@ for (const config of configs) {
       license: 'CC BY 4.0',
       sourceUrl: 'https://www.hill-bagging.co.uk/dobih',
       downloadedFrom: DOBIH_ZIP_URL,
-      changes: `Trimmed to ${config.name} and reformatted from DoBIH v18.4`,
+      changes: `Trimmed to ${config.name}${config.scopeNote ? ` (${config.scopeNote})` : ''} and reformatted from DoBIH v18.4`,
       generatedAt: new Date().toISOString().slice(0, 10),
       count: peaks.length,
     },

@@ -14,6 +14,9 @@ export const HILL_LIST_IDS = [
   'corbetts',
   'grahams',
   'donalds',
+  'ethels',
+  'hewitts',
+  'marilyns',
 ] as const;
 
 export type HillListId = (typeof HILL_LIST_IDS)[number];
@@ -161,12 +164,79 @@ const donalds: HillListDefinition = {
   loadPeaks: async () => (await import('./donalds.json')).default.peaks,
 };
 
+// The UK-wide lists are trimmed to the UK (plus the Isle of Man for the
+// Marilyns, whose published list includes it); Republic of Ireland hills
+// are excluded by the data build — see scripts/build-peak-data.ts.
+
+const ethels: HillListDefinition = {
+  id: 'ethels',
+  name: 'Ethels',
+  regionLabel: 'Peak District',
+  peakNoun: 'hills',
+  bounds: [
+    [-2.2, 53.0],
+    [-1.5, 53.62],
+  ],
+  initialView: {
+    longitude: -1.85,
+    latitude: 53.32,
+    zoom: 8.9,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: false,
+  loadPeaks: async () => (await import('./ethels.json')).default.peaks,
+};
+
+const hewitts: HillListDefinition = {
+  id: 'hewitts',
+  name: 'Hewitts',
+  regionLabel: 'England, Wales & Northern Ireland',
+  peakNoun: 'mountains',
+  bounds: [
+    [-7.9, 50.6],
+    [-1.75, 55.55],
+  ],
+  initialView: {
+    longitude: -3.9,
+    latitude: 53.2,
+    zoom: 6.0,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: false,
+  loadPeaks: async () => (await import('./hewitts.json')).default.peaks,
+};
+
+const marilyns: HillListDefinition = {
+  id: 'marilyns',
+  name: 'Marilyns',
+  regionLabel: 'UK & Isle of Man',
+  peakNoun: 'hills',
+  bounds: [
+    [-8.7, 50.1],
+    [0.65, 60.9],
+  ],
+  initialView: {
+    longitude: -4.0,
+    latitude: 55.0,
+    zoom: 5.0,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: false,
+  loadPeaks: async () => (await import('./marilyns.json')).default.peaks,
+};
+
 export const HILL_LISTS: readonly HillListDefinition[] = [
   wainwrights,
   munros,
   corbetts,
   grahams,
   donalds,
+  ethels,
+  hewitts,
+  marilyns,
 ];
 
 const DEFAULT_HILL_LIST: HillListDefinition = wainwrights;

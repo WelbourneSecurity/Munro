@@ -13,15 +13,21 @@ npm run data:peaks -- munros donalds # a subset
 `scripts/build-peak-data.ts` downloads the DoBIH `hillcsv.zip` once and builds
 one JSON file per configured hill list. Each list is driven by a small config
 naming its DoBIH classification flag column (`W` Wainwright, `M` Munro,
-`C` Corbett, `G` Graham, `D` Donald — each a 0/1 column in the CSV), its exact
-published count, a summit-height sanity band and well-known spot checks. Every
-mapped record is validated with the app `Peak` schema. The committed files are:
+`C` Corbett, `G` Graham, `D` Donald, `E` Ethel, `Hew` Hewitt, `Ma` Marilyn —
+each a 0/1 column in the CSV), its exact published count, a summit-height
+sanity band and well-known spot checks. The Hewitts and Marilyns configs add
+a UK scope filter (Northern Ireland identified by its local-government
+districts; Republic of Ireland excluded; Isle of Man kept). Every mapped
+record is validated with the app `Peak` schema. The committed files are:
 
 - `src/data/wainwrights.json` — 214 Wainwrights
 - `src/data/munros.json` — 282 Munros
 - `src/data/corbetts.json` — 222 Corbetts
 - `src/data/grahams.json` — 231 Grahams
 - `src/data/donalds.json` — 89 Donalds
+- `src/data/ethels.json` — 95 Ethels
+- `src/data/hewitts.json` — 336 Hewitts
+- `src/data/marilyns.json` — 1,621 Marilyns
 
 A peak's `list` array records every configured list it belongs to (some
 Corbetts and Grahams are also Donalds), so progress on a shared peak follows

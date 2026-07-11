@@ -82,6 +82,9 @@ describe('hill-list registry', () => {
       corbetts: 222,
       grahams: 231,
       donalds: 89,
+      ethels: 95,
+      hewitts: 336,
+      marilyns: 1621,
     };
 
     for (const [id, count] of Object.entries(expectedCounts)) {
