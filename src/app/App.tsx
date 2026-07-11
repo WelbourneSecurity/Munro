@@ -1,8 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 
-import { ProgressStats } from '../components';
-import wainwrights from '../data/wainwrights.json';
-import { calculateProgress, type Peak } from '../domain';
+import { ProgressStats, useActiveHillList } from '../components';
+import { calculateProgress } from '../domain';
 import { MapView } from '../map';
 import { useProgressStore } from '../store';
 import { DataPage } from './DataPage';
@@ -16,8 +15,6 @@ const routes: { href: string; id: RouteId; label: string }[] = [
   { href: '#/data', id: 'data', label: 'Data' },
   { href: '#/settings', id: 'settings', label: 'Settings' },
 ];
-
-const peaks = wainwrights.peaks as Peak[];
 
 function resolveRoute(hash: string): RouteId {
   switch (hash) {
@@ -102,6 +99,7 @@ function renderRoute(route: RouteId): ReactNode {
 }
 
 function HomePage() {
+  const { peaks } = useActiveHillList();
   const progressByPeakId = useProgressStore((state) => state.progressByPeakId);
   const progress = Object.values(progressByPeakId);
   const stats = calculateProgress(peaks, progress);

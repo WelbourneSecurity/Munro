@@ -14,6 +14,7 @@ beforeEach(() => {
   localStorage.clear();
   useProgressStore.getState().resetAll();
   usePreferencesStore.getState().setTerrainEnabled(true);
+  usePreferencesStore.getState().setActiveListId('wainwrights');
 });
 
 describe('useProgressStore', () => {
@@ -270,5 +271,36 @@ describe('usePreferencesStore', () => {
 
     expect(usePreferencesStore.getState().terrainEnabled).toBe(false);
     expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).toContain('false');
+  });
+
+  it('defaults the active hill list to Wainwrights', () => {
+    expect(usePreferencesStore.getState().activeListId).toBe('wainwrights');
+  });
+
+  it('persists the active hill list without touching progress records', () => {
+    useProgressStore.getState().bag('dobih-2319');
+    usePreferencesStore.getState().setActiveListId('wainwrights');
+
+    expect(usePreferencesStore.getState().activeListId).toBe('wainwrights');
+    expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).toContain('wainwrights');
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: true,
+    });
+  });
+
+  it('falls back to the default list when the persisted id is unknown', async () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        state: { activeListId: 'retired-list', terrainEnabled: false },
+        version: 1,
+      }),
+    );
+
+    await usePreferencesStore.persist.rehydrate();
+
+    expect(usePreferencesStore.getState().activeListId).toBe('wainwrights');
+    expect(usePreferencesStore.getState().terrainEnabled).toBe(false);
   });
 });

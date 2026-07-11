@@ -1,12 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import {
-  backupSchema,
-  peakProgressSchema,
-  type Backup,
-  type PeakProgress,
-} from '../domain';
+import { DEFAULT_HILL_LIST_ID, isHillListId, type HillListId } from '../data/lists';
+import { backupSchema, type Backup, type PeakProgress } from '../domain';
 
 export const PROGRESS_STORAGE_KEY = 'munro.progress.v1';
 export const PREFERENCES_STORAGE_KEY = 'munro.prefs.v1';
@@ -183,14 +179,20 @@ export function isBagged(peakId: string) {
 }
 
 export interface PreferencesState {
+  activeListId: HillListId;
   terrainEnabled: boolean;
+  setActiveListId: (listId: HillListId) => void;
   setTerrainEnabled: (enabled: boolean) => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>()(
   persist(
     (set) => ({
+      activeListId: DEFAULT_HILL_LIST_ID,
       terrainEnabled: true,
+      setActiveListId: (listId) => {
+        set({ activeListId: listId });
+      },
       setTerrainEnabled: (enabled) => {
         set({ terrainEnabled: enabled });
       },
@@ -200,6 +202,18 @@ export const usePreferencesStore = create<PreferencesState>()(
       storage: createJSONStorage(() => localStorage),
       version: 1,
       migrate: (persisted) => persisted as PreferencesState,
+      merge: (persisted, current) => {
+        const merged = {
+          ...current,
+          ...(persisted as Partial<PreferencesState> | undefined),
+        };
+
+        if (!isHillListId(merged.activeListId)) {
+          merged.activeListId = DEFAULT_HILL_LIST_ID;
+        }
+
+        return merged;
+      },
     },
   ),
 );

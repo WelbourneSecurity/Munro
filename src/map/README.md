@@ -9,10 +9,14 @@ The base style in `style/munro-dark.json` is a committed fork of OpenFreeMap's
 Dark style (`https://tiles.openfreemap.org/styles/dark`). Keep the fork close to
 upstream and apply Munro-specific source overlays in code:
 
-- Lake District boundary from `src/data/boundaries/lake-district.geojson`.
+- Lake District boundary from `src/data/boundaries/lake-district.geojson`
+  (rendered only while a list with hill lighting is active).
 - Generated Wainwright hill-profile polygons from
-  `src/data/boundaries/wainwright-areas.geojson`.
-- Wainwright summit points from `src/data/wainwrights.json`.
+  `src/data/boundaries/wainwright-areas.geojson` (hill lighting is per-list;
+  lists without profiles skip these layers cleanly).
+- Summit points for the active hill list, loaded lazily through the registry
+  in `src/data/lists.ts`, which also supplies each list's map-fit bounds and
+  initial camera.
 - AWS Terrarium DEM tiles for hillshade.
 - Client-generated contour lines from `maplibre-contour`.
 - Attribution strings from `src/data/attribution.ts`.

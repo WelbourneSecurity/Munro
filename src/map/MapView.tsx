@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AttributionControl,
   Layer,
@@ -11,18 +11,18 @@ import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import type { StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { ExportDialog, PeakListPanel, ProgressStats } from '../components';
+import {
+  HillListSwitcher,
+  PeakListPanel,
+  ProgressStats,
+  useActiveHillList,
+} from '../components';
 import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
 import hillAreasRaw from '../data/boundaries/wainwright-areas.geojson?raw';
-import wainwrights from '../data/wainwrights.json';
 import { mapAttributionHtml } from '../data/attribution';
-import { calculateProgress, peaksToGeoJSON, type Peak } from '../domain';
+import { calculateProgress, peaksToGeoJSON } from '../domain';
 import { usePreferencesStore, useProgressStore } from '../store';
-import {
-  LAKE_DISTRICT_BOUNDS,
-  LAKE_DISTRICT_INITIAL_VIEW,
-  OPENFREEMAP_VECTOR_SOURCE_URL,
-} from './config';
+import { LIST_FIT_OPTIONS, OPENFREEMAP_VECTOR_SOURCE_URL } from './config';
 import {
   boundaryFillLayer,
   boundaryLineLayer,
@@ -46,7 +46,6 @@ type HillAreaData = FeatureCollection<Polygon | MultiPolygon> & {
   metadata?: Record<string, unknown>;
 };
 
-const peaks = wainwrights.peaks as Peak[];
 const boundaryData = JSON.parse(boundaryRaw) as BoundaryData;
 const hillAreaData = JSON.parse(hillAreasRaw) as HillAreaData;
 
@@ -62,15 +61,12 @@ export function MapView() {
   const setNotes = useProgressStore((state) => state.setNotes);
   const terrainEnabled = usePreferencesStore((state) => state.terrainEnabled);
   const setTerrainEnabled = usePreferencesStore((state) => state.setTerrainEnabled);
-  const [selectedPeakId, setSelectedPeakId] = useState(peaks[0]?.id);
-  const [exportOpen, setExportOpen] = useState(false);
-  // On small screens the panel is a bottom sheet; this collapses it so the
-  // map is reachable one-handed. Desktop (lg) always shows the panel.
-  const [panelOpen, setPanelOpen] = useState(true);
-  const getMap = useCallback(() => mapRef.current?.getMap() ?? null, []);
+  const { list, peaks } = useActiveHillList();
+  const [selectedPeakId, setSelectedPeakId] = useState<string>();
+  const shownListIdRef = useRef<string>(list.id);
 
   const progress = useMemo(() => Object.values(progressByPeakId), [progressByPeakId]);
-  const peakGeoJson = useMemo(() => peaksToGeoJSON(peaks, progress), [progress]);
+  const peakGeoJson = useMemo(() => peaksToGeoJSON(peaks, progress), [peaks, progress]);
   const hillAreaGeoJson = useMemo(
     () => ({
       ...hillAreaData,
@@ -93,49 +89,25 @@ export function MapView() {
     }),
     [progressByPeakId, selectedPeakId, exportOpen],
   );
-  const stats = useMemo(() => calculateProgress(peaks, progress), [progress]);
+  const stats = useMemo(() => calculateProgress(peaks, progress), [peaks, progress]);
   const selectedPeak = peaks.find((peak) => peak.id === selectedPeakId) ?? peaks[0];
   const selectedProgress = selectedPeak ? progressByPeakId[selectedPeak.id] : undefined;
   const isSelectedBagged = selectedProgress?.bagged === true;
 
-  // The notes textarea only commits on blur, which never fires when the page
-  // is reloaded, closed or a backgrounded PWA is killed — flush pending text
-  // to the store before the page goes away so notes persist across reloads.
-  // hashchange covers focus-preserving navigations (browser Back/Forward,
-  // mobile back gesture): they unmount MapView without blurring the focused
-  // textarea, and the listener runs while the textarea is still attached
-  // because the router's re-render is batched until after the event.
   useEffect(() => {
-    const peakId = selectedPeak?.id;
-
-    if (!peakId) {
+    if (shownListIdRef.current === list.id) {
       return;
     }
 
-    function flushNotes() {
-      const textarea = notesRef.current;
-
-      if (textarea && peakId) {
-        setNotes(peakId, textarea.value || undefined);
-      }
-    }
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === 'hidden') {
-        flushNotes();
-      }
-    }
-
-    window.addEventListener('pagehide', flushNotes);
-    window.addEventListener('hashchange', flushNotes);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('pagehide', flushNotes);
-      window.removeEventListener('hashchange', flushNotes);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [selectedPeak?.id, setNotes]);
+    shownListIdRef.current = list.id;
+    setSelectedPeakId(undefined);
+    mapRef.current?.fitBounds(list.bounds, {
+      ...LIST_FIT_OPTIONS,
+      bearing: list.initialView.bearing,
+      pitch: list.initialView.pitch,
+      duration: 900,
+    });
+  }, [list]);
 
   const mapStyle = useMemo<StyleSpecification>(
     () =>
@@ -206,13 +178,17 @@ export function MapView() {
           attributionControl={false}
           canvasContextAttributes={{ preserveDrawingBuffer: true }}
           initialViewState={{
-            ...LAKE_DISTRICT_INITIAL_VIEW,
-            bounds: LAKE_DISTRICT_BOUNDS,
-            fitBoundsOptions: { padding: 56, maxZoom: 9.4 },
+            ...list.initialView,
+            bounds: list.bounds,
+            fitBoundsOptions: LIST_FIT_OPTIONS,
           }}
-          interactiveLayerIds={['hill-area-fill', 'hill-area-line', 'peak-hitbox']}
+          interactiveLayerIds={
+            list.hasHillLighting
+              ? ['hill-area-fill', 'hill-area-line', 'peak-hitbox']
+              : ['peak-hitbox']
+          }
           mapStyle={mapStyle}
-          maxBounds={LAKE_DISTRICT_BOUNDS}
+          maxBounds={list.bounds}
           maxPitch={68}
           maxZoom={16}
           minZoom={7}
@@ -251,14 +227,18 @@ export function MapView() {
               </Source>
             </>
           ) : null}
-          <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
-            <Layer {...boundaryFillLayer} />
-            <Layer {...boundaryLineLayer} />
-          </Source>
-          <Source id="wainwright-areas" type="geojson" data={hillAreaGeoJson}>
-            <Layer {...hillAreaFillLayer} />
-            <Layer {...hillAreaLineLayer} />
-          </Source>
+          {list.hasHillLighting ? (
+            <>
+              <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
+                <Layer {...boundaryFillLayer} />
+                <Layer {...boundaryLineLayer} />
+              </Source>
+              <Source id="wainwright-areas" type="geojson" data={hillAreaGeoJson}>
+                <Layer {...hillAreaFillLayer} />
+                <Layer {...hillAreaLineLayer} />
+              </Source>
+            </>
+          ) : null}
           {terrainEnabled ? (
             <Source
               id="terrain-contours"
@@ -270,7 +250,7 @@ export function MapView() {
               <Layer {...terrainContourLabelLayer} />
             </Source>
           ) : null}
-          <Source id="wainwright-peaks" type="geojson" data={peakGeoJson}>
+          <Source id="list-peaks" type="geojson" data={peakGeoJson}>
             <Layer {...peakHitboxLayer} />
             <Layer {...peakMarkerLayer} />
             <Layer {...peakLabelLayer} />
@@ -278,34 +258,20 @@ export function MapView() {
         </Map>
       </div>
 
-      <aside
-        aria-label="Tracker panel"
-        className="border-line bg-panel flex w-[24rem] flex-col border-l px-5 py-5 max-lg:absolute max-lg:inset-x-3 max-lg:bottom-[calc(0.75rem+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:max-h-[82svh] max-lg:w-auto max-lg:overflow-y-auto max-lg:border"
-      >
-        <button
-          aria-controls="tracker-panel-content"
-          aria-expanded={panelOpen}
-          className={`border-line bg-panel text-secondary hover:text-primary focus-visible:outline-bagged min-h-11 w-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 lg:hidden ${
-            panelOpen ? 'mb-5' : ''
-          }`}
-          type="button"
-          onClick={() => {
-            setPanelOpen((open) => !open);
-          }}
-        >
-          {panelOpen ? 'Hide panel' : 'Show panel'}
-        </button>
-        <div
-          id="tracker-panel-content"
-          className={`flex min-h-0 flex-1 flex-col ${panelOpen ? '' : 'max-lg:hidden'}`}
-        >
-          <div className="mb-5 flex items-start justify-between gap-4">
-            <div>
-              <p className="font-label text-label text-muted">Lake District</p>
-              <h1 className="text-primary mt-1 text-2xl font-semibold">Wainwrights</h1>
-            </div>
-            <p className="font-label text-label text-muted text-right">214 fells</p>
+      <aside className="border-line bg-panel flex w-[24rem] flex-col border-l px-5 py-5 max-lg:absolute max-lg:inset-x-3 max-lg:bottom-3 max-lg:z-10 max-lg:max-h-[82svh] max-lg:w-auto max-lg:overflow-y-auto max-lg:border">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div>
+            <p className="font-label text-label text-muted">{list.regionLabel}</p>
+            <h1 className="text-primary mt-1 text-2xl font-semibold">{list.name}</h1>
           </div>
+          <p className="font-label text-label text-muted text-right">
+            {peaks.length > 0 ? `${String(peaks.length)} ${list.peakNoun}` : ''}
+          </p>
+        </div>
+
+        <div className="mb-3 empty:hidden">
+          <HillListSwitcher />
+        </div>
 
           <label className="border-line text-secondary mb-5 flex min-h-11 items-center justify-between gap-4 border px-3 py-2 text-sm">
             <span>Terrain</span>

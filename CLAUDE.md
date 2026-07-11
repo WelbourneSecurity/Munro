@@ -26,29 +26,17 @@ layout), its test suites, the CI/CD workflows and the documentation site:
 - `SOUL.md` — project philosophy; consult it for any product decision
 - `CLAUDE.md` / `AGENTS.md` — this file is the source of agent instructions;
   edit `CLAUDE.md` only
-- `index.html` — Vite app entry (preconnects to tile hosts)
-- `src/app/` — shell, hand-rolled hash router (`#/`, `#/tracker`, `#/data`,
-  `#/settings`) and pages
-- `src/components/` — peak list panel, progress stats, export dialog
-- `src/domain/` — Zod schemas (`Peak`, `PeakProgress`, `Backup`) and pure
-  logic; stays free of React and MapLibre imports
-- `src/data/` — generated Wainwright peak data, boundary/hill-profile
-  GeoJSON and attribution constants
-- `src/map/` — the MapLibre/OpenFreeMap tracker wrapper, committed dark
-  style fork, terrain/contour setup and map layers; runtime MapLibre
-  imports stay inside this directory
-- `src/store/` — local-first Zustand stores persisted to localStorage
-  (`munro.progress.v1`, `munro.prefs.v1`)
-- `src/export/` — canvas snapshot/composition engine, loaded as a lazy chunk
-- `scripts/` — data generation from DoBIH and Natural England
-- `tests/e2e/` — Playwright specs, run in desktop Chromium and an
-  iPhone-13-sized mobile project
-- `.github/workflows/` — CI, deploy, PR previews, docs build, CodeQL
-- `public/CNAME` + `base: '/'` in `vite.config.ts` — the app deploys from
-  `main` to <https://munro.welbournesecurity.com> at the domain root
-- `wiki/` — the product docs as MkDocs pages (vision, MVP, features, data,
-  design, tech stack, platforms, operations, roadmap), plus
-  `wiki/implementation-plan.md` — the historical build plan for the MVP
+- `index.html` — Vite app entry
+- `src/` — React app; `src/domain/` stays pure and framework-free
+- `src/data/` — the hill-list registry (`lists.ts`), generated Wainwright
+  peak data, Lake District boundary data and attribution constants
+- `src/map/` — the MapLibre/OpenFreeMap tracker wrapper, terrain/contour setup
+  and map layers; keep MapLibre imports isolated here
+- `src/store/` — local-first Zustand progress and preferences stores
+- `wiki/` — the full product brief as MkDocs pages (vision, MVP, features,
+  data, design, tech stack, platforms, roadmap), plus
+  `wiki/implementation-plan.md` — the agentic task breakdown for building
+  the MVP; start there before implementing anything
 - `mkdocs.yml` — MkDocs config (Material theme, `docs_dir: wiki`)
 - `requirements.txt` — Python deps for the docs site
 - `package.json` — app scripts and JavaScript tooling
@@ -107,22 +95,12 @@ July 2026); the shipped stack is described in `wiki/tech-stack.md`. In brief:
 Conventions to preserve:
 
 - Peak source data and user progress are **separate** records — see the
-  `Peak` and `PeakProgress` schemas in `wiki/data.md` and
-  `src/domain/schemas.ts`; don't merge them.
-- Adding a new hill list must stay a data-only change, not a refactor.
-- `src/domain/` stays pure: no React, no MapLibre, no store imports — just
-  schemas and framework-free logic that tests run fast.
-- Runtime MapLibre imports stay inside `src/map/`: `MapView.tsx` is the
-  **only** module that imports `@vis.gl/react-maplibre`, and `terrain.ts`
-  is the only one that imports `maplibre-gl` directly (to register the
-  shared DEM protocol). Modules outside `src/map/` may import MapLibre
-  types only. Map layer styling lives as data-driven expressions in
-  `src/map/layers.ts`, and the tile/terrain URLs stay isolated in
-  `src/map/config.ts`.
-- Bagged/selected marker state is written into the peak and hill-profile
-  GeoJSON feature properties (rebuilt from the store) and styled with
-  data-driven expressions — don't move that state into component-level
-  markers or DOM overlays.
+  `Peak` and `PeakProgress` schemas in `wiki/data.md`; don't merge them.
+- Adding a new hill list must stay a data-only change, not a refactor:
+  commit the generated peak JSON and add one entry to the registry in
+  `src/data/lists.ts` (peak data loads lazily per list). The active list is
+  a persisted preference; per-list stats come from passing the active
+  list's peaks to `calculateProgress`.
 - Hill lighting uses generated summit-centred hill profiles clipped to the
   Lake District boundary. Treat them as approximate visual lighting profiles,
   not authoritative legal, route or geomorphological boundaries.

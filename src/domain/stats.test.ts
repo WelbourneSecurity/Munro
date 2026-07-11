@@ -46,6 +46,25 @@ describe('calculateProgress', () => {
     });
   });
 
+  it('only counts progress for peaks in the given list', () => {
+    const peaks = makePeaks(2);
+    const progress: PeakProgress[] = [
+      { peakId: 'dobih-1', bagged: true },
+      // Progress for peaks outside this list (e.g. another hill list)
+      // coexists in the same store but must not affect these stats.
+      { peakId: 'dobih-9001', bagged: true },
+      { peakId: 'dobih-9002', bagged: true },
+    ];
+
+    expect(calculateProgress(peaks, progress)).toEqual({
+      total: 2,
+      bagged: 1,
+      remaining: 1,
+      percentage: 50,
+      recent: [{ peakId: 'dobih-1', bagged: true }],
+    });
+  });
+
   it('handles complete progress', () => {
     const peaks = makePeaks(214);
     const progress = peaks.map<PeakProgress>((peak) => ({

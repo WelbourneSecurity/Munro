@@ -63,6 +63,31 @@ streams, hillshade and contours remain visible from the basemap so the user can
 read the topography beneath the profile layer. They are not authoritative legal,
 route or geomorphological boundaries.
 
+## Hill lists
+
+The lists Munro can track are described by a small registry:
+
+- `src/data/lists.ts`
+
+Each entry declares the list's id, display name, region label, map-fit
+bounds and initial camera, whether generated hill-lighting profiles exist
+for it, and a lazy loader for its peak-data module. Peak data is loaded with
+a dynamic import, so the app bundle does not grow as lists are added.
+
+Adding a hill list is a data-only change: commit its generated peak JSON
+under `src/data/` and add one registry entry. No store, component or map
+refactor should be required.
+
+The active list is a persisted user preference (defaulting to Wainwrights)
+and is switched from the tracker's peak list panel. Progress records are
+keyed by the globally unique peak id (`dobih-N`), so each list's progress
+coexists in the same store and switching lists never touches existing
+records; stats are computed against the active list's peaks only.
+
+Hill lighting is per-list: only lists with generated profiles (currently
+the Wainwrights) render the lighting and boundary layers. Lists without
+profiles fall back to summit markers alone.
+
 ## Boundary data
 
 The Lake District boundary is generated from Natural England's National Parks

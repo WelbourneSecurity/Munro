@@ -146,7 +146,7 @@ export const boundaryLineLayer: LineLayerSpecification = {
 export const peakHitboxLayer: CircleLayerSpecification = {
   id: 'peak-hitbox',
   type: 'circle',
-  source: 'wainwright-peaks',
+  source: 'list-peaks',
   paint: {
     'circle-color': '#ffffff',
     'circle-opacity': 0,
@@ -157,7 +157,7 @@ export const peakHitboxLayer: CircleLayerSpecification = {
 export const baggedSummitLightLayer: CircleLayerSpecification = {
   id: 'bagged-summit-light',
   type: 'circle',
-  source: 'wainwright-peaks',
+  source: 'list-peaks',
   filter: ['==', ['get', 'bagged'], true],
   paint: {
     'circle-color': '#a7d8b6',
@@ -181,7 +181,7 @@ export const baggedSummitLightLayer: CircleLayerSpecification = {
 export const peakMarkerLayer: CircleLayerSpecification = {
   id: 'peak-markers',
   type: 'circle',
-  source: 'wainwright-peaks',
+  source: 'list-peaks',
   paint: {
     'circle-color': ['case', ['==', ['get', 'bagged'], true], '#a7d8b6', '#aab3aa'],
     'circle-opacity': 0,
@@ -195,7 +195,7 @@ export const peakMarkerLayer: CircleLayerSpecification = {
 export const peakLabelLayer: SymbolLayerSpecification = {
   id: 'peak-labels',
   type: 'symbol',
-  source: 'wainwright-peaks',
+  source: 'list-peaks',
   minzoom: 10.5,
   layout: {
     'text-anchor': 'top',
