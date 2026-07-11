@@ -147,7 +147,10 @@ context uses [AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/).
 
 ## License
 
-Not yet decided. A licence will be chosen before the first code release.
+The code is released under the [MIT License](LICENSE). The data the app
+ships keeps its own licences: DoBIH hill data is CC BY 4.0 and the Natural
+England boundary is OGL v3 — see [the data page](wiki/data.md) for the
+attribution requirements.
 
 ## Project status
 
