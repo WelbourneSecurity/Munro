@@ -6,10 +6,14 @@ without runtime API keys or hidden services.
 
 ## Peak data
 
-The MVP Wainwright dataset is generated from the Database of British and
-Irish Hills (DoBIH) v18.4 CSV download. The committed file is:
+Peak datasets are generated from the Database of British and Irish Hills
+(DoBIH) v18.4 CSV download. The committed files are:
 
-- `src/data/wainwrights.json`
+- `src/data/wainwrights.json` — 214 Wainwrights
+- `src/data/munros.json` — 282 Munros
+- `src/data/corbetts.json` — 222 Corbetts
+- `src/data/grahams.json` — 231 Grahams
+- `src/data/donalds.json` — 89 Donalds
 
 The generation command is:
 
@@ -17,10 +21,13 @@ The generation command is:
 npm run data:peaks
 ```
 
-The script downloads the DoBIH CSV ZIP, filters rows where the `W` flag is
-set, and validates that the output contains exactly 214 Wainwrights with
-unique stable identifiers. DoBIH hill `Number` is preserved as the numeric
-`dobihId` and is also used to build the app `id` (`dobih-<number>`).
+The script downloads the DoBIH CSV ZIP once and builds one file per list from
+a small per-list config: the DoBIH classification flag column (`W`, `M`, `C`,
+`G`, `D`), the exact published count, a summit-height sanity band and spot
+checks for well-known hills. DoBIH hill `Number` is preserved as `dobihId`
+and is also used to build the app `id`. A peak's `list` array records every
+configured list it belongs to — some Corbetts and Grahams are also Donalds —
+so a shared peak keeps one identity and one progress record across lists.
 
 Each peak record follows this schema (the authoritative Zod version lives in
 `src/domain/schemas.ts`):
@@ -86,7 +93,9 @@ records; stats are computed against the active list's peaks only.
 
 Hill lighting is per-list: only lists with generated profiles (currently
 the Wainwrights) render the lighting and boundary layers. Lists without
-profiles fall back to summit markers alone.
+profiles fall back to summit markers alone — the Munros, Corbetts, Grahams
+and Donalds all render this way today, framed by Highlands or Southern
+Scotland map-fit bounds from the registry.
 
 ## Boundary data
 

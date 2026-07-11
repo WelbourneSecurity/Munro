@@ -36,7 +36,8 @@ describe('hill-list registry', () => {
 
   it('guards list ids', () => {
     expect(isHillListId('wainwrights')).toBe(true);
-    expect(isHillListId('munros')).toBe(false);
+    expect(isHillListId('munros')).toBe(true);
+    expect(isHillListId('nuttalls')).toBe(false);
     expect(isHillListId(undefined)).toBe(false);
     expect(isHillListId(42)).toBe(false);
   });
@@ -74,9 +75,19 @@ describe('hill-list registry', () => {
     expect(listsWithLighting).toEqual(['wainwrights']);
   });
 
-  it('loads exactly the 214 Wainwrights for the wainwrights list', async () => {
-    const peaks = await getHillList('wainwrights').loadPeaks();
+  it('loads the exact published count for every list', async () => {
+    const expectedCounts: Record<string, number> = {
+      wainwrights: 214,
+      munros: 282,
+      corbetts: 222,
+      grahams: 231,
+      donalds: 89,
+    };
 
-    expect(peaks).toHaveLength(214);
+    for (const [id, count] of Object.entries(expectedCounts)) {
+      expect((await getHillList(id).loadPeaks()).length, id).toBe(count);
+    }
+
+    expect(Object.keys(expectedCounts).sort()).toEqual([...HILL_LIST_IDS].sort());
   });
 });

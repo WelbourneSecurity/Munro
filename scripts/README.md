@@ -3,18 +3,31 @@
 These scripts refresh committed source data. They are manual maintenance tools,
 not CI steps.
 
-## Wainwrights
+## Hill-list peak data
 
 ```sh
-npm run data:peaks
+npm run data:peaks                   # all lists
+npm run data:peaks -- munros donalds # a subset
 ```
 
-`scripts/build-peak-data.ts` downloads the DoBIH `hillcsv.zip`, filters rows
-where the `W` flag is `1`, validates every mapped record with the app `Peak`
-schema, and writes `src/data/wainwrights.json`.
+`scripts/build-peak-data.ts` downloads the DoBIH `hillcsv.zip` once and builds
+one JSON file per configured hill list. Each list is driven by a small config
+naming its DoBIH classification flag column (`W` Wainwright, `M` Munro,
+`C` Corbett, `G` Graham, `D` Donald — each a 0/1 column in the CSV), its exact
+published count, a summit-height sanity band and well-known spot checks. Every
+mapped record is validated with the app `Peak` schema. The committed files are:
 
-The output must contain exactly 214 Wainwrights. The generated metadata records
-that the file is trimmed and reformatted from DoBIH v18.4 under CC BY 4.0.
+- `src/data/wainwrights.json` — 214 Wainwrights
+- `src/data/munros.json` — 282 Munros
+- `src/data/corbetts.json` — 222 Corbetts
+- `src/data/grahams.json` — 231 Grahams
+- `src/data/donalds.json` — 89 Donalds
+
+A peak's `list` array records every configured list it belongs to (some
+Corbetts and Grahams are also Donalds), so progress on a shared peak follows
+it across lists. Files whose content is unchanged apart from `generatedAt`
+are left untouched. The generated metadata records that each file is trimmed
+and reformatted from DoBIH v18.4 under CC BY 4.0.
 
 ## Lake District boundary
 

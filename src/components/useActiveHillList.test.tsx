@@ -1,7 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import type { HillListId } from '../data/lists';
 import type { Peak } from '../domain';
 import { usePreferencesStore } from '../store';
 import { useActiveHillList } from './useActiveHillList';
@@ -100,7 +99,7 @@ describe('useActiveHillList', () => {
     }
 
     act(() => {
-      usePreferencesStore.getState().setActiveListId('munros' as HillListId);
+      usePreferencesStore.getState().setActiveListId('munros');
     });
 
     // The new list is active immediately, with no stale Wainwright peaks
@@ -129,7 +128,7 @@ describe('useActiveHillList', () => {
 
   it('surfaces a failed peak load and recovers on retry', async () => {
     act(() => {
-      usePreferencesStore.getState().setActiveListId('corbetts' as HillListId);
+      usePreferencesStore.getState().setActiveListId('corbetts');
     });
 
     const { result } = renderHook(() => useActiveHillList());

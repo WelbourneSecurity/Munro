@@ -28,8 +28,9 @@ layout), its test suites, the CI/CD workflows and the documentation site:
   edit `CLAUDE.md` only
 - `index.html` — Vite app entry
 - `src/` — React app; `src/domain/` stays pure and framework-free
-- `src/data/` — the hill-list registry (`lists.ts`), generated Wainwright
-  peak data, Lake District boundary data and attribution constants
+- `src/data/` — the hill-list registry (`lists.ts`), generated peak data
+  (Wainwrights, Munros, Corbetts, Grahams, Donalds), Lake District boundary
+  data and attribution constants
 - `src/map/` — the MapLibre/OpenFreeMap tracker wrapper, terrain/contour setup
   and map layers; keep MapLibre imports isolated here
 - `src/store/` — local-first Zustand progress and preferences stores
@@ -56,8 +57,8 @@ npm run format:check    # Prettier check
 npm run test            # Vitest unit/component tests
 npm run test:watch      # Vitest watch mode
 npm run test:coverage   # Vitest coverage thresholds
-npm run test:e2e        # production build + Playwright (chromium + mobile projects)
-npm run data:peaks      # refresh Wainwright data from DoBIH
+npm run test:e2e        # production build + Playwright smoke test
+npm run data:peaks      # refresh hill-list peak data from DoBIH (all lists, or pass list ids)
 npm run data:boundary   # refresh Lake District boundary data from Natural England
 npm run data:hill-boundaries # refresh generated Wainwright hill profiles
 npm run verify          # typecheck -> lint -> format:check -> test -> build

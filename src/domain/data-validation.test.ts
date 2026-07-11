@@ -2,6 +2,10 @@ import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 
 import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
 import wainwrightAreasRaw from '../data/boundaries/wainwright-areas.geojson?raw';
+import corbetts from '../data/corbetts.json';
+import donalds from '../data/donalds.json';
+import grahams from '../data/grahams.json';
+import munros from '../data/munros.json';
 import wainwrights from '../data/wainwrights.json';
 import { peakSchema, type Peak } from './schemas';
 
@@ -96,6 +100,167 @@ describe('committed Wainwrights data', () => {
     });
     expect(highest?.name).toBe('Scafell Pike');
     expect(lowest?.name).toBe('Castle Crag');
+  });
+});
+
+interface PeakDataFile {
+  metadata: { source: string; license: string; changes: string; count: number };
+  peaks: Peak[];
+}
+
+interface ScottishListCase {
+  id: string;
+  file: PeakDataFile;
+  count: number;
+  /** Inclusive summit-height band from the list definition. */
+  heightRangeM: [number, number];
+  /** `[[west, south], [east, north]]` in WGS84. */
+  bounds: [[number, number], [number, number]];
+}
+
+const scottishLists: ScottishListCase[] = [
+  {
+    id: 'munros',
+    file: munros,
+    count: 282,
+    heightRangeM: [914, 1345],
+    bounds: [
+      [-6.6, 56.0],
+      [-2.7, 58.7],
+    ],
+  },
+  {
+    id: 'corbetts',
+    file: corbetts,
+    count: 222,
+    heightRangeM: [762, 915],
+    bounds: [
+      [-7.1, 54.95],
+      [-2.5, 58.75],
+    ],
+  },
+  {
+    id: 'grahams',
+    file: grahams,
+    count: 231,
+    heightRangeM: [600, 762],
+    bounds: [
+      [-7.6, 54.8],
+      [-2.5, 58.6],
+    ],
+  },
+  {
+    id: 'donalds',
+    file: donalds,
+    count: 89,
+    heightRangeM: [609, 844],
+    bounds: [
+      [-4.85, 54.8],
+      [-2.0, 56.5],
+    ],
+  },
+];
+
+describe.each(scottishLists)(
+  'committed $id data',
+  ({ id, file, count, heightRangeM, bounds }) => {
+    const peaks = file.peaks;
+    const [minHeightM, maxHeightM] = heightRangeM;
+    const [[west, south], [east, north]] = bounds;
+
+    it('records DoBIH provenance and the published count', () => {
+      expect(file.metadata.source).toBe('Database of British and Irish Hills v18.4');
+      expect(file.metadata.license).toBe('CC BY 4.0');
+      expect(file.metadata.changes).toContain('DoBIH v18.4');
+      expect(file.metadata.count).toBe(count);
+      expect(peaks).toHaveLength(count);
+    });
+
+    it('validates every peak, keeps ids unique and stays in range', () => {
+      const ids = new Set<string>();
+      const dobihIds = new Set<number>();
+
+      for (const peak of peaks) {
+        const parsed = peakSchema.parse(peak);
+
+        expect(ids.has(parsed.id), `${parsed.name} duplicate id`).toBe(false);
+        expect(dobihIds.has(parsed.dobihId), `${parsed.name} duplicate DoBIH id`).toBe(
+          false,
+        );
+        ids.add(parsed.id);
+        dobihIds.add(parsed.dobihId);
+
+        expect(parsed.list, `${parsed.name} list membership`).toContain(id);
+        expect(parsed.heightM, `${parsed.name} height`).toBeGreaterThanOrEqual(
+          minHeightM,
+        );
+        expect(parsed.heightM, `${parsed.name} height`).toBeLessThanOrEqual(maxHeightM);
+        expect(parsed.lon, `${parsed.name} longitude`).toBeGreaterThanOrEqual(west);
+        expect(parsed.lon, `${parsed.name} longitude`).toBeLessThanOrEqual(east);
+        expect(parsed.lat, `${parsed.name} latitude`).toBeGreaterThanOrEqual(south);
+        expect(parsed.lat, `${parsed.name} latitude`).toBeLessThanOrEqual(north);
+      }
+    });
+  },
+);
+
+describe('Scottish list spot checks against DoBIH v18.4', () => {
+  it('keeps Ben Nevis as the highest Munro', () => {
+    const benNevis = munros.peaks.find((peak) => peak.dobihId === 278);
+    const highest = [...munros.peaks].sort((a, b) => b.heightM - a.heightM)[0];
+
+    expect(benNevis?.name).toBe('Ben Nevis [Beinn Nibheis]');
+    expect(benNevis?.heightM).toBe(1344.53);
+    expect(highest).toBe(benNevis);
+  });
+
+  it("keeps Beinn a' Chlaidheimh as the highest Corbett", () => {
+    const highest = [...corbetts.peaks].sort((a, b) => b.heightM - a.heightM)[0];
+
+    expect(highest?.name).toContain("Beinn a' Chlaidheimh");
+  });
+
+  it('keeps Beinn Talaidh as the highest Graham', () => {
+    const highest = [...grahams.peaks].sort((a, b) => b.heightM - a.heightM)[0];
+
+    expect(highest?.name).toContain('Beinn Talaidh');
+  });
+
+  it('keeps Merrick as the highest Donald, shared with the Corbetts', () => {
+    const merrick = donalds.peaks.find((peak) => peak.dobihId === 1688);
+    const highest = [...donalds.peaks].sort((a, b) => b.heightM - a.heightM)[0];
+
+    expect(merrick?.name).toBe('Merrick');
+    expect(merrick?.heightM).toBe(843);
+    expect(highest).toBe(merrick);
+    expect(merrick?.list).toEqual(['corbetts', 'donalds']);
+    expect(corbetts.peaks.find((peak) => peak.dobihId === 1688)?.list).toEqual([
+      'corbetts',
+      'donalds',
+    ]);
+  });
+
+  it('shares the dobih peak id namespace so progress records stay unique', () => {
+    const allPeaks = [
+      ...wainwrights.peaks,
+      ...munros.peaks,
+      ...corbetts.peaks,
+      ...grahams.peaks,
+      ...donalds.peaks,
+    ];
+    const byId = new Map<string, Peak[]>();
+
+    for (const peak of allPeaks) {
+      byId.set(peak.id, [...(byId.get(peak.id) ?? []), peak]);
+    }
+
+    for (const [peakId, records] of byId) {
+      const names = new Set(records.map((peak) => peak.name));
+      const lists = new Set(records.map((peak) => JSON.stringify(peak.list)));
+
+      expect(names.size, `${peakId} name mismatch across lists`).toBe(1);
+      expect(lists.size, `${peakId} list membership mismatch across files`).toBe(1);
+    }
   });
 });
 
