@@ -138,9 +138,11 @@ Conventions to preserve:
   OpenStreetMap, AWS Terrain Tiles / Mapzen, Natural England OGL data) —
   attribution requirements are noted in `wiki/data.md` and centralized in
   `src/data/attribution.ts`.
-- The service worker precaches only the app shell. Do not add runtime
-  caching for third-party map tiles or terrain (OpenFreeMap, AWS terrain
-  tiles) — respect the free providers.
+- The service worker precaches the app shell plus the lazy per-list peak
+  data chunks (deliberate — switching hill lists must work offline; see the
+  workbox config in `vite.config.ts`). Do not add runtime caching for
+  third-party map tiles or terrain (OpenFreeMap, AWS terrain tiles) —
+  respect the free providers.
 - Visual style is dark, monochrome, topographic and restrained — grey for
   unbagged, soft green for bagged. No gamified colours. See
   `wiki/design.md`.

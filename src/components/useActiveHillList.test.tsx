@@ -15,6 +15,7 @@ const munrosDeferred = vi.hoisted(() => {
 });
 
 const corbettsState = vi.hoisted(() => ({ calls: 0 }));
+const grahamsState = vi.hoisted(() => ({ calls: 0 }));
 
 vi.mock('../data/lists', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../data/lists')>();
@@ -40,6 +41,19 @@ vi.mock('../data/lists', async (importOriginal) => {
         corbettsState.calls += 1;
 
         return corbettsState.calls === 1
+          ? Promise.reject(new Error('chunk load failed'))
+          : wainwrights.loadPeaks();
+      },
+    },
+    {
+      ...wainwrights,
+      id: 'grahams',
+      name: 'Grahams',
+      loadPeaks: () => {
+        grahamsState.calls += 1;
+
+        // Fail once per initially-mounted instance, then succeed on retry.
+        return grahamsState.calls <= 2
           ? Promise.reject(new Error('chunk load failed'))
           : wainwrights.loadPeaks();
       },
@@ -146,5 +160,31 @@ describe('useActiveHillList', () => {
       expect(result.current.peaks).toHaveLength(214);
     });
     expect(result.current.loadFailed).toBe(false);
+  });
+
+  it('heals every mounted instance when one of them retries a failed load', async () => {
+    act(() => {
+      usePreferencesStore.getState().setActiveListId('grahams');
+    });
+
+    // App and MapView each mount their own instance of the hook.
+    const appInstance = renderHook(() => useActiveHillList());
+    const mapInstance = renderHook(() => useActiveHillList());
+
+    await waitFor(() => {
+      expect(appInstance.result.current.loadFailed).toBe(true);
+      expect(mapInstance.result.current.loadFailed).toBe(true);
+    });
+
+    // Retry from the map panel only; the other instance must recover too.
+    act(() => {
+      mapInstance.result.current.retryLoad();
+    });
+
+    await waitFor(() => {
+      expect(mapInstance.result.current.peaks).toHaveLength(214);
+      expect(appInstance.result.current.peaks).toHaveLength(214);
+    });
+    expect(appInstance.result.current.loadFailed).toBe(false);
   });
 });

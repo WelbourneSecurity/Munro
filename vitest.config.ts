@@ -33,6 +33,7 @@ export default defineConfig({
           include: [
             'src/domain/**/*.test.ts',
             'src/data/**/*.test.ts',
+            'src/map/**/*.test.ts',
             'src/pwa/**/*.test.ts',
             'src/store/**/*.test.ts',
           ],

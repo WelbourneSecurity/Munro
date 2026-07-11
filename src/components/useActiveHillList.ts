@@ -6,6 +6,19 @@ import { usePreferencesStore } from '../store';
 
 const peakCache = new Map<string, Peak[]>();
 
+// The cache is shared across hook instances (App and MapView each mount one),
+// so a successful load — including a retry from another instance — must
+// notify every instance, not just the one that ran it.
+const peakCacheListeners = new Set<() => void>();
+
+function storePeaks(listId: string, peaks: Peak[]): void {
+  peakCache.set(listId, peaks);
+
+  for (const listener of peakCacheListeners) {
+    listener();
+  }
+}
+
 export interface ActiveHillList {
   list: HillListDefinition;
   /** Empty until the list's peak data module has loaded. */
@@ -41,6 +54,31 @@ export function useActiveHillList(): ActiveHillList {
     setLoaded({ listId: list.id, peaks: peakCache.get(list.id) ?? [] });
   }
 
+  // Track cache fills from any hook instance, so e.g. a retry pressed in the
+  // map panel also heals the App-level instance feeding summit detection.
+  useEffect(() => {
+    const sync = () => {
+      const peaks = peakCache.get(list.id);
+
+      if (peaks) {
+        setLoaded((current) =>
+          current.listId === list.id && current.peaks === peaks && !current.failed
+            ? current
+            : { listId: list.id, peaks },
+        );
+      }
+    };
+
+    peakCacheListeners.add(sync);
+    // The cache may have been filled between this instance's render and this
+    // effect running (e.g. by another instance's load resolving).
+    sync();
+
+    return () => {
+      peakCacheListeners.delete(sync);
+    };
+  }, [list]);
+
   useEffect(() => {
     if (peakCache.has(list.id)) {
       return;
@@ -50,11 +88,9 @@ export function useActiveHillList(): ActiveHillList {
 
     list.loadPeaks().then(
       (peaks) => {
-        peakCache.set(list.id, peaks);
-
-        if (!cancelled) {
-          setLoaded({ listId: list.id, peaks });
-        }
+        // Every mounted instance (this one included) picks the peaks up via
+        // its cache subscription.
+        storePeaks(list.id, peaks);
       },
       () => {
         // Dynamic import failed (offline, or a redeploy replaced the chunk).

@@ -27,8 +27,9 @@ matching the app. No second codebase.
 How it behaves:
 
 - **Offline app shell.** The service worker precaches the shell — HTML,
-  bundled JS/CSS (which includes the peak and boundary data) and icons — so
-  the installed app opens and the logbook works offline. Map tiles and
+  bundled JS/CSS (which includes the boundary data), icons and the small
+  lazily-loaded peak-data chunk for each hill list — so the installed app
+  opens, the logbook works and lists can be switched offline. Map tiles and
   terrain are deliberately **not** cached: the basemap needs a connection,
   out of respect for the free OpenFreeMap and AWS terrain tile providers.
 - **Quiet updates.** Registration uses `autoUpdate`: a new shell downloads

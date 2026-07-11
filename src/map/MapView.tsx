@@ -22,7 +22,13 @@ import hillAreasRaw from '../data/boundaries/wainwright-areas.geojson?raw';
 import { mapAttributionHtml } from '../data/attribution';
 import { calculateProgress, peaksToGeoJSON } from '../domain';
 import { usePreferencesStore, useProgressStore } from '../store';
-import { LIST_FIT_OPTIONS, OPENFREEMAP_VECTOR_SOURCE_URL } from './config';
+import {
+  LIST_FIT_OPTIONS,
+  MAP_MAX_ZOOM,
+  MAP_MIN_ZOOM,
+  OPENFREEMAP_VECTOR_SOURCE_URL,
+  listMaxBounds,
+} from './config';
 import {
   boundaryFillLayer,
   boundaryLineLayer,
@@ -90,6 +96,9 @@ export function MapView() {
     [progressByPeakId, highlightedPeakId],
   );
   const stats = useMemo(() => calculateProgress(peaks, progress), [peaks, progress]);
+  // Pan limits sit well outside the list bounds so the whole-list fit (with
+  // its padding) is never clamped by MapLibre's maxBounds constraint.
+  const maxBounds = useMemo(() => listMaxBounds(list.bounds), [list]);
   const selectedProgress = selectedPeak ? progressByPeakId[selectedPeak.id] : undefined;
   const isSelectedBagged = selectedProgress?.bagged === true;
 
@@ -187,10 +196,10 @@ export function MapView() {
               : ['peak-hitbox']
           }
           mapStyle={mapStyle}
-          maxBounds={list.bounds}
+          maxBounds={maxBounds}
           maxPitch={68}
-          maxZoom={16}
-          minZoom={7}
+          maxZoom={MAP_MAX_ZOOM}
+          minZoom={MAP_MIN_ZOOM}
           onClick={handlePeakClick}
           style={{ width: '100%', height: '100%' }}
           {...(terrainEnabled

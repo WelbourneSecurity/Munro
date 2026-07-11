@@ -14,8 +14,8 @@ const PLIST_PATH = 'ios/App/App/Info.plist';
 
 const KEY = 'NSLocationWhenInUseUsageDescription';
 const DESCRIPTION =
-  'Munro uses your location to show your position on the map and to ' +
-  'detect when you reach a summit. Your location stays on your device.';
+  'Munro uses your location to detect when you reach a summit so it can ' +
+  'be marked as bagged. Your location stays on your device.';
 
 const plist = readFileSync(PLIST_PATH, 'utf8');
 
