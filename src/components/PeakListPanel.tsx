@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   filterPeaks,
   groupPeakItems,
   type Peak,
   type PeakFilter,
+  type PeakGroup,
   type PeakProgress,
   type PeakSort,
 } from '../domain';
@@ -39,6 +40,54 @@ const filterOptions: { label: string; value: PeakFilter }[] = [
   { label: 'Open', value: 'unbagged' },
 ];
 
+// The UK-wide lists run to over 1,600 peaks; rendering them all at once
+// makes every search keystroke re-render thousands of DOM nodes. The panel
+// renders one window of rows and grows it as the list is scrolled (or via
+// the explicit button when IntersectionObserver is unavailable).
+const RENDER_CHUNK = 120;
+
+/** Truncates groups to the first `limit` rows, in rendered group order. */
+function limitGroups(groups: PeakGroup[], limit: number): PeakGroup[] {
+  const limited: PeakGroup[] = [];
+  let remaining = limit;
+
+  for (const group of groups) {
+    if (remaining <= 0) {
+      break;
+    }
+
+    limited.push(
+      remaining >= group.items.length
+        ? group
+        : { region: group.region, items: group.items.slice(0, remaining) },
+    );
+    remaining -= group.items.length;
+  }
+
+  return limited;
+}
+
+/** Row index of a peak in rendered group order, or -1 when absent. */
+function renderedIndexOf(groups: PeakGroup[], peakId: string | undefined): number {
+  if (!peakId) {
+    return -1;
+  }
+
+  let index = 0;
+
+  for (const group of groups) {
+    for (const item of group.items) {
+      if (item.peak.id === peakId) {
+        return index;
+      }
+
+      index += 1;
+    }
+  }
+
+  return -1;
+}
+
 export function PeakListPanel({
   peaks,
   progress,
@@ -54,6 +103,56 @@ export function PeakListPanel({
     [filter, peaks, progress, query, sort],
   );
   const groups = useMemo(() => groupPeakItems(items), [items]);
+
+  const [renderLimit, setRenderLimit] = useState(RENDER_CHUNK);
+  const [prevItems, setPrevItems] = useState(items);
+
+  // Render-time reset: whichever of search/filter/sort/list produced a new
+  // item set, the window snaps back so a keystroke renders one chunk.
+  if (prevItems !== items) {
+    setPrevItems(items);
+    setRenderLimit(RENDER_CHUNK);
+  }
+
+  // A peak selected from the map may sit past the window; keep its row
+  // rendered so the panel always reflects the selection.
+  const visibleCount = Math.min(
+    items.length,
+    Math.max(renderLimit, renderedIndexOf(groups, selectedPeakId) + 1),
+  );
+  const visibleGroups = useMemo(
+    () => limitGroups(groups, visibleCount),
+    [groups, visibleCount],
+  );
+  const hiddenCount = items.length - visibleCount;
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+
+    if (hiddenCount <= 0 || !sentinel || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setRenderLimit((limit) => limit + RENDER_CHUNK);
+        }
+      },
+      { root: scrollRef.current, rootMargin: '600px 0px' },
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+    // Re-observe after each growth: a sentinel that stayed inside the
+    // margin while rows were added would otherwise never fire again.
+  }, [hiddenCount]);
 
   return (
     <section aria-labelledby="peak-list-heading" className="min-h-0">
@@ -122,8 +221,11 @@ export function PeakListPanel({
         }}
       />
 
-      <div className="max-h-[34svh] overflow-y-auto pr-1 lg:max-h-[calc(100svh-34rem)]">
-        {groups.map((group) => (
+      <div
+        ref={scrollRef}
+        className="max-h-[34svh] overflow-y-auto pr-1 lg:max-h-[calc(100svh-34rem)]"
+      >
+        {visibleGroups.map((group) => (
           <div key={group.region} className="mb-5">
             <h3 className="font-label text-label text-muted bg-panel sticky top-0 py-2">
               {group.region.replace('Lake District - ', '')}
@@ -172,6 +274,19 @@ export function PeakListPanel({
             </ul>
           </div>
         ))}
+        {hiddenCount > 0 ? (
+          <div ref={sentinelRef}>
+            <button
+              className="border-line text-muted hover:text-primary min-h-11 w-full border px-3 text-sm transition-colors"
+              type="button"
+              onClick={() => {
+                setRenderLimit((limit) => limit + RENDER_CHUNK);
+              }}
+            >
+              Show {hiddenCount} more
+            </button>
+          </div>
+        ) : null}
         {groups.length === 0 ? (
           <p className="text-muted border-line border px-3 py-5 text-sm">
             No peaks match this view.
