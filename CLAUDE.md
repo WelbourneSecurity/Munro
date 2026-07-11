@@ -51,6 +51,8 @@ layout), its test suites, the CI/CD workflows and the documentation site:
   never committed
 - `.github/workflows/mobile-packaging.yml` — packages an Android APK and an
   unsigned iOS IPA on every push to `main` (see `wiki/platforms.md`)
+- `.github/workflows/ci.yml` — runs `npm run verify` on every pull request
+  and push to `main`
 
 ## Commands
 
