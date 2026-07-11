@@ -10,6 +10,15 @@
 # pull_request_target — it would run untrusted fork code with write
 # permissions.
 #
+# Privilege separation: the build job executes PR-head code (npm lifecycle
+# scripts during npm ci, vite build loading a PR-controlled vite.config.ts),
+# so it runs with a read-only token and persist-credentials disabled — a
+# compromised dependency in a same-repo PR (e.g. a Dependabot bump) must not
+# be able to push to gh-pages and replace the production site. Only the
+# deploy and teardown jobs get contents: write, and they never execute
+# anything from the PR — they only run pinned actions over the uploaded
+# dist artifact.
+#
 # The preview build inherits public/, so a CNAME file ends up inside
 # pr-preview/pr-<N>/CNAME on gh-pages. That is harmless — GitHub Pages only
 # honours the CNAME at the branch root, which the main deploy owns.
@@ -20,37 +29,75 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, closed]
 
-permissions:
-  contents: write
-  pull-requests: write
+# No workflow-level grants; each job declares the minimum it needs.
+permissions: {}
 
 concurrency:
   group: pr-preview-${{ github.event.number }}
   cancel-in-progress: true
 
 jobs:
-  preview:
+  # Builds the preview from PR-head code. This job must never hold a
+  # write-scoped token — see the privilege-separation note above.
+  build:
     runs-on: ubuntu-latest
     # Skip fork PRs entirely (no write token — see header comment).
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.action != 'closed'
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
-        if: github.event.action != 'closed'
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-        if: github.event.action != 'closed'
       # "npm run build" is tsc -b && vite build; the extra args after --
       # reach vite build, overriding the '/' base from vite.config.ts.
       - run: npm run build -- --base=/pr-preview/pr-${{ github.event.number }}/
-        if: github.event.action != 'closed'
-      # On closed events the action skips the build inputs and just removes
-      # the preview directory.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: preview-dist
+          path: dist
+          retention-days: 1
+
+  # Publishes the built artifact to gh-pages. Write-scoped, but runs only
+  # pinned actions — nothing from the PR executes here.
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: preview-dist
+          path: dist
       - uses: rossjrw/pr-preview-action@v1
         with:
           source-dir: dist
           # Without this the action guesses welbournesecurity.github.io/Munro
           # for the sticky comment and QR code; tell it the custom domain.
+          pages-base-url: munro.welbournesecurity.com
+
+  # On closed events the action skips the build inputs and just removes the
+  # preview directory. Write-scoped, and again executes no PR code.
+  teardown:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.action == 'closed'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: rossjrw/pr-preview-action@v1
+        with:
           pages-base-url: munro.welbournesecurity.com
