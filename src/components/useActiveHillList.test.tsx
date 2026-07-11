@@ -1,7 +1,58 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
 
+import type { HillListId } from '../data/lists';
+import type { Peak } from '../domain';
 import { usePreferencesStore } from '../store';
 import { useActiveHillList } from './useActiveHillList';
+
+const munrosDeferred = vi.hoisted(() => {
+  let resolve!: (peaks: Peak[]) => void;
+  const promise = new Promise<Peak[]>((res) => {
+    resolve = res;
+  });
+
+  return { promise, resolve };
+});
+
+const corbettsState = vi.hoisted(() => ({ calls: 0 }));
+
+vi.mock('../data/lists', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../data/lists')>();
+  const wainwrights = actual.HILL_LISTS[0];
+
+  if (!wainwrights) {
+    throw new Error('Expected the registry to contain at least one list');
+  }
+
+  const lists = [
+    wainwrights,
+    {
+      ...wainwrights,
+      id: 'munros',
+      name: 'Munros',
+      loadPeaks: () => munrosDeferred.promise,
+    },
+    {
+      ...wainwrights,
+      id: 'corbetts',
+      name: 'Corbetts',
+      loadPeaks: () => {
+        corbettsState.calls += 1;
+
+        return corbettsState.calls === 1
+          ? Promise.reject(new Error('chunk load failed'))
+          : wainwrights.loadPeaks();
+      },
+    },
+  ];
+
+  return {
+    ...actual,
+    HILL_LISTS: lists,
+    getHillList: (id: string) => lists.find((list) => list.id === id) ?? wainwrights,
+  };
+});
 
 describe('useActiveHillList', () => {
   beforeEach(() => {
@@ -33,5 +84,68 @@ describe('useActiveHillList', () => {
     const second = renderHook(() => useActiveHillList());
 
     expect(second.result.current.peaks).toHaveLength(214);
+  });
+
+  it('never shows the previous list peaks while a switched-to list loads', async () => {
+    const { result } = renderHook(() => useActiveHillList());
+
+    await waitFor(() => {
+      expect(result.current.peaks).toHaveLength(214);
+    });
+
+    const wainwrightPeak = result.current.peaks[0];
+
+    if (!wainwrightPeak) {
+      throw new Error('Expected the Wainwrights to have loaded');
+    }
+
+    act(() => {
+      usePreferencesStore.getState().setActiveListId('munros' as HillListId);
+    });
+
+    // The new list is active immediately, with no stale Wainwright peaks
+    // shown under the Munros header while the Munro data is still loading.
+    expect(result.current.list.id).toBe('munros');
+    expect(result.current.peaks).toEqual([]);
+
+    const munroPeak: Peak = { ...wainwrightPeak, id: 'munro:1', name: 'Test Munro' };
+
+    act(() => {
+      munrosDeferred.resolve([munroPeak]);
+    });
+
+    await waitFor(() => {
+      expect(result.current.peaks).toEqual([munroPeak]);
+    });
+
+    // Switching back serves the cached Wainwrights synchronously.
+    act(() => {
+      usePreferencesStore.getState().setActiveListId('wainwrights');
+    });
+
+    expect(result.current.list.id).toBe('wainwrights');
+    expect(result.current.peaks).toHaveLength(214);
+  });
+
+  it('surfaces a failed peak load and recovers on retry', async () => {
+    act(() => {
+      usePreferencesStore.getState().setActiveListId('corbetts' as HillListId);
+    });
+
+    const { result } = renderHook(() => useActiveHillList());
+
+    await waitFor(() => {
+      expect(result.current.loadFailed).toBe(true);
+    });
+    expect(result.current.peaks).toEqual([]);
+
+    act(() => {
+      result.current.retryLoad();
+    });
+
+    await waitFor(() => {
+      expect(result.current.peaks).toHaveLength(214);
+    });
+    expect(result.current.loadFailed).toBe(false);
   });
 });
