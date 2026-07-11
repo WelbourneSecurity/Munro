@@ -33,7 +33,7 @@ export default defineConfig({
           include: [
             'src/domain/**/*.test.ts',
             'src/data/**/*.test.ts',
-            'src/export/**/*.test.ts',
+            'src/pwa/**/*.test.ts',
             'src/store/**/*.test.ts',
           ],
           name: 'domain',

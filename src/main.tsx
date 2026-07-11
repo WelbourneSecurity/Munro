@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { App } from './app';
+import { registerServiceWorker } from './pwa';
 import './index.css';
 
 const rootElement = document.getElementById('root');
@@ -15,3 +16,6 @@ createRoot(rootElement).render(
     <App />
   </StrictMode>,
 );
+
+// Production-only: installs the offline app shell, no-op in dev and tests.
+registerServiceWorker();
