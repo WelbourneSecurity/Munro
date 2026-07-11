@@ -260,7 +260,7 @@ export function MapView() {
           ) : null}
           <Source id="list-peaks" type="geojson" data={peakGeoJson}>
             <Layer {...peakHitboxLayer} />
-            <Layer {...peakMarkerLayer} />
+            <Layer {...peakMarkerLayer(!list.hasHillLighting)} />
             <Layer {...peakLabelLayer} />
           </Source>
         </Map>
