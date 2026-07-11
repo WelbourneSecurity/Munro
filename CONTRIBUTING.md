@@ -33,8 +33,11 @@ mkdocs build --strict
 
 ## Pull requests
 
-Use one task from `wiki/implementation-plan.md` per branch and PR. Keep changes
-inside that task's scope, and keep peak source data separate from user progress.
+One focused change per branch and PR — the MVP was built as one
+implementation-plan task per PR, and that discipline continues. Keep changes
+inside the PR's stated scope, keep peak source data separate from user
+progress, and update the docs (README, `wiki/`, `CLAUDE.md`) in the same PR
+when a change alters commands, stack facts, data or behaviour.
 
 Use Conventional Commit-style messages. The expected types are `feat:`, `fix:`,
 `docs:`, `chore:` and `data:`. Use `data:` for reviewed hill-list or boundary

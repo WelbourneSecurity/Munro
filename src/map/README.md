@@ -1,7 +1,9 @@
 # Munro map
 
-`MapView.tsx` is the only module that imports MapLibre via
-`@vis.gl/react-maplibre`.
+Runtime MapLibre imports stay inside this directory: `MapView.tsx` is the
+only module that imports `@vis.gl/react-maplibre`, and `terrain.ts` imports
+`maplibre-gl` directly only to register the shared DEM protocol. Modules
+outside `src/map/` may import MapLibre types only.
 
 The base style in `style/munro-dark.json` is a committed fork of OpenFreeMap's
 Dark style (`https://tiles.openfreemap.org/styles/dark`). Keep the fork close to

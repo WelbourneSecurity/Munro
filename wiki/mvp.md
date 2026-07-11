@@ -1,8 +1,17 @@
 # MVP
 
+## Status
+
+The Wainwrights MVP described on this page is **implemented**: every scope
+item below is built and covered by unit, component and end-to-end tests
+(including a phone-sized viewport). The app deploys to
+<https://munro.welbournesecurity.com> on merges to `main`.
+
+![The Munro tracker: a dark topographic map of the Lake District with bagged fells lit in soft green, alongside progress stats and a peak list panel](images/tracker.png)
+
 ## Scope
 
-The MVP should focus on one complete, polished experience:
+The MVP focuses on one complete, polished experience:
 
 1. View a topographic-style UK national park map
 2. Display a curated list of peaks for that area
@@ -13,9 +22,9 @@ The MVP should focus on one complete, polished experience:
    peaks highlighted
 7. Work well on desktop and mobile
 
-## Recommended MVP region
+## MVP region
 
-Start with the **Lake District and the 214 Wainwrights**.
+The MVP covers the **Lake District and the 214 Wainwrights**.
 
 Reasons:
 
@@ -25,7 +34,8 @@ Reasons:
 - Ideal for testing the export feature
 - Clear visual appeal
 
-After the Wainwright MVP is stable, expand to:
+Now that the Wainwright MVP is built, later hill lists can follow as
+data-only additions:
 
 - Munros
 - Munro Tops

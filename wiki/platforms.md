@@ -6,15 +6,18 @@ record, on whatever screen is in the user's hand.
 
 ## Strategy: web-first, then wrap
 
-The recommended path keeps a single TypeScript/React codebase throughout:
+The path keeps a single TypeScript/React codebase throughout:
 
-### 1. Responsive web app (MVP)
+### 1. Responsive web app (MVP — built)
 
 The MVP is a responsive web app that works well on desktop and mobile
-browsers. This is the fastest way to a polished tracker and already reaches
-iPhone and Android users through Safari and Chrome.
+browsers. This stage is built: the tracker ships with a phone-sized layout,
+touch-friendly controls, and end-to-end tests that run in an
+iPhone-13-sized mobile project as well as desktop Chromium. It reaches
+iPhone and Android users through Safari and Chrome at
+<https://munro.welbournesecurity.com>.
 
-### 2. Progressive Web App (PWA)
+### 2. Progressive Web App (PWA — planned)
 
 Adding a manifest and service worker makes Munro installable from the
 browser on both iPhone and Android — home-screen icon, full-screen launch,
@@ -29,12 +32,12 @@ rewriting. A full native rewrite (e.g. React Native) should only be
 considered if the web map experience proves insufficient on mobile — with
 MapLibre GL JS this is unlikely for a tracker.
 
-## Implications for the MVP
+## How the MVP holds these open
 
-- Design mobile layouts from day one; the tracker map, bag/unbag action and
-  export must feel great on a phone-sized screen.
-- Prefer libraries that work in a plain browser context (MapLibre GL JS,
-  IndexedDB) so the PWA and wrapper steps stay cheap.
+- Mobile layouts were designed from day one; the tracker map, bag/unbag
+  action and export work on a phone-sized screen and are tested there.
+- The app uses libraries that work in a plain browser context (MapLibre GL
+  JS, localStorage) so the PWA and wrapper steps stay cheap.
 - Local-first storage already suits mobile: progress lives on the device,
   and JSON export/import moves it between devices until cloud sync exists.
 - Offline mobile app support remains a **non-goal for the MVP** (see

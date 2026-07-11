@@ -11,6 +11,17 @@ Technology choices below were **verified by research agents in July 2026**
 majors verified at that date; implementing agents should install the latest
 patch of the stated major and only escalate if a new major has shipped.
 
+!!! note "Status (July 2026)"
+
+    The MVP tasks in this plan are **implemented**. This page is kept as the
+    historical build record; for the shipped stack see
+    [Tech stack](tech-stack.md), and for deployments see
+    [Operations](operations.md). One decision changed during the build: the
+    site deploys to the custom domain <https://munro.welbournesecurity.com>
+    at the domain root, so the Vite base is `'/'` — superseding gotcha 1's
+    `'/Munro/'` base guidance and the `welbournesecurity.github.io/Munro`
+    hosting row below. PR previews still build with a per-PR base.
+
 ## How to use this document
 
 - Each task has an ID (`T0.1`, `T3.4`, …), a **tier** (the smallest model
