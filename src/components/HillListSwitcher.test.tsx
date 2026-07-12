@@ -7,10 +7,10 @@ import { HillListSwitcher } from './HillListSwitcher';
 
 vi.mock('../data/lists', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../data/lists')>();
-  const wainwrights = actual.HILL_LISTS[0];
+  const wainwrights = actual.HILL_LISTS.find((list) => list.id === 'wainwrights');
 
   if (!wainwrights) {
-    throw new Error('Expected the registry to contain at least one list');
+    throw new Error('Expected the registry to contain the Wainwrights');
   }
 
   return {

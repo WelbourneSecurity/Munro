@@ -1,7 +1,7 @@
 export { peaksToGeoJSON } from './geojson';
 export type { PeakFeatureCollection, PeakFeatureProperties } from './geojson';
 export { getProductName } from './identity';
-export { filterPeaks, getProgressMap, groupPeakItems } from './peaks';
+export { filterPeaks, getProgressMap, groupPeakItems, mergePeakLists } from './peaks';
 export type {
   PeakFilter,
   PeakGroup,

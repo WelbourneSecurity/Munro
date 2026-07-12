@@ -1,3 +1,4 @@
+import { mergePeakLists } from '../domain';
 import type { Peak } from '../domain';
 
 /**
@@ -9,6 +10,7 @@ import type { Peak } from '../domain';
  */
 
 export const HILL_LIST_IDS = [
+  'all',
   'wainwrights',
   'munros',
   'corbetts',
@@ -21,7 +23,7 @@ export const HILL_LIST_IDS = [
 
 export type HillListId = (typeof HILL_LIST_IDS)[number];
 
-export const DEFAULT_HILL_LIST_ID: HillListId = 'wainwrights';
+export const DEFAULT_HILL_LIST_ID: HillListId = 'all';
 
 /** `[[west, south], [east, north]]` in WGS84, used for map fit and pan limits. */
 export type HillListBounds = [[number, number], [number, number]];
@@ -232,7 +234,7 @@ const marilyns: HillListDefinition = {
   loadPeaks: async () => (await import('./marilyns.json')).default.peaks,
 };
 
-export const HILL_LISTS: readonly HillListDefinition[] = [
+const SOURCE_HILL_LISTS: readonly HillListDefinition[] = [
   wainwrights,
   munros,
   corbetts,
@@ -243,7 +245,40 @@ export const HILL_LISTS: readonly HillListDefinition[] = [
   marilyns,
 ];
 
-const DEFAULT_HILL_LIST: HillListDefinition = wainwrights;
+// The published lists overlap — a Wainwright can also be a Hewitt and a
+// Marilyn — so the default view collates every registered list into one
+// deduplicated UK-wide set. Progress is keyed by peak id, so a peak bagged
+// here is bagged in every list that contains it (and vice versa). The
+// bounds/view match the Marilyns, the widest source list.
+const allPeaks: HillListDefinition = {
+  id: 'all',
+  name: 'All peaks',
+  regionLabel: 'United Kingdom',
+  peakNoun: 'peaks',
+  bounds: [
+    [-8.7, 50.1],
+    [0.65, 60.9],
+  ],
+  initialView: {
+    longitude: -4.0,
+    latitude: 55.0,
+    zoom: 5.0,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: false,
+  loadPeaks: async () =>
+    mergePeakLists(
+      await Promise.all(SOURCE_HILL_LISTS.map((list) => list.loadPeaks())),
+    ),
+};
+
+export const HILL_LISTS: readonly HillListDefinition[] = [
+  allPeaks,
+  ...SOURCE_HILL_LISTS,
+];
+
+const DEFAULT_HILL_LIST: HillListDefinition = allPeaks;
 
 export function isHillListId(value: unknown): value is HillListId {
   return typeof value === 'string' && HILL_LIST_IDS.some((id) => id === value);

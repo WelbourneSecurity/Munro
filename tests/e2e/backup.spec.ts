@@ -29,7 +29,8 @@ test('backup exports, reset clears and import restores progress', async ({
   await page.goto('./#/');
   await seedProgressStorage(page, SEEDED);
   await page.reload();
-  await expect(page.getByText('2 / 214 bagged')).toBeVisible();
+  // Home shows stats for the active list — the collated default here.
+  await expect(page.getByText('2 / 2170 bagged')).toBeVisible();
 
   await page.getByRole('link', { name: 'Settings' }).click();
 
@@ -75,5 +76,5 @@ test('backup exports, reset clears and import restores progress', async ({
 
   // …and the UI shows the restored stats again.
   await page.getByRole('link', { name: 'Home' }).click();
-  await expect(page.getByText('2 / 214 bagged')).toBeVisible();
+  await expect(page.getByText('2 / 2170 bagged')).toBeVisible();
 });

@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-import { collectPageErrors, waitForMapDrawn } from './helpers';
+import { collectPageErrors, selectHillList, waitForMapDrawn } from './helpers';
 
-test('loads the tracker with a drawn map, all 214 peaks and no errors', async ({
+test('loads the tracker with a drawn map, the collated peaks and no errors', async ({
   page,
 }) => {
   // Real tile loading over the network can take a while.
@@ -12,10 +12,17 @@ test('loads the tracker with a drawn map, all 214 peaks and no errors', async ({
 
   await page.goto('./');
 
+  // The default view collates every hill list, deduplicated.
   await expect(page).toHaveTitle('Munro');
+  await expect(page.getByRole('heading', { name: 'All peaks' })).toBeVisible();
+  await expect(page.getByText('United Kingdom', { exact: true })).toBeVisible();
+  await expect(page.getByText('2170 peaks')).toBeVisible();
+  await expect(page.getByLabel('Terrain')).toBeChecked();
+
+  // Narrowing to a single published list still works, with its exact count.
+  await selectHillList(page, 'wainwrights');
   await expect(page.getByRole('heading', { name: 'Wainwrights' })).toBeVisible();
   await expect(page.getByText('Lake District', { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Terrain')).toBeChecked();
 
   // Every Wainwright reaches the list panel with an unbagged indicator. The
   // panel renders rows in windows that grow on scroll (see PeakListPanel), so

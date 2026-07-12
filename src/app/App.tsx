@@ -123,9 +123,9 @@ function HomePage() {
         A clean, map-first hiking tracker for UK peak bagging.
       </h1>
       <p className="text-secondary mt-5 max-w-2xl text-base leading-7">
-        View the Wainwrights on a dark topographic map, mark peaks as bagged, and keep
-        your progress local to this browser. The first version stays focused on the Lake
-        District and the 214 Wainwrights.
+        View the UK&apos;s classic hill lists — the Wainwrights, Munros, Corbetts and
+        more — on a dark topographic map, mark peaks as bagged, and keep your progress
+        local to this browser. Track them all together or focus on a single list.
       </p>
 
       <div className="border-line bg-panel mt-8 border p-5">

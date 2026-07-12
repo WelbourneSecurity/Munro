@@ -4,7 +4,7 @@ import { fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import wainwrights from '../data/wainwrights.json';
-import { useProgressStore } from '../store';
+import { usePreferencesStore, useProgressStore } from '../store';
 import { MapView } from './MapView';
 
 // Record the data handed to each Source so tests can inspect the marker /
@@ -48,6 +48,9 @@ describe('MapView panel accessibility', () => {
   beforeEach(() => {
     localStorage.clear();
     useProgressStore.getState().resetAll();
+    // The hill-area assertions need the Wainwrights' lighting profiles,
+    // not the collated default list.
+    usePreferencesStore.getState().setActiveListId('wainwrights');
   });
 
   // The generous timeout absorbs coverage-instrumented full-list renders on
@@ -132,6 +135,7 @@ describe('MapView notes persistence', () => {
   beforeEach(() => {
     localStorage.clear();
     useProgressStore.getState().resetAll();
+    usePreferencesStore.getState().setActiveListId('wainwrights');
     useProgressStore.getState().bag(firstPeakId, '2026-07-10');
   });
 

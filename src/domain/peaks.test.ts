@@ -1,4 +1,4 @@
-import { filterPeaks, groupPeakItems } from './peaks';
+import { filterPeaks, groupPeakItems, mergePeakLists } from './peaks';
 import type { Peak, PeakProgress } from './schemas';
 
 const peaks: Peak[] = [
@@ -115,5 +115,62 @@ describe('groupPeakItems', () => {
       'Lake District - Southern Fells',
     ]);
     expect(groups[0]?.items.map((item) => item.peak.name)).toEqual(['Castle Crag']);
+  });
+});
+
+describe('mergePeakLists', () => {
+  const allenCrags: Peak = {
+    id: 'dobih-1',
+    dobihId: 1,
+    name: 'Allen Crags',
+    list: ['wainwrights'],
+    region: 'Lake District - Southern Fells',
+    nationalPark: 'Lake District',
+    heightM: 785,
+    lat: 54.48,
+    lon: -3.18,
+  };
+  // The same hill as a Hewitt record that omits the optional park field,
+  // mirroring how some source lists ship sparser records.
+  const allenCragsAsHewitt: Peak = (() => {
+    const copy: Peak = { ...allenCrags, list: ['hewitts'] };
+    delete copy.nationalPark;
+    return copy;
+  })();
+
+  it('folds duplicates by id, keeping one record per hill', () => {
+    const merged = mergePeakLists([peaks, [allenCragsAsHewitt]]);
+
+    expect(merged).toHaveLength(3);
+    expect(merged.filter((peak) => peak.id === 'dobih-1')).toHaveLength(1);
+  });
+
+  it('unions list memberships onto the kept record', () => {
+    const merged = mergePeakLists([
+      [{ ...allenCrags, list: ['wainwrights'] }],
+      [{ ...allenCrags, list: ['hewitts', 'wainwrights'] }],
+    ]);
+
+    expect(merged[0]?.list).toEqual(['wainwrights', 'hewitts']);
+  });
+
+  it('fills optional fields the kept record lacks without overwriting', () => {
+    // Kept record lacks the park; the duplicate provides it.
+    const filled = mergePeakLists([[allenCragsAsHewitt], [allenCrags]]);
+    expect(filled[0]?.nationalPark).toBe('Lake District');
+
+    // Kept record already has the park; the duplicate must not overwrite.
+    const kept = mergePeakLists([
+      [allenCrags],
+      [{ ...allenCragsAsHewitt, nationalPark: 'Somewhere Else' }],
+    ]);
+    expect(kept[0]?.nationalPark).toBe('Lake District');
+  });
+
+  it('does not mutate the source lists', () => {
+    const source = [{ ...allenCrags, list: ['wainwrights'] }];
+    mergePeakLists([source, [allenCragsAsHewitt]]);
+
+    expect(source[0]?.list).toEqual(['wainwrights']);
   });
 });

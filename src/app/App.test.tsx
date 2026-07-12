@@ -59,6 +59,6 @@ describe('App', () => {
 
     const { findByText } = render(<App />);
 
-    expect(await findByText('1 / 214 bagged')).toBeVisible();
+    expect(await findByText('1 / 2170 bagged')).toBeVisible();
   });
 });

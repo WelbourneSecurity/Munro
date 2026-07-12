@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-import { ARD_CRAGS, readProgressStorage, waitForMapDrawn } from './helpers';
+import {
+  ARD_CRAGS,
+  readProgressStorage,
+  selectHillList,
+  waitForMapDrawn,
+} from './helpers';
 
 // Bag through the UI, then check each stage separately so a failure
 // distinguishes UI bugs (stats line), save bugs (localStorage payload)
@@ -17,6 +22,11 @@ test('a bagged peak persists across a reload', async ({ page }) => {
   // the camera, and clicking "Mark bagged" while tiles are still loading
   // leaves the button failing Playwright's stability check under load.
   await waitForMapDrawn(page);
+
+  // Narrow from the collated default to the Wainwrights, whose published
+  // count the stats assertions rely on. The choice persists (munro.prefs.v1),
+  // so it also holds after the reload below.
+  await selectHillList(page, 'wainwrights');
 
   // Bag one peak via the list panel — quick enough not to need seeding.
   await page.getByRole('searchbox', { name: 'Search peaks' }).fill(ARD_CRAGS.name);

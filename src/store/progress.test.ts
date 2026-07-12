@@ -274,8 +274,9 @@ describe('usePreferencesStore', () => {
     expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).toContain('false');
   });
 
-  it('defaults the active hill list to Wainwrights', () => {
-    expect(usePreferencesStore.getState().activeListId).toBe('wainwrights');
+  it('defaults the active hill list to the collated all-peaks view', () => {
+    // The store's own initial state, not the value the beforeEach set.
+    expect(usePreferencesStore.getInitialState().activeListId).toBe('all');
   });
 
   it('persists the active hill list without touching progress records', () => {
@@ -301,7 +302,7 @@ describe('usePreferencesStore', () => {
 
     await usePreferencesStore.persist.rehydrate();
 
-    expect(usePreferencesStore.getState().activeListId).toBe('wainwrights');
+    expect(usePreferencesStore.getState().activeListId).toBe('all');
     expect(usePreferencesStore.getState().terrainEnabled).toBe(false);
   });
 

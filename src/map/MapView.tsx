@@ -31,6 +31,7 @@ import {
   listMaxBounds,
 } from './config';
 import {
+  baggedSummitLightLayer,
   boundaryFillLayer,
   boundaryLineLayer,
   hillAreaFillLayer,
@@ -314,6 +315,10 @@ export function MapView() {
           ) : null}
           <Source id="list-peaks" type="geojson" data={peakGeoJson}>
             <Layer {...peakHitboxLayer} />
+            {/* Lists without hill-lighting profiles illuminate bagged
+                summits with a soft light instead of the lit hill areas the
+                Wainwrights get, so bagging reads the same everywhere. */}
+            {list.hasHillLighting ? null : <Layer {...baggedSummitLightLayer} />}
             <Layer {...peakMarkerLayer(!list.hasHillLighting)} />
             <Layer {...peakLabelLayer} />
           </Source>

@@ -29,6 +29,16 @@ interface PersistedProgress {
   version: number;
 }
 
+/**
+ * Switch the tracker to a specific hill list via the panel's switcher. The
+ * app defaults to the collated "All peaks" view; specs that assert against a
+ * single published list (e.g. the 214 Wainwrights) narrow the view first.
+ * The choice persists (munro.prefs.v1), so it survives reloads in a spec.
+ */
+export async function selectHillList(page: Page, listId: string): Promise<void> {
+  await page.getByLabel('Hill list').selectOption(listId);
+}
+
 /** Read and unwrap the persisted progress records from localStorage. */
 export async function readProgressStorage(
   page: Page,
