@@ -6,5 +6,6 @@ export {
   isBagged,
   usePreferencesStore,
   useProgressStore,
+  useStorageHealthStore,
 } from './progress';
-export type { PreferencesState, ProgressState } from './progress';
+export type { PreferencesState, ProgressState, StorageHealthState } from './progress';

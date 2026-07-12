@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import { vi } from 'vitest';
+
 import {
   BACKUP_VERSION,
   PREFERENCES_STORAGE_KEY,
@@ -8,6 +10,7 @@ import {
   isBagged,
   usePreferencesStore,
   useProgressStore,
+  useStorageHealthStore,
 } from './progress';
 
 beforeEach(() => {
@@ -30,6 +33,37 @@ describe('useProgressStore', () => {
 
     useProgressStore.getState().unbag('dobih-2319');
     expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toBeUndefined();
+  });
+
+  it('keeps notes when unbagging so a mis-tap cannot destroy them', () => {
+    useProgressStore.getState().bag('dobih-2319', '2019-06-14');
+    useProgressStore.getState().setNotes('dobih-2319', 'Summited in snow with Dad');
+
+    useProgressStore.getState().unbag('dobih-2319');
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: false,
+      notes: 'Summited in snow with Dad',
+    });
+
+    // Re-bagging keeps the preserved notes on the fresh record.
+    useProgressStore.getState().bag('dobih-2319', '2026-07-12');
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: true,
+      baggedDate: '2026-07-12',
+      notes: 'Summited in snow with Dad',
+    });
+  });
+
+  it('ignores unbagging a peak with no progress record', () => {
+    useProgressStore.getState().unbag('dobih-missing');
+
+    expect(
+      useProgressStore.getState().progressByPeakId['dobih-missing'],
+    ).toBeUndefined();
   });
 
   it('exports a versioned backup envelope', () => {
@@ -143,6 +177,35 @@ describe('useProgressStore', () => {
       peakId: 'dobih-2319',
       bagged: true,
     });
+  });
+
+  it('leaves state untouched when notes and dates are rewritten unchanged', () => {
+    useProgressStore.getState().bag('dobih-2319', '2026-07-05');
+    useProgressStore.getState().setNotes('dobih-2319', 'Clear day from the ridge');
+
+    const before = useProgressStore.getState().progressByPeakId;
+
+    // Background flushes (tab switch, navigation) re-commit the textarea
+    // value verbatim; a value-equal write must not churn the record map —
+    // identity-keyed consumers (the map GeoJSON, the list window) rebuild
+    // on every new map.
+    useProgressStore.getState().setNotes('dobih-2319', 'Clear day from the ridge');
+    useProgressStore.getState().setNotes('dobih-2319', '  Clear day from the ridge  ');
+    useProgressStore.getState().setBaggedDate('dobih-2319', '2026-07-05');
+
+    expect(useProgressStore.getState().progressByPeakId).toBe(before);
+  });
+
+  it('does not create a record when clearing notes for a peak with none', () => {
+    const before = useProgressStore.getState().progressByPeakId;
+
+    useProgressStore.getState().setNotes('dobih-missing');
+    useProgressStore.getState().setNotes('dobih-missing', '   ');
+
+    expect(useProgressStore.getState().progressByPeakId).toBe(before);
+    expect(
+      useProgressStore.getState().progressByPeakId['dobih-missing'],
+    ).toBeUndefined();
   });
 
   it('imports valid backup data atomically', () => {
@@ -264,6 +327,65 @@ describe('useProgressStore', () => {
     });
     expect(localStorage.getItem(PROGRESS_STORAGE_KEY)).not.toContain('20266-07-11');
   });
+
+  it('re-hydrates when another context writes the progress key', () => {
+    useProgressStore.getState().bag('dobih-0010');
+
+    // Simulate another tab / PWA window persisting a fuller record set.
+    localStorage.setItem(
+      PROGRESS_STORAGE_KEY,
+      JSON.stringify({
+        state: {
+          progressByPeakId: {
+            'dobih-0010': { peakId: 'dobih-0010', bagged: true },
+            'dobih-2319': { peakId: 'dobih-2319', bagged: true },
+          },
+        },
+        version: BACKUP_VERSION,
+      }),
+    );
+    window.dispatchEvent(new StorageEvent('storage', { key: PROGRESS_STORAGE_KEY }));
+
+    expect(useProgressStore.getState().progressByPeakId).toEqual({
+      'dobih-0010': { peakId: 'dobih-0010', bagged: true },
+      'dobih-2319': { peakId: 'dobih-2319', bagged: true },
+    });
+  });
+
+  it('ignores storage events for other keys', () => {
+    useProgressStore.getState().bag('dobih-0010');
+
+    localStorage.setItem('munro.other', 'value');
+    window.dispatchEvent(new StorageEvent('storage', { key: 'munro.other' }));
+
+    expect(useProgressStore.getState().progressByPeakId).toEqual({
+      'dobih-0010': { peakId: 'dobih-0010', bagged: true },
+    });
+  });
+
+  it('flags failed persistence instead of throwing, and clears on recovery', () => {
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('quota exceeded', 'QuotaExceededError');
+    });
+
+    try {
+      expect(() => {
+        useProgressStore.getState().bag('dobih-2319');
+      }).not.toThrow();
+
+      // The in-memory record survives so the session keeps working…
+      expect(isBagged('dobih-2319')).toBe(true);
+      // …and the failure is surfaced for the shell to warn about.
+      expect(useStorageHealthStore.getState().progressWriteFailed).toBe(true);
+    } finally {
+      setItem.mockRestore();
+    }
+
+    useProgressStore.getState().bag('dobih-0010');
+
+    expect(useStorageHealthStore.getState().progressWriteFailed).toBe(false);
+    expect(localStorage.getItem(PROGRESS_STORAGE_KEY)).toContain('dobih-0010');
+  });
 });
 
 describe('usePreferencesStore', () => {
@@ -320,5 +442,59 @@ describe('usePreferencesStore', () => {
     expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).not.toMatch(
       /lat|lon|position|location/i,
     );
+  });
+
+  it('treats anything but a literal true as summit detection off', async () => {
+    // A truthy string like "false" (manual edit, another same-origin
+    // deploy) must never start the GPS watch — detection is strictly
+    // opt-in, so only a real boolean true survives hydration.
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        state: { summitDetectionEnabled: 'false', terrainEnabled: 'yes' },
+        version: 1,
+      }),
+    );
+
+    await usePreferencesStore.persist.rehydrate();
+
+    expect(usePreferencesStore.getState().summitDetectionEnabled).toBe(false);
+    // A mis-typed terrain preference falls back to its default.
+    expect(usePreferencesStore.getState().terrainEnabled).toBe(true);
+  });
+
+  it('keeps legitimately persisted preference booleans on rehydrate', async () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        state: {
+          activeListId: 'wainwrights',
+          summitDetectionEnabled: true,
+          terrainEnabled: false,
+        },
+        version: 1,
+      }),
+    );
+
+    await usePreferencesStore.persist.rehydrate();
+
+    expect(usePreferencesStore.getState().activeListId).toBe('wainwrights');
+    expect(usePreferencesStore.getState().summitDetectionEnabled).toBe(true);
+    expect(usePreferencesStore.getState().terrainEnabled).toBe(false);
+  });
+
+  it('sanitizes preferences written under a different version', async () => {
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        state: { summitDetectionEnabled: 1, activeListId: 'retired-list' },
+        version: 2,
+      }),
+    );
+
+    await usePreferencesStore.persist.rehydrate();
+
+    expect(usePreferencesStore.getState().summitDetectionEnabled).toBe(false);
+    expect(usePreferencesStore.getState().activeListId).toBe('all');
   });
 });

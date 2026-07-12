@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 
+import type { HillListDefinition } from '../data/lists';
 import type { ExportPresetId, MapSnapshot } from '../export';
 import { exportFilename } from '../export/download';
 import { ExportDialog } from './ExportDialog';
@@ -31,6 +32,26 @@ vi.mock('../export', () => ({
 const map = {} as unknown as MapLibreMap;
 const getMap = () => map;
 const stats = { bagged: 37, total: 214 };
+
+const list: HillListDefinition = {
+  id: 'wainwrights',
+  name: 'Wainwrights',
+  regionLabel: 'Lake District',
+  peakNoun: 'fells',
+  bounds: [
+    [-3.58, 54.18],
+    [-2.55, 54.82],
+  ],
+  initialView: {
+    longitude: -3.1,
+    latitude: 54.53,
+    zoom: 8.55,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: () => Promise.resolve([]),
+};
 
 const snapshot: MapSnapshot = {
   blob: new Blob(['snapshot'], { type: 'image/png' }),
@@ -80,6 +101,7 @@ function Harness() {
       <ExportDialog
         open={open}
         getMap={getMap}
+        list={list}
         stats={stats}
         onClose={() => {
           setOpen(false);
@@ -117,7 +139,9 @@ afterEach(() => {
 
 describe('ExportDialog', () => {
   it('is a labelled modal dialog that takes focus and composes a preview', async () => {
-    render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+    render(
+      <ExportDialog open getMap={getMap} list={list} stats={stats} onClose={vi.fn()} />,
+    );
 
     const dialog = screen.getByRole('dialog', { name: 'Export image' });
     expect(dialog).toHaveAttribute('aria-modal', 'true');
@@ -125,11 +149,11 @@ describe('ExportDialog', () => {
 
     expect(await screen.findByRole('img')).toHaveAttribute('src', 'blob:preview');
 
-    // frameBoundary framed the boundary at the portrait map-box aspect, the
-    // capture happened, and the user's viewport was restored.
+    // frameBoundary framed the list bounds at the portrait map-box aspect,
+    // the capture happened, and the user's viewport was restored.
     expect(engine.frameBoundary).toHaveBeenCalledWith(
       map,
-      expect.anything(),
+      list.bounds,
       48,
       1456 / 1500,
     );
@@ -138,15 +162,57 @@ describe('ExportDialog', () => {
     expect(engine.composeExport).toHaveBeenCalledWith(
       snapshot,
       { bagged: 37, total: 214 },
-      { preset: 'portrait' },
+      { preset: 'portrait', title: 'Lake District · Wainwrights' },
     );
+  });
+
+  it('frames, titles and names the export from the active list', async () => {
+    const munros: HillListDefinition = {
+      ...list,
+      id: 'munros',
+      name: 'Munros',
+      regionLabel: 'Scottish Highlands',
+      peakNoun: 'mountains',
+      bounds: [
+        [-6.6, 56.0],
+        [-2.7, 58.7],
+      ],
+    };
+
+    render(
+      <ExportDialog
+        open
+        getMap={getMap}
+        list={munros}
+        stats={stats}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await screen.findByRole('img');
+
+    expect(engine.frameBoundary).toHaveBeenCalledWith(
+      map,
+      munros.bounds,
+      48,
+      expect.any(Number),
+    );
+    expect(engine.composeExport).toHaveBeenCalledWith(
+      snapshot,
+      { bagged: 37, total: 214 },
+      { preset: 'portrait', title: 'Scottish Highlands · Munros' },
+    );
+    expect(screen.getByText('Scottish Highlands')).toBeInTheDocument();
+    expect(screen.getByText(/Saved as munro-munros-/)).toBeInTheDocument();
   });
 
   it('shows a quiet busy state while composing', async () => {
     const pending = deferred<Blob>();
     engine.composeExport.mockReturnValue(pending.promise);
 
-    render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+    render(
+      <ExportDialog open getMap={getMap} list={list} stats={stats} onClose={vi.fn()} />,
+    );
 
     expect(await screen.findByRole('status')).toHaveTextContent('Composing image…');
     expect(screen.getByRole('button', { name: 'Download PNG' })).toBeDisabled();
@@ -155,11 +221,16 @@ describe('ExportDialog', () => {
 
     expect(await screen.findByRole('img')).toBeVisible();
     expect(screen.getByRole('button', { name: 'Download PNG' })).toBeEnabled();
+    // Readiness is announced by updating the persistent live region — the
+    // Download button becoming enabled says nothing to a screen reader.
+    expect(screen.getByRole('status')).toHaveTextContent('Export ready.');
   });
 
   it('recomposes at the landscape preset when switched', async () => {
     const user = userEvent.setup();
-    render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+    render(
+      <ExportDialog open getMap={getMap} list={list} stats={stats} onClose={vi.fn()} />,
+    );
 
     await screen.findByRole('img');
     await user.click(screen.getByRole('button', { name: 'Landscape' }));
@@ -168,7 +239,7 @@ describe('ExportDialog', () => {
       expect(engine.composeExport).toHaveBeenLastCalledWith(
         snapshot,
         { bagged: 37, total: 214 },
-        { preset: 'landscape' },
+        { preset: 'landscape', title: 'Lake District · Wainwrights' },
       );
     });
     expect(screen.getByRole('button', { name: 'Landscape' })).toHaveAttribute(
@@ -183,7 +254,9 @@ describe('ExportDialog', () => {
     const firstCapture = deferred<MapSnapshot>();
     engine.captureMap.mockReturnValueOnce(firstCapture.promise);
 
-    render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+    render(
+      <ExportDialog open getMap={getMap} list={list} stats={stats} onClose={vi.fn()} />,
+    );
 
     await waitFor(() => {
       expect(engine.frameBoundary).toHaveBeenCalledTimes(1);
@@ -216,8 +289,38 @@ describe('ExportDialog', () => {
     expect(engine.composeExport).toHaveBeenLastCalledWith(
       snapshot,
       { bagged: 37, total: 214 },
-      { preset: 'landscape' },
+      { preset: 'landscape', title: 'Lake District · Wainwrights' },
     );
+  });
+
+  it('skips queued compose runs once they are superseded or the dialog closes', async () => {
+    const user = userEvent.setup();
+    const firstCapture = deferred<MapSnapshot>();
+    engine.captureMap.mockReturnValueOnce(firstCapture.promise);
+
+    render(<Harness />);
+    await user.click(screen.getByRole('button', { name: 'Export image' }));
+
+    await waitFor(() => {
+      expect(engine.frameBoundary).toHaveBeenCalledTimes(1);
+    });
+
+    // Queue a landscape run behind the in-flight capture, then close the
+    // dialog before it starts.
+    await user.click(screen.getByRole('button', { name: 'Landscape' }));
+    await user.click(screen.getByRole('button', { name: 'Close' }));
+
+    firstCapture.resolve(snapshot);
+
+    // The in-flight run finishes and restores the viewport; the queued run
+    // must bail without framing — nobody can see its output, and framing
+    // would visibly hijack the map camera behind the closed dialog.
+    await waitFor(() => {
+      expect(engine.restore).toHaveBeenCalledTimes(1);
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(engine.frameBoundary).toHaveBeenCalledTimes(1);
+    expect(engine.captureMap).toHaveBeenCalledTimes(1);
   });
 
   it('reports a plain error and still restores the viewport when capture fails', async () => {
@@ -225,21 +328,35 @@ describe('ExportDialog', () => {
       new Error('Map canvas has no pixels to capture'),
     );
 
-    render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Export failed: Map canvas has no pixels to capture.',
+    render(
+      <ExportDialog open getMap={getMap} list={list} stats={stats} onClose={vi.fn()} />,
     );
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Export failed: Map canvas has no pixels to capture.',
+      );
+    });
     expect(engine.restore).toHaveBeenCalledTimes(1);
     expect(screen.getByRole('button', { name: 'Download PNG' })).toBeDisabled();
   });
 
   it('explains when the map is not ready yet', async () => {
-    render(<ExportDialog open getMap={() => null} stats={stats} onClose={vi.fn()} />);
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Export failed: the map has not finished loading yet.',
+    render(
+      <ExportDialog
+        open
+        getMap={() => null}
+        list={list}
+        stats={stats}
+        onClose={vi.fn()}
+      />,
     );
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'Export failed: the map has not finished loading yet.',
+      );
+    });
     expect(engine.frameBoundary).not.toHaveBeenCalled();
   });
 
@@ -253,13 +370,21 @@ describe('ExportDialog', () => {
     const user = userEvent.setup();
 
     try {
-      render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+      render(
+        <ExportDialog
+          open
+          getMap={getMap}
+          list={list}
+          stats={stats}
+          onClose={vi.fn()}
+        />,
+      );
 
       await screen.findByRole('img');
       await user.click(screen.getByRole('button', { name: 'Download PNG' }));
 
       // Today's date; the exact formatting is covered by download.test.ts.
-      expect(downloads).toEqual([exportFilename()]);
+      expect(downloads).toEqual([exportFilename(list.id)]);
       expect(downloads[0]).toMatch(/^munro-wainwrights-\d{4}-\d{2}-\d{2}\.png$/);
     } finally {
       click.mockRestore();
@@ -277,7 +402,15 @@ describe('ExportDialog', () => {
     const user = userEvent.setup();
 
     try {
-      render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+      render(
+        <ExportDialog
+          open
+          getMap={getMap}
+          list={list}
+          stats={stats}
+          onClose={vi.fn()}
+        />,
+      );
 
       await user.click(await screen.findByRole('button', { name: 'Share image' }));
 
@@ -286,7 +419,7 @@ describe('ExportDialog', () => {
       });
       const payload = share.mock.calls[0]?.[0];
       expect(payload?.files).toHaveLength(1);
-      expect(payload?.files?.[0]?.name).toBe(exportFilename());
+      expect(payload?.files?.[0]?.name).toBe(exportFilename(list.id));
       expect(payload?.files?.[0]?.type).toBe('image/png');
       expect(click).not.toHaveBeenCalled();
     } finally {
@@ -305,7 +438,15 @@ describe('ExportDialog', () => {
     const user = userEvent.setup();
 
     try {
-      render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+      render(
+        <ExportDialog
+          open
+          getMap={getMap}
+          list={list}
+          stats={stats}
+          onClose={vi.fn()}
+        />,
+      );
 
       await user.click(await screen.findByRole('button', { name: 'Share image' }));
 
@@ -320,7 +461,9 @@ describe('ExportDialog', () => {
   it('offers no share button when the browser cannot share the file', async () => {
     stubShare({ canShare: () => false, share: vi.fn() });
 
-    render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+    render(
+      <ExportDialog open getMap={getMap} list={list} stats={stats} onClose={vi.fn()} />,
+    );
 
     await screen.findByRole('img');
 
@@ -347,7 +490,9 @@ describe('ExportDialog', () => {
 
   it('traps Tab within the dialog', async () => {
     const user = userEvent.setup();
-    render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+    render(
+      <ExportDialog open getMap={getMap} list={list} stats={stats} onClose={vi.fn()} />,
+    );
 
     await screen.findByRole('img');
 
@@ -362,7 +507,9 @@ describe('ExportDialog', () => {
 
   it('pulls Tab back into the dialog when focus falls outside it', async () => {
     const user = userEvent.setup();
-    render(<ExportDialog open getMap={getMap} stats={stats} onClose={vi.fn()} />);
+    render(
+      <ExportDialog open getMap={getMap} list={list} stats={stats} onClose={vi.fn()} />,
+    );
 
     await screen.findByRole('img');
 

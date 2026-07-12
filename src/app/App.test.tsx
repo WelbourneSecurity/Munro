@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { useProgressStore } from '../store';
@@ -34,18 +34,20 @@ describe('App', () => {
     expect(getByRole('link', { name: 'Data' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('renders the home page with empty progress', () => {
+  it('renders the home page with empty progress', async () => {
     history.replaceState(null, '', '/#/');
 
-    const { getByRole, getByText } = render(<App />);
+    const { findByText, getByRole } = render(<App />);
 
     expect(
       getByRole('heading', {
         name: 'A clean, map-first hiking tracker for UK peak bagging.',
       }),
     ).toBeVisible();
+    // The empty-state copy waits for the peak data to load — until then the
+    // page cannot say anything truthful about progress.
     expect(
-      getByText('Start bagging to build your local progress record.'),
+      await findByText('Start bagging to build your local progress record.'),
     ).toBeVisible();
     expect(getByRole('link', { name: 'Open tracker' })).toHaveAttribute(
       'href',
@@ -60,5 +62,31 @@ describe('App', () => {
     const { findByText } = render(<App />);
 
     expect(await findByText('1 / 2170 bagged')).toBeVisible();
+  });
+
+  it('resets scroll when the route changes, but not on same-route hash changes', () => {
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+
+    render(<App />);
+
+    // Initial render leaves the browser's own scroll restoration alone.
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    act(() => {
+      history.replaceState(null, '', '/#/data');
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+
+    // A hash change resolving to the same route stays inert.
+    act(() => {
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+
+    scrollTo.mockRestore();
   });
 });

@@ -1,6 +1,6 @@
 import { ATTRIBUTIONS } from '../data/attribution';
 import { composeExport } from './compose';
-import { getExportPreset, layoutExport, marginFor } from './layout';
+import { getExportPreset, layoutExport, marginFor, typeScale } from './layout';
 import type { MapSnapshot } from './snapshot';
 
 interface RecordedOp {
@@ -124,7 +124,11 @@ afterEach(() => {
 
 describe('composeExport', () => {
   const stats = { bagged: 37, total: 214 };
-  const options = { preset: 'portrait', date: new Date(2026, 6, 10) } as const;
+  const options = {
+    preset: 'portrait',
+    title: 'Lake District · Wainwrights',
+    date: new Date(2026, 6, 10),
+  } as const;
 
   async function composeOnFakeCanvas(
     snapshot = makeSnapshot(),
@@ -152,6 +156,7 @@ describe('composeExport', () => {
   it('selects the landscape preset dimensions', async () => {
     const { canvas } = await composeOnFakeCanvas(makeSnapshot(), stats, {
       preset: 'landscape',
+      title: 'Lake District · Wainwrights',
       date: new Date(2026, 6, 10),
     });
 
@@ -191,11 +196,36 @@ describe('composeExport', () => {
     expect(sHeight).toBeLessThanOrEqual(4000);
   });
 
-  it('draws the title in primary grey-white', async () => {
-    const { context } = await composeOnFakeCanvas();
-    const title = findText(context, 'Lake District · Wainwrights');
+  it('draws the given list title in primary grey-white', async () => {
+    const { context } = await composeOnFakeCanvas(makeSnapshot(), stats, {
+      ...options,
+      title: 'Scottish Highlands · Munros',
+    });
+    const title = findText(context, 'Scottish Highlands · Munros');
 
     expect(title).toMatchObject({ fillStyle: '#f1f4ee', textAlign: 'left' });
+  });
+
+  it('shrinks an overlong title to fit beside the wordmark', async () => {
+    const preset = getExportPreset('portrait');
+    const margin = marginFor(preset);
+    const scale = typeScale(preset);
+    const longTitle = `England, Wales & Northern Ireland · ${'Hewitts '.repeat(15).trim()}`;
+    const { context } = await composeOnFakeCanvas(makeSnapshot(), stats, {
+      ...options,
+      title: longTitle,
+    });
+    const title = findText(context, longTitle);
+
+    // The space left of the right-aligned wordmark, minus a title-em gap.
+    const maxWidth =
+      preset.width - margin * 2 - 'MUNRO'.length * CHAR_WIDTH - scale.title;
+    const expectedSize = Math.floor(
+      (scale.title * maxWidth) / (longTitle.length * CHAR_WIDTH),
+    );
+
+    expect(expectedSize).toBeLessThan(scale.title);
+    expect(title?.font).toContain(`${String(expectedSize)}px`);
   });
 
   it('uses the green accent for the bagged count only', async () => {
@@ -262,6 +292,15 @@ describe('composeExport', () => {
         layout.attribution.firstBaseline + index * layout.attribution.lineHeight,
       );
     });
+  });
+
+  it('closes the captured bitmap once it has been drawn', async () => {
+    const close = vi.fn();
+    const snapshot = makeSnapshot({ bitmap: { close } as unknown as ImageBitmap });
+
+    await composeOnFakeCanvas(snapshot);
+
+    expect(close).toHaveBeenCalledTimes(1);
   });
 
   it('decodes the blob and closes the bitmap when the snapshot has no bitmap', async () => {

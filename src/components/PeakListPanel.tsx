@@ -105,21 +105,41 @@ export function PeakListPanel({
   const groups = useMemo(() => groupPeakItems(items), [items]);
 
   const [renderLimit, setRenderLimit] = useState(RENDER_CHUNK);
-  const [prevItems, setPrevItems] = useState(items);
+  const [prevInputs, setPrevInputs] = useState({ peaks, filter, query, sort });
+
+  let nextRenderLimit = renderLimit;
 
   // Render-time reset: whichever of search/filter/sort/list produced a new
-  // item set, the window snaps back so a keystroke renders one chunk.
-  if (prevItems !== items) {
-    setPrevItems(items);
-    setRenderLimit(RENDER_CHUNK);
+  // item set, the window snaps back so a keystroke renders one chunk. Keyed
+  // on those inputs directly, not on `items` identity — a progress write
+  // (bag, unbag, a background notes flush) also rebuilds `items`, and must
+  // not collapse a window the user has scrolled.
+  if (
+    prevInputs.peaks !== peaks ||
+    prevInputs.filter !== filter ||
+    prevInputs.query !== query ||
+    prevInputs.sort !== sort
+  ) {
+    setPrevInputs({ peaks, filter, query, sort });
+    nextRenderLimit = RENDER_CHUNK;
   }
 
-  // A peak selected from the map may sit past the window; keep its row
-  // rendered so the panel always reflects the selection.
-  const visibleCount = Math.min(
-    items.length,
-    Math.max(renderLimit, renderedIndexOf(groups, selectedPeakId) + 1),
-  );
+  // A peak selected from the map may sit past the window; grow the committed
+  // window (rounded up to whole chunks) to include its row. Committing keeps
+  // renderLimit, hiddenCount and the sentinel observer consistent — a
+  // derived-only expansion would stall auto-growth on a stale hiddenCount
+  // and collapse the list when an earlier peak is selected next.
+  const selectedIndex = renderedIndexOf(groups, selectedPeakId);
+
+  if (selectedIndex >= nextRenderLimit) {
+    nextRenderLimit = Math.ceil((selectedIndex + 1) / RENDER_CHUNK) * RENDER_CHUNK;
+  }
+
+  if (nextRenderLimit !== renderLimit) {
+    setRenderLimit(nextRenderLimit);
+  }
+
+  const visibleCount = Math.min(items.length, nextRenderLimit);
   const visibleGroups = useMemo(
     () => limitGroups(groups, visibleCount),
     [groups, visibleCount],
@@ -164,7 +184,16 @@ export function PeakListPanel({
           >
             Peaks
           </h2>
-          <p className="text-secondary mt-1 text-sm">{items.length} shown</p>
+          {/* aria-live announces the result count as the search or filter
+              changes the list, mirroring the pattern in ProgressStats —
+              "0 shown" covers the empty state too. */}
+          <p
+            aria-atomic="true"
+            aria-live="polite"
+            className="text-secondary mt-1 text-sm"
+          >
+            {items.length} shown
+          </p>
         </div>
         <label className="font-label text-label text-muted flex items-center gap-2">
           Sort

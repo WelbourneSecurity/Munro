@@ -6,7 +6,6 @@
 // runtime stays intact.
 import type { LngLatBoundsLike, Map as MapLibreMap } from 'maplibre-gl';
 
-import { LAKE_DISTRICT_BOUNDS } from '../map/config';
 import { coverCropPadding } from './layout';
 
 // Runtime capability probe: createImageBitmap is typed as always present in
@@ -18,7 +17,10 @@ const runtime = globalThis as {
 export interface MapSnapshot {
   /** PNG-encoded snapshot of the WebGL canvas. */
   blob: Blob;
-  /** Decoded bitmap, when the environment supports createImageBitmap. */
+  /**
+   * Decoded bitmap, when the environment supports createImageBitmap.
+   * composeExport consumes it — the bitmap is closed once it has been drawn.
+   */
   bitmap?: ImageBitmap;
   /** Physical pixel width — already multiplied by the device pixel ratio. */
   width: number;
@@ -83,10 +85,10 @@ export async function captureMap(map: MapLibreMap): Promise<MapSnapshot> {
 }
 
 /**
- * Temporarily frame the Lake District for a consistent export regardless of
- * the user's current viewport: fit the boundary bounds north-up and flat,
- * wait for the map to finish rendering the new view, and return a restore()
- * that puts the user's center/zoom/bearing/pitch back exactly.
+ * Temporarily frame the active list's bounds for a consistent export
+ * regardless of the user's current viewport: fit the bounds north-up and
+ * flat, wait for the map to finish rendering the new view, and return a
+ * restore() that puts the user's center/zoom/bearing/pitch back exactly.
  *
  * When `aspect` is given (the destination map box's width / height —
  * composeExport centre-crops the snapshot to it via coverCrop), the fit
@@ -95,7 +97,7 @@ export async function captureMap(map: MapLibreMap): Promise<MapSnapshot> {
  */
 export async function frameBoundary(
   map: MapLibreMap,
-  bounds: LngLatBoundsLike = LAKE_DISTRICT_BOUNDS,
+  bounds: LngLatBoundsLike,
   padding = 48,
   aspect?: number,
 ): Promise<() => void> {

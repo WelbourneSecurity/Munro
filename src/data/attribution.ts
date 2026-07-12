@@ -1,5 +1,17 @@
+/**
+ * The DoBIH release the committed peak data was generated from. The download
+ * (hillcsv.zip) is unversioned, so this cannot be auto-detected: bump it here
+ * when regenerating against a new release. It is the single source of truth —
+ * the data scripts import it to stamp the generated metadata, and the licence
+ * line below derives from it, so the two can never drift apart.
+ */
+export const DOBIH_VERSION = 'v18.4';
+
+/** Source string stamped into every generated peak file's metadata. */
+export const DOBIH_SOURCE = `Database of British and Irish Hills ${DOBIH_VERSION}`;
+
 export const DOBIH_ATTRIBUTION = {
-  label: 'Hill data: Database of British and Irish Hills v18.4, CC BY 4.0',
+  label: `Hill data: ${DOBIH_SOURCE}, CC BY 4.0`,
   url: 'https://www.hill-bagging.co.uk/dobih',
 } as const;
 

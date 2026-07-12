@@ -2,6 +2,7 @@ import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 
 import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
 import wainwrightAreasRaw from '../data/boundaries/wainwright-areas.geojson?raw';
+import { DOBIH_SOURCE, DOBIH_VERSION } from '../data/attribution';
 import corbetts from '../data/corbetts.json';
 import donalds from '../data/donalds.json';
 import ethels from '../data/ethels.json';
@@ -64,9 +65,7 @@ describe('committed Wainwrights data', () => {
   const peaks = wainwrights.peaks;
 
   it('contains the exact Wainwright count from DoBIH', () => {
-    expect(wainwrights.metadata.source).toBe(
-      'Database of British and Irish Hills v18.4',
-    );
+    expect(wainwrights.metadata.source).toBe(DOBIH_SOURCE);
     expect(peaks).toHaveLength(214);
   });
 
@@ -202,9 +201,11 @@ describe.each(generatedLists)(
     const [[west, south], [east, north]] = bounds;
 
     it('records DoBIH provenance and the published count', () => {
-      expect(file.metadata.source).toBe('Database of British and Irish Hills v18.4');
+      // The committed data must name the same DoBIH release as the
+      // attribution constants the licence line derives from.
+      expect(file.metadata.source).toBe(DOBIH_SOURCE);
       expect(file.metadata.license).toBe('CC BY 4.0');
-      expect(file.metadata.changes).toContain('DoBIH v18.4');
+      expect(file.metadata.changes).toContain(`DoBIH ${DOBIH_VERSION}`);
       expect(file.metadata.count).toBe(count);
       expect(peaks).toHaveLength(count);
     });

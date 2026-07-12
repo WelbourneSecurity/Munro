@@ -1027,6 +1027,21 @@
         "text-halo-color": "rgba(17,23,19,0.82)",
         "text-halo-width": 1.4
       }
+    },
+    {
+      "id": "munro-hillshade-anchor",
+      "type": "background",
+      "paint": { "background-opacity": 0 }
+    },
+    {
+      "id": "munro-hill-lighting-anchor",
+      "type": "background",
+      "paint": { "background-opacity": 0 }
+    },
+    {
+      "id": "munro-contours-anchor",
+      "type": "background",
+      "paint": { "background-opacity": 0 }
     }
   ]
 }

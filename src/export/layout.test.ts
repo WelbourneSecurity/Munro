@@ -1,6 +1,5 @@
 import {
   EXPORT_PRESETS,
-  EXPORT_TITLE,
   EXPORT_WORDMARK,
   attributionLine,
   coverCrop,
@@ -295,6 +294,33 @@ describe('coverCropPadding', () => {
     });
   });
 
+  it('scales the base padding down when the crop keeps only a small region', () => {
+    // Landscape preset from an iPhone-13-sized map canvas (390×788 CSS px):
+    // the cover-crop keeps only a 390×~172 strip, where a fixed 48px per
+    // side would leave the fitted bounds under half the export's map box.
+    const aspect = 1822 / 803;
+    const keptHeight = 390 / aspect;
+    const scaledBase = keptHeight * 0.08;
+    const padding = coverCropPadding(390, 788, aspect, 48);
+
+    expect(scaledBase).toBeLessThan(48);
+    expect(padding.left).toBeCloseTo(scaledBase, 5);
+    expect(padding.right).toBeCloseTo(scaledBase, 5);
+    expect(padding.top).toBeCloseTo((788 - keptHeight) / 2 + scaledBase, 5);
+    expect(padding.bottom).toBeCloseTo((788 - keptHeight) / 2 + scaledBase, 5);
+    // The fitted bounds keep the bulk of the crop-surviving region.
+    expect(keptHeight - scaledBase * 2).toBeGreaterThan(keptHeight * 0.8);
+  });
+
+  it('keeps the full base padding when the kept region is large (desktop)', () => {
+    // A 1600×900 desktop viewport keeps a 1600×~705 region at the landscape
+    // aspect — 48px per side is well under the proportional cap there.
+    const padding = coverCropPadding(1600, 900, 1822 / 803, 48);
+
+    expect(padding.left).toBe(48);
+    expect(padding.right).toBe(48);
+  });
+
   it('composes with coverCrop so the padded fit survives the crop', () => {
     // Contain-fitting with this padding, then cover-cropping the same
     // viewport to the destination aspect, must keep the fitted content: the
@@ -321,7 +347,6 @@ describe('coverCropPadding', () => {
 
 describe('export copy constants', () => {
   it('matches the product copy', () => {
-    expect(EXPORT_TITLE).toBe('Lake District · Wainwrights');
     expect(EXPORT_WORDMARK).toBe('MUNRO');
   });
 });

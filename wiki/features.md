@@ -81,7 +81,10 @@ A post-MVP convenience, strictly opt-in and off by default. When the
 location while it is open and marks a peak as bagged when the hiker
 reaches its summit — within roughly 100 m, widened a little to allow for
 the reported GPS accuracy. Fixes with very poor accuracy never trigger a
-detection.
+detection, and a fix that only reaches a summit through that accuracy
+widening needs a second consecutive fix to agree before the peak is
+bagged — someone on the summit lingers; a walk or drive past it should
+not bag anything.
 
 Constraints that keep it in character:
 

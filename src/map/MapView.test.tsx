@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { FeatureCollection } from 'geojson';
 import { fireEvent, render } from '@testing-library/react';
@@ -10,9 +11,18 @@ import { MapView } from './MapView';
 // Record the data handed to each Source so tests can inspect the marker /
 // hill-area feature properties the map would render.
 const sourceData = new Map<string, FeatureCollection>();
+// Track which Sources are currently mounted (the terrain-dem source must
+// survive the Terrain toggle) and the latest props of each Layer and of the
+// Map itself, so tests can inspect terrain state and layer filters.
+const mountedSourceIds = new Set<string>();
+const layerProps = new Map<string, Record<string, unknown>>();
+const mapProps: { current: Record<string, unknown> } = { current: {} };
 
 vi.mock('@vis.gl/react-maplibre', () => ({
-  Map: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+  Map: ({ children, ...props }: { children?: ReactNode }) => {
+    mapProps.current = props;
+    return <div>{children}</div>;
+  },
   AttributionControl: () => null,
   NavigationControl: () => null,
   Source: ({
@@ -27,9 +37,24 @@ vi.mock('@vis.gl/react-maplibre', () => ({
     if (id && data && typeof data === 'object') {
       sourceData.set(id, data as FeatureCollection);
     }
+    useEffect(() => {
+      if (!id) {
+        return undefined;
+      }
+
+      mountedSourceIds.add(id);
+      return () => {
+        mountedSourceIds.delete(id);
+      };
+    }, [id]);
     return <>{children}</>;
   },
-  Layer: () => null,
+  Layer: (props: { id?: string } & Record<string, unknown>) => {
+    if (props.id) {
+      layerProps.set(props.id, props);
+    }
+    return null;
+  },
 }));
 
 vi.mock('./terrain', () => ({
@@ -59,6 +84,8 @@ describe('MapView panel accessibility', () => {
     // The hill-area assertions need the Wainwrights' lighting profiles,
     // not the collated default list.
     usePreferencesStore.getState().setActiveListId('wainwrights');
+    sourceData.clear();
+    layerProps.clear();
   });
 
   // The generous timeout absorbs coverage-instrumented full-list renders on
@@ -86,24 +113,46 @@ describe('MapView panel accessibility', () => {
     },
   );
 
-  it('drops the selection highlight from the hill-area source while exporting', async () => {
+  it('drops the selection highlight from the hill-area layers while exporting', async () => {
     const { findByRole, getByRole } = render(<MapView />);
 
-    // Select an unbagged peak: its hill area is flagged selected for the
-    // on-screen highlight.
+    // Select an unbagged peak: its hill area is highlighted through the
+    // hill-area layer filter/paint for the on-screen highlight.
     fireEvent.click(await findByRole('button', { name: /Ard Crags/ }));
-    const selectedBefore = sourceData
-      .get('wainwright-areas')
-      ?.features.filter((feature) => feature.properties?.selected === true);
-    expect(selectedBefore).toHaveLength(1);
+    expect(JSON.stringify(layerProps.get('hill-area-fill')?.filter)).toContain(
+      'dobih-2460',
+    );
+    expect(JSON.stringify(layerProps.get('hill-area-line')?.paint)).toContain(
+      'dobih-2460',
+    );
 
     // Opening the export dialog must clear it so the captured image never
     // paints the selected (unbagged) peak with the bagged green.
     fireEvent.click(getByRole('button', { name: 'Export image' }));
-    const selectedDuring = sourceData
-      .get('wainwright-areas')
-      ?.features.filter((feature) => feature.properties?.selected === true);
-    expect(selectedDuring).toHaveLength(0);
+    expect(JSON.stringify(layerProps.get('hill-area-fill')?.filter)).not.toContain(
+      'dobih-2460',
+    );
+    expect(JSON.stringify(layerProps.get('hill-area-line')?.paint)).not.toContain(
+      'dobih-2460',
+    );
+  });
+
+  it('never rewrites the hill-area source data for a selection change', async () => {
+    const { findByRole, getByRole } = render(<MapView />);
+
+    await findByRole('button', { name: /Ard Crags/ });
+    const dataBefore = sourceData.get('wainwright-areas');
+    expect(dataBefore?.features.length).toBeGreaterThan(0);
+    // Selection is expressed in the layer filter, not baked into feature
+    // properties, so the ~1 MB collection is never re-uploaded via setData.
+    expect(
+      dataBefore?.features.some((feature) => 'selected' in (feature.properties ?? {})),
+    ).toBe(false);
+
+    fireEvent.click(getByRole('button', { name: /Ard Crags/ }));
+    fireEvent.click(getByRole('button', { name: 'Export image' }));
+
+    expect(sourceData.get('wainwright-areas')).toBe(dataBefore);
   });
 
   it(
@@ -133,6 +182,54 @@ describe('MapView panel accessibility', () => {
       );
     },
   );
+});
+
+describe('MapView terrain toggle', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useProgressStore.getState().resetAll();
+    usePreferencesStore.getState().setActiveListId('wainwrights');
+    usePreferencesStore.getState().setTerrainEnabled(true);
+    mountedSourceIds.clear();
+    mapProps.current = {};
+  });
+
+  it('passes an explicit null terrain when unchecked and restores it when re-checked', () => {
+    const { getByRole } = render(<MapView />);
+    const toggle = getByRole('checkbox', { name: 'Terrain' });
+
+    expect(mapProps.current.terrain).toEqual({
+      source: 'terrain-dem',
+      exaggeration: 1.28,
+    });
+
+    // The explicit null (never undefined) makes react-maplibre call
+    // map.setTerrain(null); an absent terrain prop means "leave unchanged"
+    // and would keep the 3D displacement active after unchecking.
+    fireEvent.click(toggle);
+    expect(mapProps.current.terrain).toBeNull();
+
+    fireEvent.click(toggle);
+    expect(mapProps.current.terrain).toEqual({
+      source: 'terrain-dem',
+      exaggeration: 1.28,
+    });
+  });
+
+  it('keeps the terrain-dem source mounted while terrain is off', () => {
+    const { getByRole } = render(<MapView />);
+
+    expect(mountedSourceIds.has('terrain-dem')).toBe(true);
+
+    fireEvent.click(getByRole('checkbox', { name: 'Terrain' }));
+
+    // Removing the DEM source under active terrain leaves MapLibre holding
+    // a dead tile manager, and re-enabling must find the source already
+    // present. Only the overlay-specific sources unmount with the toggle.
+    expect(mountedSourceIds.has('terrain-dem')).toBe(true);
+    expect(mountedSourceIds.has('terrain-hillshade-dem')).toBe(false);
+    expect(mountedSourceIds.has('terrain-contours')).toBe(false);
+  });
 });
 
 function notesFor(peakId: string) {

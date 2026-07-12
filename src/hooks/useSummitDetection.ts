@@ -39,6 +39,12 @@ function todayIsoDate() {
  * on the col between two neighbouring peaks) proves the hiker reached
  * none of them, so it bags nothing and detection waits for a closer fix.
  *
+ * A fix inside the base radius bags at once. A fix that only reaches a
+ * summit through its accuracy-widened radius merely says the hiker might
+ * be there, so it needs a second consecutive qualifying fix — someone on
+ * the summit dwells across throttle windows, while a single coarse fix
+ * from a valley path passing a few hundred metres away must not bag.
+ *
  * Privacy: positions are processed in memory and immediately discarded.
  * Nothing about location is stored — only the boolean preference and the
  * normal PeakProgress records persist.
@@ -55,6 +61,9 @@ export function useSummitDetection(peaks: Peak[]): SummitDetectionState {
   const [denied, setDenied] = useState(false);
   const [detectedPeaks, setDetectedPeaks] = useState<Peak[]>([]);
   const lastProcessedAtRef = useRef(0);
+  // Peak awaiting confirmation: nominated by the previous processed fix
+  // via its accuracy-widened radius, bagged only if the next fix agrees.
+  const pendingPeakIdRef = useRef<string | undefined>(undefined);
 
   const dismissDetections = useCallback(() => {
     setDetectedPeaks([]);
@@ -80,6 +89,7 @@ export function useSummitDetection(peaks: Peak[]): SummitDetectionState {
     }
 
     lastProcessedAtRef.current = 0;
+    pendingPeakIdRef.current = undefined;
 
     const watchId = geolocation.watchPosition(
       (position) => {
@@ -109,6 +119,7 @@ export function useSummitDetection(peaks: Peak[]): SummitDetectionState {
         const nearest = detections[0];
 
         if (!nearest) {
+          pendingPeakIdRef.current = undefined;
           return;
         }
 
@@ -118,8 +129,22 @@ export function useSummitDetection(peaks: Peak[]): SummitDetectionState {
         // col between summits the hiker never reached, so bag nothing and
         // wait for a closer fix.
         if (detections.length > 1 && nearest.distanceM > SUMMIT_DETECTION_RADIUS_M) {
+          pendingPeakIdRef.current = undefined;
           return;
         }
+
+        // A fix beyond the base radius reaches the summit only through the
+        // accuracy widening — possible, not proven. Require the next
+        // processed fix to nominate the same summit before bagging, so a
+        // single coarse fix from a nearby path or road never bags a peak.
+        if (nearest.distanceM > SUMMIT_DETECTION_RADIUS_M) {
+          if (pendingPeakIdRef.current !== nearest.peak.id) {
+            pendingPeakIdRef.current = nearest.peak.id;
+            return;
+          }
+        }
+
+        pendingPeakIdRef.current = undefined;
 
         const { progressByPeakId, bag } = useProgressStore.getState();
 
@@ -130,7 +155,13 @@ export function useSummitDetection(peaks: Peak[]): SummitDetectionState {
         }
 
         bag(nearest.peak.id, todayIsoDate());
-        setDetectedPeaks((previous) => [...previous, nearest.peak]);
+        // A peak can be re-detected while its notice is still showing (bag,
+        // unbag in the panel, re-bag on the next fix) — never list it twice.
+        setDetectedPeaks((previous) =>
+          previous.some((peak) => peak.id === nearest.peak.id)
+            ? previous
+            : [...previous, nearest.peak],
+        );
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {

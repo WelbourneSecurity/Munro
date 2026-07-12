@@ -10,7 +10,7 @@ export const TILE_SOURCE_FALLBACK = 'Self-hosted PMTiles/OpenMapTiles extract';
 export const TERRAIN_SOURCE_FALLBACK = 'Self-hosted DEM/contour tiles';
 
 // The bounds live with the hill-list registry (the Wainwrights entry uses
-// them for its map fit); the export pipeline frames the same box.
+// them for its map fit); the export pipeline frames each list's own bounds.
 export { LAKE_DISTRICT_BOUNDS } from '../data/lists';
 
 // Per-list bounds and initial cameras live in the hill-list registry

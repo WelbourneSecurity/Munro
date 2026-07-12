@@ -8,7 +8,7 @@ import {
 } from '@vis.gl/react-maplibre';
 import type { MapLayerMouseEvent, MapRef } from '@vis.gl/react-maplibre';
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
-import type { StyleSpecification } from 'maplibre-gl';
+import type { StyleSpecification, TerrainSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import {
@@ -31,6 +31,9 @@ import {
   listMaxBounds,
 } from './config';
 import {
+  CONTOURS_ANCHOR_ID,
+  HILL_LIGHTING_ANCHOR_ID,
+  HILLSHADE_ANCHOR_ID,
   baggedSummitLightLayer,
   boundaryFillLayer,
   boundaryLineLayer,
@@ -57,6 +60,18 @@ type HillAreaData = FeatureCollection<Polygon | MultiPolygon> & {
 
 const boundaryData = JSON.parse(boundaryRaw) as BoundaryData;
 const hillAreaData = JSON.parse(hillAreasRaw) as HillAreaData;
+
+// 3D terrain reads DEM tiles from the always-mounted terrain-dem source.
+const TERRAIN_OPTIONS: TerrainSpecification = {
+  source: 'terrain-dem',
+  exaggeration: 1.28,
+};
+
+// react-maplibre only detaches terrain (map.setTerrain(null)) for an explicit
+// null terrain prop — an undefined prop means "leave terrain unchanged" and
+// would keep the 3D displacement active after the Terrain checkbox is
+// unchecked. The published prop type omits null, hence the cast.
+const TERRAIN_DISABLED = null as unknown as TerrainSpecification;
 
 setupTerrainProtocols();
 
@@ -90,6 +105,10 @@ export function MapView() {
   // Highlight the same peak everywhere: the map's hill lighting must match
   // the panel, which falls back to the first peak before any click.
   const highlightedPeakId = selectedPeak?.id;
+  // Only bagged state is baked into the hill-area features; the transient
+  // selection highlight lives in the hill-area layer filter/paint instead
+  // (see layers.ts), so selecting a peak never re-uploads this ~1 MB
+  // collection through setData.
   const hillAreaGeoJson = useMemo(
     () => ({
       ...hillAreaData,
@@ -101,18 +120,18 @@ export function MapView() {
           properties: {
             ...feature.properties,
             bagged: peakId ? progressByPeakId[peakId]?.bagged === true : false,
-            // Suppress the transient selection highlight while the export
-            // dialog is open: it shares the bagged green, so a captured
-            // image would otherwise show the selected peak as if bagged and
-            // overstate progress. highlightedPeakId (not raw selectedPeakId)
-            // keeps the map in sync with the panel's peaks[0] fallback.
-            selected: !exportOpen && peakId === highlightedPeakId,
           },
         };
       }),
     }),
-    [progressByPeakId, highlightedPeakId, exportOpen],
+    [progressByPeakId],
   );
+  // Suppress the transient selection highlight while the export dialog is
+  // open: it shares the bagged green, so a captured image would otherwise
+  // show the selected peak as if bagged and overstate progress.
+  // highlightedPeakId (not raw selectedPeakId) keeps the map in sync with
+  // the panel's peaks[0] fallback.
+  const hillAreaSelectedId = exportOpen ? undefined : highlightedPeakId;
   const stats = useMemo(() => calculateProgress(peaks, progress), [peaks, progress]);
   // Pan limits sit well outside the list bounds so the whole-list fit (with
   // its padding) is never clamped by MapLibre's maxBounds constraint.
@@ -273,48 +292,54 @@ export function MapView() {
             minZoom={MAP_MIN_ZOOM}
             onClick={handlePeakClick}
             style={{ width: '100%', height: '100%' }}
-            {...(terrainEnabled
-              ? {
-                  terrain: {
-                    source: 'terrain-dem',
-                    exaggeration: 1.28,
-                  },
-                }
-              : {})}
+            terrain={terrainEnabled ? TERRAIN_OPTIONS : TERRAIN_DISABLED}
           >
             <AttributionControl compact customAttribution={mapAttributionHtml()} />
             <NavigationControl position="top-right" showCompass />
+            {/* The DEM source stays mounted while terrain is off (an unused
+              raster-dem source loads no tiles): removing it under active
+              terrain would leave MapLibre holding a dead tile manager, and
+              the toggle must find it already present when re-enabled. */}
+            <Source
+              id="terrain-dem"
+              type="raster-dem"
+              tiles={[terrainDemSource.sharedDemProtocolUrl]}
+              encoding="terrarium"
+              maxzoom={13}
+              tileSize={256}
+            />
+            {/* Conditional overlay layers are pinned with beforeId to the
+              invisible anchor layers committed in munro-dark.json, so
+              toggling Terrain or switching lists remounts them in the same
+              stacking order as a fresh page load — always below the peak
+              markers and labels. */}
             {terrainEnabled ? (
-              <>
-                <Source
-                  id="terrain-dem"
-                  type="raster-dem"
-                  tiles={[terrainDemSource.sharedDemProtocolUrl]}
-                  encoding="terrarium"
-                  maxzoom={13}
-                  tileSize={256}
-                />
-                <Source
-                  id="terrain-hillshade-dem"
-                  type="raster-dem"
-                  tiles={[terrainDemSource.sharedDemProtocolUrl]}
-                  encoding="terrarium"
-                  maxzoom={13}
-                  tileSize={256}
-                >
-                  <Layer {...terrainHillshadeLayer} />
-                </Source>
-              </>
+              <Source
+                id="terrain-hillshade-dem"
+                type="raster-dem"
+                tiles={[terrainDemSource.sharedDemProtocolUrl]}
+                encoding="terrarium"
+                maxzoom={13}
+                tileSize={256}
+              >
+                <Layer {...terrainHillshadeLayer} beforeId={HILLSHADE_ANCHOR_ID} />
+              </Source>
             ) : null}
             {list.hasHillLighting ? (
               <>
                 <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
-                  <Layer {...boundaryFillLayer} />
-                  <Layer {...boundaryLineLayer} />
+                  <Layer {...boundaryFillLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
+                  <Layer {...boundaryLineLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
                 </Source>
                 <Source id="wainwright-areas" type="geojson" data={hillAreaGeoJson}>
-                  <Layer {...hillAreaFillLayer} />
-                  <Layer {...hillAreaLineLayer} />
+                  <Layer
+                    {...hillAreaFillLayer(hillAreaSelectedId)}
+                    beforeId={HILL_LIGHTING_ANCHOR_ID}
+                  />
+                  <Layer
+                    {...hillAreaLineLayer(hillAreaSelectedId)}
+                    beforeId={HILL_LIGHTING_ANCHOR_ID}
+                  />
                 </Source>
               </>
             ) : null}
@@ -325,8 +350,8 @@ export function MapView() {
                 tiles={[contourTileUrl]}
                 maxzoom={16}
               >
-                <Layer {...terrainContourLayer} />
-                <Layer {...terrainContourLabelLayer} />
+                <Layer {...terrainContourLayer} beforeId={CONTOURS_ANCHOR_ID} />
+                <Layer {...terrainContourLabelLayer} beforeId={CONTOURS_ANCHOR_ID} />
               </Source>
             ) : null}
             <Source id="list-peaks" type="geojson" data={peakGeoJson}>
@@ -334,7 +359,7 @@ export function MapView() {
               {/* Lists without hill-lighting profiles illuminate bagged
                 summits with a soft light instead of the lit hill areas the
                 Wainwrights get, so bagging reads the same everywhere. */}
-              {list.hasHillLighting ? null : <Layer {...baggedSummitLightLayer} />}
+              <Layer {...baggedSummitLightLayer(!list.hasHillLighting)} />
               <Layer {...peakMarkerLayer(!list.hasHillLighting)} />
               <Layer {...peakLabelLayer} />
             </Source>
@@ -515,6 +540,7 @@ export function MapView() {
       <ExportDialog
         open={exportOpen}
         getMap={getMap}
+        list={list}
         stats={{ bagged: stats.bagged, total: stats.total }}
         onClose={() => {
           setExportOpen(false);

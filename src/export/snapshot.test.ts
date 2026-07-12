@@ -197,10 +197,10 @@ describe('captureMap', () => {
 });
 
 describe('frameBoundary', () => {
-  it('fits the Lake District bounds north-up and flat, then waits for idle', async () => {
+  it('fits the given bounds north-up and flat, then waits for idle', async () => {
     const map = createMockMap();
 
-    await frameBoundary(asMap(map));
+    await frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS);
 
     expect(map.fitBounds).toHaveBeenCalledWith(LAKE_DISTRICT_BOUNDS, {
       animate: false,
@@ -271,7 +271,7 @@ describe('frameBoundary', () => {
     // so no idle would ever fire on an already-idle map.
     const map = createMockMap({ fittable: false });
 
-    await expect(frameBoundary(asMap(map))).rejects.toThrow(
+    await expect(frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS)).rejects.toThrow(
       'Map viewport is too small to frame the export bounds',
     );
 
@@ -285,7 +285,7 @@ describe('frameBoundary', () => {
   it('restore() puts the original viewport back exactly', async () => {
     const map = createMockMap();
 
-    const restore = await frameBoundary(asMap(map));
+    const restore = await frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS);
 
     expect(map.jumpTo).not.toHaveBeenCalled();
 
@@ -302,7 +302,7 @@ describe('frameBoundary', () => {
   it('reads the viewport before moving the camera', async () => {
     const map = createMockMap();
 
-    await frameBoundary(asMap(map));
+    await frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS);
 
     const fitOrder = map.fitBounds.mock.invocationCallOrder[0] ?? 0;
     for (const getter of [map.getCenter, map.getZoom, map.getBearing, map.getPitch]) {

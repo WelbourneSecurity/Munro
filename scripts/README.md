@@ -33,7 +33,10 @@ A peak's `list` array records every configured list it belongs to (some
 Corbetts and Grahams are also Donalds, and most Wainwrights are also Hewitts
 or Marilyns), so progress on a shared peak follows it across lists. Files whose content is unchanged apart from `generatedAt`
 are left untouched. The generated metadata records that each file is trimmed
-and reformatted from DoBIH v18.4 under CC BY 4.0.
+and reformatted from DoBIH under CC BY 4.0; the release version it stamps is
+the `DOBIH_VERSION` constant in `src/data/attribution.ts` (the download is
+unversioned, so bump the constant there when regenerating against a new
+release — the licence line derives from the same constant).
 
 ## Lake District boundary
 

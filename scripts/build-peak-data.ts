@@ -6,10 +6,16 @@ import { parse } from 'csv-parse/sync';
 import { strFromU8, unzipSync } from 'fflate';
 import { format } from 'prettier';
 
+import { DOBIH_SOURCE, DOBIH_VERSION } from '../src/data/attribution';
 import { peakSchema, type Peak } from '../src/domain/schemas';
 
+// The zip is the unversioned latest release; the version stamped into the
+// generated metadata is the DOBIH_VERSION constant in src/data/attribution.ts
+// (the same one the licence line derives from), so a refresh can never
+// desynchronise the attribution from the data. Bump it there when DoBIH
+// publishes a new release.
 const DOBIH_ZIP_URL = 'https://www.hill-bagging.co.uk/dobih-downloads/hillcsv.zip';
-const SOURCE = 'Database of British and Irish Hills v18.4';
+const SOURCE = DOBIH_SOURCE;
 const DATA_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../src/data');
 
 type DobihRow = Record<string, string>;
@@ -490,7 +496,7 @@ for (const config of configs) {
       license: 'CC BY 4.0',
       sourceUrl: 'https://www.hill-bagging.co.uk/dobih',
       downloadedFrom: DOBIH_ZIP_URL,
-      changes: `Trimmed to ${config.name}${config.scopeNote ? ` (${config.scopeNote})` : ''} and reformatted from DoBIH v18.4`,
+      changes: `Trimmed to ${config.name}${config.scopeNote ? ` (${config.scopeNote})` : ''} and reformatted from DoBIH ${DOBIH_VERSION}`,
       generatedAt: new Date().toISOString().slice(0, 10),
       count: peaks.length,
     },

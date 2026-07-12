@@ -12,6 +12,7 @@ import {
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import { format } from 'prettier';
 
+import { DOBIH_VERSION } from '../src/data/attribution';
 import type { Peak } from '../src/domain/schemas';
 
 const ROOT: string = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -223,8 +224,7 @@ function buildAreas(peaks: Peak[], boundary: BoundaryFile) {
   return {
     type: 'FeatureCollection' as const,
     metadata: {
-      source:
-        'Generated from DoBIH v18.4 Wainwright summit points and Natural England Lake District National Park boundary',
+      source: `Generated from DoBIH ${DOBIH_VERSION} Wainwright summit points and Natural England Lake District National Park boundary`,
       method:
         'Summit-centred hill profiles: generate one soft radial footprint around each Wainwright summit, shape it by height and nearby summits, then clip to the Lake District National Park boundary. These are visual hill-lighting profiles, not authoritative geomorphological, route or land-boundary data.',
       profile: {

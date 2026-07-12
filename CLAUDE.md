@@ -127,10 +127,19 @@ Conventions to preserve:
   types only. Map layer styling lives as data-driven expressions in
   `src/map/layers.ts`, and the tile/terrain URLs stay isolated in
   `src/map/config.ts`.
-- Bagged/selected marker state is written into the peak and hill-profile
-  GeoJSON feature properties (rebuilt from the store) and styled with
-  data-driven expressions — don't move that state into component-level
-  markers or DOM overlays.
+- Bagged marker state is written into the peak and hill-profile GeoJSON
+  feature properties (rebuilt from the store) and styled with data-driven
+  expressions; the transient selection highlight is parameterized into the
+  hill-area layer filter/paint expressions in `src/map/layers.ts` (cheap
+  `setFilter`/`setPaintProperty` updates — never a full `setData` of the
+  hill-area collection). Don't move either into component-level markers or
+  DOM overlays.
+- Conditional map overlays (terrain hillshade, hill lighting, contours) are
+  pinned with `beforeId` to the invisible `munro-*-anchor` layers committed
+  at the top of `src/map/style/munro-dark.json`, so remounts (Terrain
+  toggle, list switches) keep the fresh-load stacking order below the peak
+  layers. Keep the anchors when refreshing the style fork, and anchor any
+  new conditional layer the same way.
 - Hill lighting uses generated summit-centred hill profiles clipped to the
   Lake District boundary. Treat them as approximate visual lighting profiles,
   not authoritative legal, route or geomorphological boundaries.

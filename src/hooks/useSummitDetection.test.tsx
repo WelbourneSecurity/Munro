@@ -210,6 +210,60 @@ describe('useSummitDetection', () => {
     expect(result.current.detectedPeaks).toEqual([]);
   });
 
+  it('never bags from a single accuracy-widened fix away from the summit', () => {
+    const geo = installGeolocation();
+    usePreferencesStore.getState().setSummitDetectionEnabled(true);
+
+    renderHook(() => useSummitDetection(peaks));
+
+    // A valley path 240 m from the summit with a coarse 140 m fix: inside
+    // the widened radius, but a single such fix proves nothing.
+    geo.sendPosition(metresNorth(highFell.lat, 240), highFell.lon, 140);
+
+    expect(useProgressStore.getState().progressByPeakId[highFell.id]).toBeUndefined();
+  });
+
+  it('bags after two consecutive widened-radius fixes on the same summit', () => {
+    vi.useFakeTimers();
+    const geo = installGeolocation();
+    usePreferencesStore.getState().setSummitDetectionEnabled(true);
+
+    const { result } = renderHook(() => useSummitDetection(peaks));
+
+    // Sitting on the summit with fixes landing 130 m off at 50 m accuracy:
+    // the first fix nominates the peak, the second confirms it.
+    geo.sendPosition(metresNorth(highFell.lat, 130), highFell.lon, 50);
+
+    expect(useProgressStore.getState().progressByPeakId[highFell.id]).toBeUndefined();
+
+    vi.advanceTimersByTime(SUMMIT_DETECTION_THROTTLE_MS + 1);
+    geo.sendPosition(metresNorth(highFell.lat, 130), highFell.lon, 50);
+
+    expect(useProgressStore.getState().progressByPeakId[highFell.id]?.bagged).toBe(
+      true,
+    );
+    expect(result.current.detectedPeaks.map((peak) => peak.id)).toEqual([highFell.id]);
+  });
+
+  it('resets the widened-radius confirmation when a fix detects nothing', () => {
+    vi.useFakeTimers();
+    const geo = installGeolocation();
+    usePreferencesStore.getState().setSummitDetectionEnabled(true);
+
+    renderHook(() => useSummitDetection(peaks));
+
+    // Walking past the summit: one qualifying widened fix, then a fix well
+    // clear of it — the earlier nomination must not linger and pair up
+    // with another drive-by fix minutes later.
+    geo.sendPosition(metresNorth(highFell.lat, 240), highFell.lon, 140);
+    vi.advanceTimersByTime(SUMMIT_DETECTION_THROTTLE_MS + 1);
+    geo.sendPosition(metresNorth(highFell.lat, 2_000), highFell.lon, 20);
+    vi.advanceTimersByTime(SUMMIT_DETECTION_THROTTLE_MS + 1);
+    geo.sendPosition(metresNorth(highFell.lat, 240), highFell.lon, 140);
+
+    expect(useProgressStore.getState().progressByPeakId[highFell.id]).toBeUndefined();
+  });
+
   it('ignores fixes with unusable accuracy', () => {
     const geo = installGeolocation();
     usePreferencesStore.getState().setSummitDetectionEnabled(true);
@@ -240,6 +294,31 @@ describe('useSummitDetection', () => {
     geo.sendPosition(farFell.lat, farFell.lon, 12);
 
     expect(useProgressStore.getState().progressByPeakId[farFell.id]?.bagged).toBe(true);
+  });
+
+  it('never lists a peak twice when it is re-detected after an unbag', () => {
+    vi.useFakeTimers();
+    const geo = installGeolocation();
+    usePreferencesStore.getState().setSummitDetectionEnabled(true);
+
+    const { result } = renderHook(() => useSummitDetection(peaks));
+
+    geo.sendPosition(highFell.lat, highFell.lon, 12);
+
+    expect(result.current.detectedPeaks.map((peak) => peak.id)).toEqual([highFell.id]);
+
+    // Unbag from the panel (e.g. to re-enter with a different date) while
+    // the notice is still showing, then the next fix re-bags the summit.
+    act(() => {
+      useProgressStore.getState().unbag(highFell.id);
+    });
+    vi.advanceTimersByTime(SUMMIT_DETECTION_THROTTLE_MS + 1);
+    geo.sendPosition(highFell.lat, highFell.lon, 12);
+
+    expect(useProgressStore.getState().progressByPeakId[highFell.id]?.bagged).toBe(
+      true,
+    );
+    expect(result.current.detectedPeaks.map((peak) => peak.id)).toEqual([highFell.id]);
   });
 
   it('auto-disables the setting on hard permission denial', () => {

@@ -21,6 +21,13 @@ upstream and apply Munro-specific source overlays in code:
 - Client-generated contour lines from `maplibre-contour`.
 - Attribution strings from `src/data/attribution.ts`.
 
+Three invisible no-op anchor layers (`munro-hillshade-anchor`,
+`munro-hill-lighting-anchor`, `munro-contours-anchor`) are committed at the
+top of `style/munro-dark.json`. Conditional overlay layers pass them as
+`beforeId` so remounting (the Terrain toggle, hill-list switches) always
+restores the fresh-load stacking order below the always-mounted peak layers.
+Keep the anchors when refreshing the style fork from upstream.
+
 The vector-tile source URL is isolated in `config.ts`. If the public OpenFreeMap
 instance stops fitting the MVP, replace that URL with a self-hosted
 PMTiles/OpenMapTiles endpoint rather than editing map components.

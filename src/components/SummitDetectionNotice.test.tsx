@@ -22,12 +22,34 @@ function makePeak(id: string, name: string): Peak {
 }
 
 describe('SummitDetectionNotice', () => {
-  it('renders nothing without detections', () => {
-    const { container } = render(
+  it('shows no notice without detections, keeping only the empty live region', () => {
+    const { getByRole, queryByText } = render(
       <SummitDetectionNotice peaks={[]} onDismiss={vi.fn()} />,
     );
 
-    expect(container).toBeEmptyDOMElement();
+    expect(queryByText('Summit reached')).not.toBeInTheDocument();
+    // The live region stays mounted (and empty) so a later detection is a
+    // text update, which screen readers announce reliably.
+    expect(getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('announces a detection by updating the permanently mounted live region', () => {
+    const { getByRole, rerender } = render(
+      <SummitDetectionNotice peaks={[]} onDismiss={vi.fn()} />,
+    );
+
+    const region = getByRole('status');
+    expect(region).toBeEmptyDOMElement();
+
+    rerender(
+      <SummitDetectionNotice
+        peaks={[makePeak('dobih-1', 'High Fell')]}
+        onDismiss={vi.fn()}
+      />,
+    );
+
+    expect(getByRole('status')).toBe(region);
+    expect(region).toHaveTextContent('Summit reached. High Fell marked as bagged.');
   });
 
   it('announces a single bagged peak calmly', () => {
@@ -81,6 +103,44 @@ describe('SummitDetectionNotice', () => {
         />,
       );
 
+      act(() => {
+        vi.advanceTimersByTime(SUMMIT_NOTICE_DURATION_MS + 1);
+      });
+
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('pauses the auto-dismiss while focus is inside the notice', () => {
+    vi.useFakeTimers();
+
+    try {
+      const onDismiss = vi.fn();
+      const { getByRole } = render(
+        <SummitDetectionNotice
+          peaks={[makePeak('dobih-1', 'High Fell')]}
+          onDismiss={onDismiss}
+        />,
+      );
+
+      const dismiss = getByRole('button', { name: 'Dismiss' });
+
+      act(() => {
+        dismiss.focus();
+      });
+      act(() => {
+        vi.advanceTimersByTime(SUMMIT_NOTICE_DURATION_MS * 2);
+      });
+
+      // A keyboard user who tabbed to Dismiss must never have the focused
+      // button unmounted under them by the timer.
+      expect(onDismiss).not.toHaveBeenCalled();
+
+      act(() => {
+        dismiss.blur();
+      });
       act(() => {
         vi.advanceTimersByTime(SUMMIT_NOTICE_DURATION_MS + 1);
       });

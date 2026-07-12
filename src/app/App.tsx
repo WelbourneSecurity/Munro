@@ -1,10 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { ProgressStats, SummitDetectionNotice, useActiveHillList } from '../components';
 import { calculateProgress } from '../domain';
 import { useSummitDetection, type SummitDetectionStatus } from '../hooks';
 import { MapView } from '../map';
-import { useProgressStore } from '../store';
+import { useProgressStore, useStorageHealthStore } from '../store';
 import { DataPage } from './DataPage';
 import { SettingsPage } from './SettingsPage';
 
@@ -46,6 +46,21 @@ function useHashRoute() {
     };
   }, []);
 
+  // A route change swaps the rendered page in place, so without a reset the
+  // new page inherits the old page's scroll offset. Skip the initial render
+  // (leaving reload scroll restoration alone); same-route hash changes never
+  // re-run this effect, so same-hash clicks stay inert.
+  const previousRouteRef = useRef(route);
+
+  useEffect(() => {
+    if (previousRouteRef.current === route) {
+      return;
+    }
+
+    previousRouteRef.current = route;
+    window.scrollTo(0, 0);
+  }, [route]);
+
   return route;
 }
 
@@ -55,6 +70,9 @@ export function App() {
   // switches which summits can be detected.
   const { peaks } = useActiveHillList();
   const summitDetection = useSummitDetection(peaks);
+  const progressWriteFailed = useStorageHealthStore(
+    (state) => state.progressWriteFailed,
+  );
 
   return (
     <div className="bg-surface text-primary min-h-svh">
@@ -82,6 +100,15 @@ export function App() {
           ))}
         </nav>
       </header>
+      {progressWriteFailed ? (
+        <p
+          className="border-line bg-panel text-secondary border-b px-4 py-3 text-sm leading-6"
+          role="alert"
+        >
+          Your progress could not be saved to this browser. It is at risk of being lost
+          — export a backup from Settings.
+        </p>
+      ) : null}
       <main>{renderRoute(route, summitDetection.status)}</main>
       <SummitDetectionNotice
         peaks={summitDetection.detectedPeaks}
@@ -111,7 +138,7 @@ function renderRoute(
 }
 
 function HomePage() {
-  const { peaks } = useActiveHillList();
+  const { peaks, loadFailed, retryLoad } = useActiveHillList();
   const progressByPeakId = useProgressStore((state) => state.progressByPeakId);
   const progress = Object.values(progressByPeakId);
   const stats = calculateProgress(peaks, progress);
@@ -129,7 +156,22 @@ function HomePage() {
       </p>
 
       <div className="border-line bg-panel mt-8 border p-5">
-        {stats.bagged > 0 ? (
+        {loadFailed ? (
+          <div className="text-secondary text-sm leading-6">
+            <p>Peak data could not be loaded. Check your connection and try again.</p>
+            <button
+              className="border-line bg-surface text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mt-3 min-h-11 border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              type="button"
+              onClick={retryLoad}
+            >
+              Retry
+            </button>
+          </div>
+        ) : peaks.length === 0 ? (
+          // Peak data is still loading; without it the stats cannot say
+          // anything truthful about existing progress.
+          <p className="text-secondary text-sm leading-6">Loading peak data…</p>
+        ) : stats.bagged > 0 ? (
           <ProgressStats stats={stats} />
         ) : (
           <p className="text-secondary text-sm leading-6">
