@@ -56,9 +56,13 @@ export interface HillListDefinition {
   loadPeaks: () => Promise<Peak[]>;
 }
 
+// Must contain the whole committed park boundary polygon
+// (src/data/boundaries/lake-district.geojson, bbox lon -3.4956..-2.5826,
+// lat 54.1915..54.7637): the live map clamps its viewport to these bounds
+// and the export frames them, so a tighter box would cut the outline off.
 export const LAKE_DISTRICT_BOUNDS: HillListBounds = [
   [-3.58, 54.18],
-  [-2.72, 54.82],
+  [-2.55, 54.82],
 ];
 
 export const LAKE_DISTRICT_INITIAL_VIEW: HillListView = {

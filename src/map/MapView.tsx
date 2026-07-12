@@ -12,6 +12,7 @@ import type { StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import {
+  ExportDialog,
   HillListSwitcher,
   PeakListPanel,
   ProgressStats,
@@ -68,8 +69,15 @@ export function MapView() {
   const terrainEnabled = usePreferencesStore((state) => state.terrainEnabled);
   const setTerrainEnabled = usePreferencesStore((state) => state.setTerrainEnabled);
   const { list, peaks, loadFailed, retryLoad } = useActiveHillList();
-  const [selectedPeakId, setSelectedPeakId] = useState<string>();
+  const [selectedPeakId, setSelectedPeakId] = useState<string | undefined>(
+    peaks[0]?.id,
+  );
   const shownListIdRef = useRef<string>(list.id);
+  const [exportOpen, setExportOpen] = useState(false);
+  // On small screens the panel is a bottom sheet; this collapses it so the
+  // map is reachable one-handed. Desktop (lg) always shows the panel.
+  const [panelOpen, setPanelOpen] = useState(true);
+  const getMap = useCallback(() => mapRef.current?.getMap() ?? null, []);
 
   const progress = useMemo(() => Object.values(progressByPeakId), [progressByPeakId]);
   const peakGeoJson = useMemo(() => peaksToGeoJSON(peaks, progress), [peaks, progress]);
@@ -88,12 +96,17 @@ export function MapView() {
           properties: {
             ...feature.properties,
             bagged: peakId ? progressByPeakId[peakId]?.bagged === true : false,
-            selected: peakId === highlightedPeakId,
+            // Suppress the transient selection highlight while the export
+            // dialog is open: it shares the bagged green, so a captured
+            // image would otherwise show the selected peak as if bagged and
+            // overstate progress. highlightedPeakId (not raw selectedPeakId)
+            // keeps the map in sync with the panel's peaks[0] fallback.
+            selected: !exportOpen && peakId === highlightedPeakId,
           },
         };
       }),
     }),
-    [progressByPeakId, highlightedPeakId],
+    [progressByPeakId, highlightedPeakId, exportOpen],
   );
   const stats = useMemo(() => calculateProgress(peaks, progress), [peaks, progress]);
   // Pan limits sit well outside the list bounds so the whole-list fit (with
@@ -102,6 +115,30 @@ export function MapView() {
   const selectedProgress = selectedPeak ? progressByPeakId[selectedPeak.id] : undefined;
   const isSelectedBagged = selectedProgress?.bagged === true;
 
+  // Switching hill lists resets the selection and flies the camera to the
+  // new list's bounds, keeping the shared bearing/pitch of the map style.
+  useEffect(() => {
+    if (shownListIdRef.current === list.id) {
+      return;
+    }
+
+    shownListIdRef.current = list.id;
+    setSelectedPeakId(undefined);
+    mapRef.current?.fitBounds(list.bounds, {
+      ...LIST_FIT_OPTIONS,
+      bearing: list.initialView.bearing,
+      pitch: list.initialView.pitch,
+      duration: 900,
+    });
+  }, [list]);
+
+  // The notes textarea only commits on blur, which never fires when the page
+  // is reloaded, closed or a backgrounded PWA is killed — flush pending text
+  // to the store before the page goes away so notes persist across reloads.
+  // hashchange covers focus-preserving navigations (browser Back/Forward,
+  // mobile back gesture): they unmount MapView without blurring the focused
+  // textarea, and the listener runs while the textarea is still attached
+  // because the router's re-render is batched until after the event.
   useEffect(() => {
     if (shownListIdRef.current === list.id) {
       return;
@@ -266,20 +303,69 @@ export function MapView() {
         </Map>
       </div>
 
-      <aside className="border-line bg-panel flex w-[24rem] flex-col border-l px-5 py-5 max-lg:absolute max-lg:inset-x-3 max-lg:bottom-3 max-lg:z-10 max-lg:max-h-[82svh] max-lg:w-auto max-lg:overflow-y-auto max-lg:border">
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <p className="font-label text-label text-muted">{list.regionLabel}</p>
-            <h1 className="text-primary mt-1 text-2xl font-semibold">{list.name}</h1>
+      <aside
+        aria-label="Tracker panel"
+        className="border-line bg-panel flex w-[24rem] flex-col border-l px-5 py-5 max-lg:absolute max-lg:inset-x-3 max-lg:bottom-[calc(0.75rem+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:max-h-[82svh] max-lg:w-auto max-lg:overflow-y-auto max-lg:border"
+      >
+        <button
+          aria-controls="tracker-panel-content"
+          aria-expanded={panelOpen}
+          className={`border-line bg-panel text-secondary hover:text-primary focus-visible:outline-bagged min-h-11 w-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 lg:hidden ${
+            panelOpen ? 'mb-5' : ''
+          }`}
+          type="button"
+          onClick={() => {
+            setPanelOpen((open) => !open);
+          }}
+        >
+          {panelOpen ? 'Hide panel' : 'Show panel'}
+        </button>
+        <div
+          id="tracker-panel-content"
+          className={`flex min-h-0 flex-1 flex-col ${panelOpen ? '' : 'max-lg:hidden'}`}
+        >
+          <div className="mb-5 flex items-start justify-between gap-4">
+            <div>
+              <p className="font-label text-label text-muted">{list.regionLabel}</p>
+              <h1 className="text-primary mt-1 text-2xl font-semibold">{list.name}</h1>
+            </div>
+            <p className="font-label text-label text-muted text-right">
+              {peaks.length > 0 ? `${String(peaks.length)} ${list.peakNoun}` : ''}
+            </p>
           </div>
           <p className="font-label text-label text-muted text-right">
             {peaks.length > 0 ? `${String(peaks.length)} ${list.peakNoun}` : ''}
           </p>
         </div>
 
-        <div className="mb-3 empty:hidden">
-          <HillListSwitcher />
-        </div>
+          <div className="mb-3 empty:hidden">
+            <HillListSwitcher />
+          </div>
+
+          {loadFailed ? (
+            <div className="border-line bg-surface text-secondary mb-5 border p-4 text-sm">
+              <p>Peak data could not be loaded. Check your connection and try again.</p>
+              <button
+                className="border-line bg-panel text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mt-3 min-h-11 w-full border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                type="button"
+                onClick={retryLoad}
+              >
+                Retry
+              </button>
+            </div>
+          ) : null}
+
+          <label className="border-line text-secondary mb-5 flex min-h-11 items-center justify-between gap-4 border px-3 py-2 text-sm">
+            <span>Terrain</span>
+            <input
+              checked={terrainEnabled}
+              className="accent-bagged focus-visible:outline-bagged h-5 w-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              type="checkbox"
+              onChange={(event) => {
+                setTerrainEnabled(event.currentTarget.checked);
+              }}
+            />
+          </label>
 
         {loadFailed ? (
           <div className="border-line bg-surface text-secondary mb-5 border p-4 text-sm">

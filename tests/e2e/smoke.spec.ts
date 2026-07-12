@@ -17,8 +17,14 @@ test('loads the tracker with a drawn map, all 214 peaks and no errors', async ({
   await expect(page.getByText('Lake District', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Terrain')).toBeChecked();
 
-  // Every Wainwright reaches the list panel with an unbagged indicator.
+  // Every Wainwright reaches the list panel with an unbagged indicator. The
+  // panel renders rows in windows that grow on scroll (see PeakListPanel),
+  // so expand the list fully before counting.
   await expect(page.getByText('214 shown')).toBeVisible();
+  const showMore = page.getByRole('button', { name: /^Show \d+ more$/ });
+  while (await showMore.count()) {
+    await showMore.click();
+  }
   await expect(page.getByLabel('Unbagged')).toHaveCount(214);
 
   // Map canvas rendered with real content. The peak markers are map layers

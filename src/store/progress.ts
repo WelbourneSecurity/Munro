@@ -2,7 +2,12 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { DEFAULT_HILL_LIST_ID, isHillListId, type HillListId } from '../data/lists';
-import { backupSchema, type Backup, type PeakProgress } from '../domain';
+import {
+  backupSchema,
+  peakProgressSchema,
+  type Backup,
+  type PeakProgress,
+} from '../domain';
 
 export const PROGRESS_STORAGE_KEY = 'munro.progress.v1';
 export const PREFERENCES_STORAGE_KEY = 'munro.prefs.v1';

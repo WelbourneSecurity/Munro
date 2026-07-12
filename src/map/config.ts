@@ -9,6 +9,10 @@ export const AWS_TERRARIUM_TILE_URL =
 export const TILE_SOURCE_FALLBACK = 'Self-hosted PMTiles/OpenMapTiles extract';
 export const TERRAIN_SOURCE_FALLBACK = 'Self-hosted DEM/contour tiles';
 
+// The bounds live with the hill-list registry (the Wainwrights entry uses
+// them for its map fit); the export pipeline frames the same box.
+export { LAKE_DISTRICT_BOUNDS } from '../data/lists';
+
 // Per-list bounds and initial cameras live in the hill-list registry
 // (`src/data/lists.ts`); these options control how the map fits them.
 export const LIST_FIT_OPTIONS = { padding: 56, maxZoom: 9.4 } as const;
