@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { DEFAULT_HILL_LIST_ID, isHillListId, type HillListId } from '../data/lists';
 import {
   backupSchema,
   peakProgressSchema,
@@ -183,16 +184,31 @@ export function isBagged(peakId: string) {
 }
 
 export interface PreferencesState {
+  activeListId: HillListId;
   terrainEnabled: boolean;
+  summitDetectionEnabled: boolean;
+  setActiveListId: (listId: HillListId) => void;
   setTerrainEnabled: (enabled: boolean) => void;
+  setSummitDetectionEnabled: (enabled: boolean) => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>()(
   persist(
     (set) => ({
+      activeListId: DEFAULT_HILL_LIST_ID,
       terrainEnabled: true,
+      // Strictly opt-in: GPS summit detection stays off until the user
+      // enables it in Settings. Only this boolean is ever persisted —
+      // never any location data.
+      summitDetectionEnabled: false,
+      setActiveListId: (listId) => {
+        set({ activeListId: listId });
+      },
       setTerrainEnabled: (enabled) => {
         set({ terrainEnabled: enabled });
+      },
+      setSummitDetectionEnabled: (enabled) => {
+        set({ summitDetectionEnabled: enabled });
       },
     }),
     {
@@ -200,6 +216,18 @@ export const usePreferencesStore = create<PreferencesState>()(
       storage: createJSONStorage(() => localStorage),
       version: 1,
       migrate: (persisted) => persisted as PreferencesState,
+      merge: (persisted, current) => {
+        const merged = {
+          ...current,
+          ...(persisted as Partial<PreferencesState> | undefined),
+        };
+
+        if (!isHillListId(merged.activeListId)) {
+          merged.activeListId = DEFAULT_HILL_LIST_ID;
+        }
+
+        return merged;
+      },
     },
   ),
 );

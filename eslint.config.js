@@ -9,8 +9,11 @@ import tseslint from 'typescript-eslint';
 export default defineConfig([
   {
     ignores: [
+      'android/**',
+      'build/**',
       'coverage/**',
       'dist/**',
+      'ios/**',
       'node_modules/**',
       'playwright-report/**',
       'site/**',
@@ -60,6 +63,7 @@ export default defineConfig([
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/prefer-optional-chain': 'off',
       '@typescript-eslint/restrict-template-expressions': 'off',
     },

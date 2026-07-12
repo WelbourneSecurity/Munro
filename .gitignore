@@ -10,6 +10,12 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+# Capacitor native projects and mobile packaging output — generated fresh
+# in CI (npx cap add android / ios), never committed
+/android/
+/ios/
+/build/
+
 # Test output
 coverage/
 playwright-report/

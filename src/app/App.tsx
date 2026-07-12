@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 
-import { ProgressStats } from '../components';
-import wainwrights from '../data/wainwrights.json';
-import { calculateProgress, type Peak } from '../domain';
+import { ProgressStats, SummitDetectionNotice, useActiveHillList } from '../components';
+import { calculateProgress } from '../domain';
+import { useSummitDetection, type SummitDetectionStatus } from '../hooks';
 import { MapView } from '../map';
 import { useProgressStore } from '../store';
 import { DataPage } from './DataPage';
@@ -16,8 +16,6 @@ const routes: { href: string; id: RouteId; label: string }[] = [
   { href: '#/data', id: 'data', label: 'Data' },
   { href: '#/settings', id: 'settings', label: 'Settings' },
 ];
-
-const peaks = wainwrights.peaks as Peak[];
 
 function resolveRoute(hash: string): RouteId {
   switch (hash) {
@@ -53,6 +51,10 @@ function useHashRoute() {
 
 export function App() {
   const route = useHashRoute();
+  // Summit detection follows the active hill list, so switching lists also
+  // switches which summits can be detected.
+  const { peaks } = useActiveHillList();
+  const summitDetection = useSummitDetection(peaks);
 
   return (
     <div className="bg-surface text-primary min-h-svh">
@@ -80,12 +82,19 @@ export function App() {
           ))}
         </nav>
       </header>
-      <main>{renderRoute(route)}</main>
+      <main>{renderRoute(route, summitDetection.status)}</main>
+      <SummitDetectionNotice
+        peaks={summitDetection.detectedPeaks}
+        onDismiss={summitDetection.dismissDetections}
+      />
     </div>
   );
 }
 
-function renderRoute(route: RouteId): ReactNode {
+function renderRoute(
+  route: RouteId,
+  summitDetectionStatus: SummitDetectionStatus,
+): ReactNode {
   if (route === 'tracker') {
     return <MapView />;
   }
@@ -95,13 +104,14 @@ function renderRoute(route: RouteId): ReactNode {
   }
 
   if (route === 'settings') {
-    return <SettingsPage />;
+    return <SettingsPage summitDetectionStatus={summitDetectionStatus} />;
   }
 
   return <HomePage />;
 }
 
 function HomePage() {
+  const { peaks } = useActiveHillList();
   const progressByPeakId = useProgressStore((state) => state.progressByPeakId);
   const progress = Object.values(progressByPeakId);
   const stats = calculateProgress(peaks, progress);

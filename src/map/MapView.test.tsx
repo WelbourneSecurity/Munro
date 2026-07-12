@@ -55,11 +55,12 @@ describe('MapView panel accessibility', () => {
   it(
     'bags and unbags the selected peak from the panel without the map',
     { timeout: 15_000 },
-    () => {
-      const { getByRole } = render(<MapView />);
+    async () => {
+      const { findByRole, getByRole } = render(<MapView />);
 
-      // "Ard Crags" is a list row; selecting it works from the keyboardable list.
-      fireEvent.click(getByRole('button', { name: /Ard Crags/ }));
+      // "Ard Crags" is a list row; selecting it works from the keyboardable
+      // list. The active list's peaks load lazily, so await the first row.
+      fireEvent.click(await findByRole('button', { name: /Ard Crags/ }));
       fireEvent.click(getByRole('button', { name: 'Mark bagged' }));
 
       expect(useProgressStore.getState().progressByPeakId['dobih-2460']?.bagged).toBe(
@@ -74,12 +75,12 @@ describe('MapView panel accessibility', () => {
     },
   );
 
-  it('drops the selection highlight from the hill-area source while exporting', () => {
-    const { getByRole } = render(<MapView />);
+  it('drops the selection highlight from the hill-area source while exporting', async () => {
+    const { findByRole, getByRole } = render(<MapView />);
 
     // Select an unbagged peak: its hill area is flagged selected for the
     // on-screen highlight.
-    fireEvent.click(getByRole('button', { name: /Ard Crags/ }));
+    fireEvent.click(await findByRole('button', { name: /Ard Crags/ }));
     const selectedBefore = sourceData
       .get('wainwright-areas')
       ?.features.filter((feature) => feature.properties?.selected === true);
@@ -138,9 +139,9 @@ describe('MapView notes persistence', () => {
     vi.restoreAllMocks();
   });
 
-  it('commits notes to the store on blur', () => {
-    const { getByLabelText } = render(<MapView />);
-    const textarea = getByLabelText('Notes');
+  it('commits notes to the store on blur', async () => {
+    const { findByLabelText } = render(<MapView />);
+    const textarea = await findByLabelText('Notes');
 
     fireEvent.change(textarea, { target: { value: 'Clear summit views' } });
     expect(notesFor(firstPeakId)).toBeUndefined();
@@ -149,10 +150,10 @@ describe('MapView notes persistence', () => {
     expect(notesFor(firstPeakId)).toBe('Clear summit views');
   });
 
-  it('flushes pending notes on pagehide without a blur', () => {
-    const { getByLabelText } = render(<MapView />);
+  it('flushes pending notes on pagehide without a blur', async () => {
+    const { findByLabelText } = render(<MapView />);
 
-    fireEvent.change(getByLabelText('Notes'), {
+    fireEvent.change(await findByLabelText('Notes'), {
       target: { value: 'Typed then reloaded' },
     });
 
@@ -161,9 +162,9 @@ describe('MapView notes persistence', () => {
     expect(notesFor(firstPeakId)).toBe('Typed then reloaded');
   });
 
-  it('flushes pending notes on a focus-preserving hash navigation that unmounts the view', () => {
-    const { getByLabelText, unmount } = render(<MapView />);
-    const textarea = getByLabelText('Notes');
+  it('flushes pending notes on a focus-preserving hash navigation that unmounts the view', async () => {
+    const { findByLabelText, unmount } = render(<MapView />);
+    const textarea = await findByLabelText('Notes');
 
     textarea.focus();
     fireEvent.change(textarea, { target: { value: 'Typed then pressed Back' } });
@@ -177,10 +178,10 @@ describe('MapView notes persistence', () => {
     expect(notesFor(firstPeakId)).toBe('Typed then pressed Back');
   });
 
-  it('flushes pending notes when the page becomes hidden', () => {
-    const { getByLabelText } = render(<MapView />);
+  it('flushes pending notes when the page becomes hidden', async () => {
+    const { findByLabelText } = render(<MapView />);
 
-    fireEvent.change(getByLabelText('Notes'), {
+    fireEvent.change(await findByLabelText('Notes'), {
       target: { value: 'Backgrounded PWA' },
     });
 

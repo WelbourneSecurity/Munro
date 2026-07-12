@@ -11,17 +11,24 @@ import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import type { StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { ExportDialog, PeakListPanel, ProgressStats } from '../components';
+import {
+  ExportDialog,
+  HillListSwitcher,
+  PeakListPanel,
+  ProgressStats,
+  useActiveHillList,
+} from '../components';
 import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
 import hillAreasRaw from '../data/boundaries/wainwright-areas.geojson?raw';
-import wainwrights from '../data/wainwrights.json';
 import { mapAttributionHtml } from '../data/attribution';
-import { calculateProgress, peaksToGeoJSON, type Peak } from '../domain';
+import { calculateProgress, peaksToGeoJSON } from '../domain';
 import { usePreferencesStore, useProgressStore } from '../store';
 import {
-  LAKE_DISTRICT_BOUNDS,
-  LAKE_DISTRICT_INITIAL_VIEW,
+  LIST_FIT_OPTIONS,
+  MAP_MAX_ZOOM,
+  MAP_MIN_ZOOM,
   OPENFREEMAP_VECTOR_SOURCE_URL,
+  listMaxBounds,
 } from './config';
 import {
   boundaryFillLayer,
@@ -46,7 +53,6 @@ type HillAreaData = FeatureCollection<Polygon | MultiPolygon> & {
   metadata?: Record<string, unknown>;
 };
 
-const peaks = wainwrights.peaks as Peak[];
 const boundaryData = JSON.parse(boundaryRaw) as BoundaryData;
 const hillAreaData = JSON.parse(hillAreasRaw) as HillAreaData;
 
@@ -62,7 +68,11 @@ export function MapView() {
   const setNotes = useProgressStore((state) => state.setNotes);
   const terrainEnabled = usePreferencesStore((state) => state.terrainEnabled);
   const setTerrainEnabled = usePreferencesStore((state) => state.setTerrainEnabled);
-  const [selectedPeakId, setSelectedPeakId] = useState(peaks[0]?.id);
+  const { list, peaks, loadFailed, retryLoad } = useActiveHillList();
+  const [selectedPeakId, setSelectedPeakId] = useState<string | undefined>(
+    peaks[0]?.id,
+  );
+  const shownListIdRef = useRef<string>(list.id);
   const [exportOpen, setExportOpen] = useState(false);
   // On small screens the panel is a bottom sheet; this collapses it so the
   // map is reachable one-handed. Desktop (lg) always shows the panel.
@@ -70,7 +80,11 @@ export function MapView() {
   const getMap = useCallback(() => mapRef.current?.getMap() ?? null, []);
 
   const progress = useMemo(() => Object.values(progressByPeakId), [progressByPeakId]);
-  const peakGeoJson = useMemo(() => peaksToGeoJSON(peaks, progress), [progress]);
+  const peakGeoJson = useMemo(() => peaksToGeoJSON(peaks, progress), [peaks, progress]);
+  const selectedPeak = peaks.find((peak) => peak.id === selectedPeakId) ?? peaks[0];
+  // Highlight the same peak everywhere: the map's hill lighting must match
+  // the panel, which falls back to the first peak before any click.
+  const highlightedPeakId = selectedPeak?.id;
   const hillAreaGeoJson = useMemo(
     () => ({
       ...hillAreaData,
@@ -85,18 +99,38 @@ export function MapView() {
             // Suppress the transient selection highlight while the export
             // dialog is open: it shares the bagged green, so a captured
             // image would otherwise show the selected peak as if bagged and
-            // overstate progress.
-            selected: !exportOpen && peakId === selectedPeakId,
+            // overstate progress. highlightedPeakId (not raw selectedPeakId)
+            // keeps the map in sync with the panel's peaks[0] fallback.
+            selected: !exportOpen && peakId === highlightedPeakId,
           },
         };
       }),
     }),
-    [progressByPeakId, selectedPeakId, exportOpen],
+    [progressByPeakId, highlightedPeakId, exportOpen],
   );
-  const stats = useMemo(() => calculateProgress(peaks, progress), [progress]);
-  const selectedPeak = peaks.find((peak) => peak.id === selectedPeakId) ?? peaks[0];
+  const stats = useMemo(() => calculateProgress(peaks, progress), [peaks, progress]);
+  // Pan limits sit well outside the list bounds so the whole-list fit (with
+  // its padding) is never clamped by MapLibre's maxBounds constraint.
+  const maxBounds = useMemo(() => listMaxBounds(list.bounds), [list]);
   const selectedProgress = selectedPeak ? progressByPeakId[selectedPeak.id] : undefined;
   const isSelectedBagged = selectedProgress?.bagged === true;
+
+  // Switching hill lists resets the selection and flies the camera to the
+  // new list's bounds, keeping the shared bearing/pitch of the map style.
+  useEffect(() => {
+    if (shownListIdRef.current === list.id) {
+      return;
+    }
+
+    shownListIdRef.current = list.id;
+    setSelectedPeakId(undefined);
+    mapRef.current?.fitBounds(list.bounds, {
+      ...LIST_FIT_OPTIONS,
+      bearing: list.initialView.bearing,
+      pitch: list.initialView.pitch,
+      duration: 900,
+    });
+  }, [list]);
 
   // The notes textarea only commits on blur, which never fires when the page
   // is reloaded, closed or a backgrounded PWA is killed — flush pending text
@@ -206,16 +240,20 @@ export function MapView() {
           attributionControl={false}
           canvasContextAttributes={{ preserveDrawingBuffer: true }}
           initialViewState={{
-            ...LAKE_DISTRICT_INITIAL_VIEW,
-            bounds: LAKE_DISTRICT_BOUNDS,
-            fitBoundsOptions: { padding: 56, maxZoom: 9.4 },
+            ...list.initialView,
+            bounds: list.bounds,
+            fitBoundsOptions: LIST_FIT_OPTIONS,
           }}
-          interactiveLayerIds={['hill-area-fill', 'hill-area-line', 'peak-hitbox']}
+          interactiveLayerIds={
+            list.hasHillLighting
+              ? ['hill-area-fill', 'hill-area-line', 'peak-hitbox']
+              : ['peak-hitbox']
+          }
           mapStyle={mapStyle}
-          maxBounds={LAKE_DISTRICT_BOUNDS}
+          maxBounds={maxBounds}
           maxPitch={68}
-          maxZoom={16}
-          minZoom={7}
+          maxZoom={MAP_MAX_ZOOM}
+          minZoom={MAP_MIN_ZOOM}
           onClick={handlePeakClick}
           style={{ width: '100%', height: '100%' }}
           {...(terrainEnabled
@@ -251,14 +289,18 @@ export function MapView() {
               </Source>
             </>
           ) : null}
-          <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
-            <Layer {...boundaryFillLayer} />
-            <Layer {...boundaryLineLayer} />
-          </Source>
-          <Source id="wainwright-areas" type="geojson" data={hillAreaGeoJson}>
-            <Layer {...hillAreaFillLayer} />
-            <Layer {...hillAreaLineLayer} />
-          </Source>
+          {list.hasHillLighting ? (
+            <>
+              <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
+                <Layer {...boundaryFillLayer} />
+                <Layer {...boundaryLineLayer} />
+              </Source>
+              <Source id="wainwright-areas" type="geojson" data={hillAreaGeoJson}>
+                <Layer {...hillAreaFillLayer} />
+                <Layer {...hillAreaLineLayer} />
+              </Source>
+            </>
+          ) : null}
           {terrainEnabled ? (
             <Source
               id="terrain-contours"
@@ -270,9 +312,9 @@ export function MapView() {
               <Layer {...terrainContourLabelLayer} />
             </Source>
           ) : null}
-          <Source id="wainwright-peaks" type="geojson" data={peakGeoJson}>
+          <Source id="list-peaks" type="geojson" data={peakGeoJson}>
             <Layer {...peakHitboxLayer} />
-            <Layer {...peakMarkerLayer} />
+            <Layer {...peakMarkerLayer(!list.hasHillLighting)} />
             <Layer {...peakLabelLayer} />
           </Source>
         </Map>
@@ -301,11 +343,30 @@ export function MapView() {
         >
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
-              <p className="font-label text-label text-muted">Lake District</p>
-              <h1 className="text-primary mt-1 text-2xl font-semibold">Wainwrights</h1>
+              <p className="font-label text-label text-muted">{list.regionLabel}</p>
+              <h1 className="text-primary mt-1 text-2xl font-semibold">{list.name}</h1>
             </div>
-            <p className="font-label text-label text-muted text-right">214 fells</p>
+            <p className="font-label text-label text-muted text-right">
+              {peaks.length > 0 ? `${String(peaks.length)} ${list.peakNoun}` : ''}
+            </p>
           </div>
+
+          <div className="mb-3 empty:hidden">
+            <HillListSwitcher />
+          </div>
+
+          {loadFailed ? (
+            <div className="border-line bg-surface text-secondary mb-5 border p-4 text-sm">
+              <p>Peak data could not be loaded. Check your connection and try again.</p>
+              <button
+                className="border-line bg-panel text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mt-3 min-h-11 w-full border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                type="button"
+                onClick={retryLoad}
+              >
+                Retry
+              </button>
+            </div>
+          ) : null}
 
           <label className="border-line text-secondary mb-5 flex min-h-11 items-center justify-between gap-4 border px-3 py-2 text-sm">
             <span>Terrain</span>

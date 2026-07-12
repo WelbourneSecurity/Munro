@@ -53,12 +53,12 @@ describe('App', () => {
     );
   });
 
-  it('renders home progress when records exist', () => {
+  it('renders home progress for the active hill list when records exist', async () => {
     history.replaceState(null, '', '/#/');
     useProgressStore.getState().bag('dobih-2319');
 
-    const { getByText } = render(<App />);
+    const { findByText } = render(<App />);
 
-    expect(getByText('1 / 214 bagged')).toBeVisible();
+    expect(await findByText('1 / 214 bagged')).toBeVisible();
   });
 });

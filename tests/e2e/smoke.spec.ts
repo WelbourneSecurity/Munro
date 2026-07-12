@@ -17,9 +17,22 @@ test('loads the tracker with a drawn map, all 214 peaks and no errors', async ({
   await expect(page.getByText('Lake District', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Terrain')).toBeChecked();
 
-  // Every Wainwright reaches the list panel with an unbagged indicator.
+  // Every Wainwright reaches the list panel with an unbagged indicator. The
+  // panel renders rows in windows that grow on scroll (see PeakListPanel), so
+  // expand the list fully before counting. dispatchEvent avoids a regular
+  // click's actionability wait, which can race the IntersectionObserver
+  // auto-growth re-rendering the button mid-click; toPass retries the whole
+  // expand-then-count block if the button detaches between steps.
   await expect(page.getByText('214 shown')).toBeVisible();
-  await expect(page.getByLabel('Unbagged')).toHaveCount(214);
+  await expect(async () => {
+    const showMore = page.getByRole('button', { name: /^Show \d+ more$/ });
+
+    if ((await showMore.count()) > 0) {
+      await showMore.first().dispatchEvent('click');
+    }
+
+    await expect(page.getByLabel('Unbagged')).toHaveCount(214, { timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
 
   // Map canvas rendered with real content. The peak markers are map layers
   // painted onto this canvas, so a drawn canvas is how their presence is

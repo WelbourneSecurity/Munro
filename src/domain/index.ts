@@ -19,3 +19,11 @@ export {
 export type { Backup, Peak, PeakProgress } from './schemas';
 export { calculateProgress } from './stats';
 export type { ProgressStats } from './stats';
+export {
+  SUMMIT_DETECTION_MAX_ACCURACY_M,
+  SUMMIT_DETECTION_RADIUS_M,
+  detectSummitedPeaks,
+  haversineDistanceM,
+  summitDetectionRadiusM,
+} from './summits';
+export type { GeoPosition, SummitDetection, SummitDetectionOptions } from './summits';

@@ -8,6 +8,7 @@ beforeEach(() => {
   localStorage.clear();
   useProgressStore.getState().resetAll();
   usePreferencesStore.getState().setTerrainEnabled(true);
+  usePreferencesStore.getState().setSummitDetectionEnabled(false);
 });
 
 describe('SettingsPage', () => {
@@ -80,5 +81,37 @@ describe('SettingsPage', () => {
     await waitFor(() => {
       expect(usePreferencesStore.getState().terrainEnabled).toBe(false);
     });
+  });
+
+  it('shows the summit detection toggle unchecked with a plain explanation', () => {
+    const { getByLabelText, getByText } = render(<SettingsPage />);
+
+    expect(getByLabelText('Summit detection')).not.toBeChecked();
+    expect(getByText(/never stored or sent anywhere/i, { exact: false })).toBeVisible();
+  });
+
+  it('toggles summit detection preference', async () => {
+    const user = userEvent.setup();
+    const { getByLabelText } = render(<SettingsPage />);
+
+    await user.click(getByLabelText('Summit detection'));
+
+    await waitFor(() => {
+      expect(usePreferencesStore.getState().summitDetectionEnabled).toBe(true);
+    });
+  });
+
+  it('explains a hard permission denial quietly', () => {
+    const { getByText } = render(<SettingsPage summitDetectionStatus="denied" />);
+
+    expect(
+      getByText(/Location permission was denied/i, { exact: false }),
+    ).toBeVisible();
+  });
+
+  it('explains when location is unavailable', () => {
+    const { getByText } = render(<SettingsPage summitDetectionStatus="unavailable" />);
+
+    expect(getByText(/Location is not available/i, { exact: false })).toBeVisible();
   });
 });

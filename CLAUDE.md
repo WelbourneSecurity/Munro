@@ -52,6 +52,13 @@ layout), its test suites, the CI/CD workflows and the documentation site:
 - `mkdocs.yml` — MkDocs config (Material theme, `docs_dir: wiki`)
 - `requirements.txt` — Python deps for the docs site
 - `package.json` — app scripts and JavaScript tooling
+- `capacitor.config.ts` — Capacitor wrapper config for the mobile apps; the
+  native `android/` and `ios/` projects are generated in CI, gitignored and
+  never committed
+- `.github/workflows/mobile-packaging.yml` — packages an Android APK and an
+  unsigned iOS IPA on every push to `main` (see `wiki/platforms.md`)
+- `.github/workflows/ci.yml` — runs `npm run verify` on every pull request
+  and push to `main`
 
 ## Commands
 
@@ -72,6 +79,7 @@ npm run test:e2e        # production build + Playwright (chromium + mobile proje
 npm run data:peaks      # refresh Wainwright data from DoBIH
 npm run data:boundary   # refresh Lake District boundary data from Natural England
 npm run data:hill-boundaries # refresh generated Wainwright hill profiles
+npm run data:icons      # regenerate committed PWA icons in public/
 npm run verify          # typecheck -> lint -> format:check -> test -> build
 pip install -r requirements.txt
 mkdocs serve            # docs at http://127.0.0.1:8000, live reload
@@ -143,4 +151,8 @@ Conventions to preserve:
 - Visual style is dark, monochrome, topographic and restrained — grey for
   unbagged, soft green for bagged. No gamified colours. See
   `wiki/design.md`.
+- Summit detection is strictly opt-in and never persists location data —
+  only the boolean preference and normal `PeakProgress` records are stored.
+  The detection logic in `src/domain/summits.ts` is list-agnostic; the
+  active peaks array is handed to `useSummitDetection` in `src/app/App.tsx`.
 - Keep this file current when commands, data sources or architecture change.

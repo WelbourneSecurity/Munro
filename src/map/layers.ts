@@ -146,7 +146,7 @@ export const boundaryLineLayer: LineLayerSpecification = {
 export const peakHitboxLayer: CircleLayerSpecification = {
   id: 'peak-hitbox',
   type: 'circle',
-  source: 'wainwright-peaks',
+  source: 'list-peaks',
   paint: {
     'circle-color': '#ffffff',
     'circle-opacity': 0,
@@ -157,7 +157,7 @@ export const peakHitboxLayer: CircleLayerSpecification = {
 export const baggedSummitLightLayer: CircleLayerSpecification = {
   id: 'bagged-summit-light',
   type: 'circle',
-  source: 'wainwright-peaks',
+  source: 'list-peaks',
   filter: ['==', ['get', 'bagged'], true],
   paint: {
     'circle-color': '#a7d8b6',
@@ -178,24 +178,43 @@ export const baggedSummitLightLayer: CircleLayerSpecification = {
   },
 };
 
-export const peakMarkerLayer: CircleLayerSpecification = {
-  id: 'peak-markers',
-  type: 'circle',
-  source: 'wainwright-peaks',
-  paint: {
-    'circle-color': ['case', ['==', ['get', 'bagged'], true], '#a7d8b6', '#aab3aa'],
-    'circle-opacity': 0,
-    'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 3.5, 11, 5.5, 14, 7],
-    'circle-stroke-color': '#111713',
-    'circle-stroke-opacity': 0,
-    'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 7, 1, 12, 1.6],
-  },
-};
+// Lists with hill lighting represent peaks through the lit hill areas, so
+// their summit markers stay invisible; lists without lighting profiles fall
+// back to visible markers so the whole-list view is never a blank map.
+export function peakMarkerLayer(markersVisible: boolean): CircleLayerSpecification {
+  return {
+    id: 'peak-markers',
+    type: 'circle',
+    source: 'list-peaks',
+    paint: {
+      'circle-color': ['case', ['==', ['get', 'bagged'], true], '#a7d8b6', '#aab3aa'],
+      'circle-opacity': markersVisible
+        ? ['interpolate', ['linear'], ['zoom'], 5, 0.72, 11, 0.9]
+        : 0,
+      'circle-radius': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        5,
+        2.5,
+        7,
+        3.5,
+        11,
+        5.5,
+        14,
+        7,
+      ],
+      'circle-stroke-color': '#111713',
+      'circle-stroke-opacity': markersVisible ? 0.85 : 0,
+      'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 7, 1, 12, 1.6],
+    },
+  };
+}
 
 export const peakLabelLayer: SymbolLayerSpecification = {
   id: 'peak-labels',
   type: 'symbol',
-  source: 'wainwright-peaks',
+  source: 'list-peaks',
   minzoom: 10.5,
   layout: {
     'text-anchor': 'top',
