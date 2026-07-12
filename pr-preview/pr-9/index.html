@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="description"
+      content="Munro is a calm, local-first peak bagging logbook built around a dark topographic map."
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      Warm up connections to the two external hosts the map needs at startup:
+      OpenFreeMap (style, vector tiles, glyphs, sprites) and AWS S3 (Terrarium
+      terrain tiles). MapLibre fetches both with CORS, so the preconnect must
+      be crossorigin for the connection to be reused. dns-prefetch is the
+      fallback for browsers that ignore preconnect. Hosts are defined in
+      src/map/config.ts — keep these in sync.
+    -->
+    <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
+    <link rel="dns-prefetch" href="https://tiles.openfreemap.org" />
+    <link rel="preconnect" href="https://s3.amazonaws.com" crossorigin />
+    <link rel="dns-prefetch" href="https://s3.amazonaws.com" />
+    <link rel="icon" type="image/svg+xml" href="/pr-preview/pr-9/favicon.svg" />
+    <title>Munro</title>
+    <script type="module" crossorigin src="/pr-preview/pr-9/assets/index-BRlltWaH.js"></script>
+    <link rel="stylesheet" crossorigin href="/pr-preview/pr-9/assets/index-Br9miiRi.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
