@@ -1,6 +1,8 @@
-# Runs the full verification gate — typecheck, lint, format check, unit
-# tests and the production build (`npm run verify`) — on every pull request
-# and on pushes to main.
+# Main CI: static checks, unit tests, production build and the Playwright
+# smoke test. Runs on every pull request and on pushes to main. The three
+# job names (checks, build, e2e) are required status checks in the main
+# ruleset — see wiki/operations.md before renaming them.
+
 name: CI
 
 on:
@@ -14,23 +16,51 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Never cancel main runs; cancel superseded runs on PRs and other refs.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  verify:
-    name: Verify
+  checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
-
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test:coverage
 
-      - name: Install dependencies
-        run: npm ci
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
 
-      - name: Verify
-        run: npm run verify
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      # test:e2e already runs the production build before playwright test,
+      # so no separate build step here.
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

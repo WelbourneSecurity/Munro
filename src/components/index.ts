@@ -7,3 +7,5 @@ export {
   SUMMIT_NOTICE_DURATION_MS,
   SummitDetectionNotice,
 } from './SummitDetectionNotice';
+export { useActiveHillList } from './useActiveHillList';
+export type { ActiveHillList } from './useActiveHillList';

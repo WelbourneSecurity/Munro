@@ -187,6 +187,7 @@ export interface PreferencesState {
   activeListId: HillListId;
   terrainEnabled: boolean;
   summitDetectionEnabled: boolean;
+  setActiveListId: (listId: HillListId) => void;
   setTerrainEnabled: (enabled: boolean) => void;
   setSummitDetectionEnabled: (enabled: boolean) => void;
 }
@@ -200,6 +201,9 @@ export const usePreferencesStore = create<PreferencesState>()(
       // enables it in Settings. Only this boolean is ever persisted —
       // never any location data.
       summitDetectionEnabled: false,
+      setActiveListId: (listId) => {
+        set({ activeListId: listId });
+      },
       setTerrainEnabled: (enabled) => {
         set({ terrainEnabled: enabled });
       },

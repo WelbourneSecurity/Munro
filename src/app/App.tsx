@@ -1,8 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 
-import { ProgressStats, SummitDetectionNotice } from '../components';
-import wainwrights from '../data/wainwrights.json';
-import { calculateProgress, type Peak } from '../domain';
+import { ProgressStats, SummitDetectionNotice, useActiveHillList } from '../components';
+import { calculateProgress } from '../domain';
 import { useSummitDetection, type SummitDetectionStatus } from '../hooks';
 import { MapView } from '../map';
 import { useProgressStore } from '../store';
@@ -52,8 +51,9 @@ function useHashRoute() {
 
 export function App() {
   const route = useHashRoute();
-  // Summit detection seam: pass the app's current peak data here. When
-  // multi-list support lands, hand in the active list's peaks instead.
+  // Summit detection follows the active hill list, so switching lists also
+  // switches which summits can be detected.
+  const { peaks } = useActiveHillList();
   const summitDetection = useSummitDetection(peaks);
 
   return (

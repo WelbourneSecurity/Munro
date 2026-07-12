@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AttributionControl,
   Layer,
@@ -140,19 +140,36 @@ export function MapView() {
   // textarea, and the listener runs while the textarea is still attached
   // because the router's re-render is batched until after the event.
   useEffect(() => {
-    if (shownListIdRef.current === list.id) {
+    const peakId = selectedPeak?.id;
+
+    if (!peakId) {
       return;
     }
 
-    shownListIdRef.current = list.id;
-    setSelectedPeakId(undefined);
-    mapRef.current?.fitBounds(list.bounds, {
-      ...LIST_FIT_OPTIONS,
-      bearing: list.initialView.bearing,
-      pitch: list.initialView.pitch,
-      duration: 900,
-    });
-  }, [list]);
+    function flushNotes() {
+      const textarea = notesRef.current;
+
+      if (textarea && peakId) {
+        setNotes(peakId, textarea.value || undefined);
+      }
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') {
+        flushNotes();
+      }
+    }
+
+    window.addEventListener('pagehide', flushNotes);
+    window.addEventListener('hashchange', flushNotes);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', flushNotes);
+      window.removeEventListener('hashchange', flushNotes);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [selectedPeak?.id, setNotes]);
 
   const mapStyle = useMemo<StyleSpecification>(
     () =>
@@ -333,10 +350,6 @@ export function MapView() {
               {peaks.length > 0 ? `${String(peaks.length)} ${list.peakNoun}` : ''}
             </p>
           </div>
-          <p className="font-label text-label text-muted text-right">
-            {peaks.length > 0 ? `${String(peaks.length)} ${list.peakNoun}` : ''}
-          </p>
-        </div>
 
           <div className="mb-3 empty:hidden">
             <HillListSwitcher />
@@ -367,27 +380,108 @@ export function MapView() {
             />
           </label>
 
-        {loadFailed ? (
-          <div className="border-line bg-surface text-secondary mb-5 border p-4 text-sm">
-            <p>Peak data could not be loaded. Check your connection and try again.</p>
-            <button
-              className="border-line bg-panel text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mt-3 min-h-11 w-full border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-              type="button"
-              onClick={retryLoad}
-            >
-              Retry
-            </button>
+          <div className="mb-5">
+            <ProgressStats stats={stats} />
           </div>
-        ) : null}
 
-        <label className="border-line text-secondary mb-5 flex min-h-11 items-center justify-between gap-4 border px-3 py-2 text-sm">
-          <span>Terrain</span>
-          <input
-            checked={terrainEnabled}
-            className="accent-bagged h-5 w-5"
-            type="checkbox"
-            onChange={(event) => {
-              setTerrainEnabled(event.currentTarget.checked);
+          <button
+            className="border-line bg-panel text-secondary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mb-5 min-h-11 w-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            type="button"
+            onClick={() => {
+              setExportOpen(true);
+            }}
+          >
+            Export image
+          </button>
+
+          {selectedPeak ? (
+            <div className="border-line bg-surface mb-5 border p-4">
+              <p className="font-label text-label text-muted">Selected peak</p>
+              <h2 className="text-primary mt-2 text-xl font-semibold">
+                {selectedPeak.name}
+              </h2>
+              <dl className="text-secondary mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <dt className="font-label text-label text-muted">Height</dt>
+                  <dd>
+                    {Math.round(selectedPeak.heightM)}m
+                    {selectedPeak.heightFt
+                      ? ` / ${String(selectedPeak.heightFt)}ft`
+                      : ''}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-label text-label text-muted">Grid</dt>
+                  <dd>{selectedPeak.gridRef}</dd>
+                </div>
+                <div className="col-span-2">
+                  <dt className="font-label text-label text-muted">Area</dt>
+                  <dd>{selectedPeak.region}</dd>
+                </div>
+              </dl>
+              {isSelectedBagged ? (
+                <div className="mt-4 space-y-4">
+                  <div>
+                    <label
+                      className="font-label text-label text-muted block"
+                      htmlFor="peak-bagged-date"
+                    >
+                      Date bagged
+                    </label>
+                    <input
+                      id="peak-bagged-date"
+                      className="border-line bg-panel text-secondary focus-visible:outline-bagged mt-2 min-h-11 w-full border px-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                      type="date"
+                      value={selectedProgress.baggedDate ?? ''}
+                      onChange={(event) => {
+                        setBaggedDate(
+                          selectedPeak.id,
+                          event.currentTarget.value || undefined,
+                        );
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      className="font-label text-label text-muted block"
+                      htmlFor="peak-notes"
+                    >
+                      Notes
+                    </label>
+                    <textarea
+                      key={selectedPeak.id}
+                      ref={notesRef}
+                      id="peak-notes"
+                      className="border-line bg-panel text-secondary placeholder:text-muted focus-visible:outline-bagged mt-2 min-h-11 w-full border px-3 py-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                      defaultValue={selectedProgress.notes ?? ''}
+                      placeholder="Optional"
+                      rows={2}
+                      onBlur={(event) => {
+                        setNotes(
+                          selectedPeak.id,
+                          event.currentTarget.value || undefined,
+                        );
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : null}
+              <button
+                className="border-line bg-panel text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mt-5 min-h-11 w-full border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                type="button"
+                onClick={toggleSelectedPeak}
+              >
+                {isSelectedBagged ? 'Mark unbagged' : 'Mark bagged'}
+              </button>
+            </div>
+          ) : null}
+
+          <PeakListPanel
+            peaks={peaks}
+            progress={progress}
+            selectedPeakId={selectedPeak?.id}
+            onSelectPeak={(peakId) => {
+              selectPeak(peakId, { focusMap: true });
             }}
           />
         </div>
