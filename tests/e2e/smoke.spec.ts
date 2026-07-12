@@ -19,6 +19,15 @@ test('loads the tracker with a drawn map, the collated peaks and no errors', asy
   await expect(page.getByText('2170 peaks')).toBeVisible();
   await expect(page.getByLabel('Terrain')).toBeChecked();
 
+  // Map canvas rendered with real content, checked on the default view: its
+  // thousands of visible markers guarantee colour variance even when the
+  // external tile hosts are slow, unlike the Wainwrights view below whose
+  // markers give way to subtle hill lighting. The peak markers are map
+  // layers painted onto this canvas, so a drawn canvas is how their
+  // presence is asserted (no pixel-colour testing, per the implementation
+  // plan).
+  await waitForMapDrawn(page);
+
   // Narrowing to a single published list still works, with its exact count.
   await selectHillList(page, 'wainwrights');
   await expect(page.getByRole('heading', { name: 'Wainwrights' })).toBeVisible();
@@ -40,11 +49,6 @@ test('loads the tracker with a drawn map, the collated peaks and no errors', asy
 
     await expect(page.getByLabel('Unbagged')).toHaveCount(214, { timeout: 2_000 });
   }).toPass({ timeout: 30_000 });
-
-  // Map canvas rendered with real content. The peak markers are map layers
-  // painted onto this canvas, so a drawn canvas is how their presence is
-  // asserted (no pixel-colour testing, per the implementation plan).
-  await waitForMapDrawn(page);
 
   expect(errors).toEqual([]);
 });
