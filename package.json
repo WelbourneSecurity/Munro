@@ -30,7 +30,8 @@
     "data:boundary": "tsx scripts/fetch-boundary.ts",
     "data:hill-boundaries": "tsx scripts/build-hill-boundaries.ts",
     "data:icons": "tsx scripts/build-pwa-icons.ts",
-    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build",
+    "perf:budget": "tsx scripts/check-bundle-budget.ts",
+    "verify": "npm run typecheck && npm run lint && npm run format:check && npm run test && npm run build && npm run perf:budget",
     "prepare": "husky"
   },
   "dependencies": {

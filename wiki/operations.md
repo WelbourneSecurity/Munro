@@ -59,14 +59,17 @@ to, so regressions are visible in review rather than discovered later.
 
 ### Measured (July 2026)
 
-Production build (`vite build`), gzip sizes as reported by Vite:
+Production build (`vite build`), gzip sizes as reported by Vite. Updated
+July 2026 after the hill-profile GeoJSON was quantized to ~1 m coordinate
+precision and written compact (main chunk 2,371.8 → 1,749.3 kB minified,
+610.0 → 466.7 kB gzip):
 
 | Asset | Minified | Gzip |
 | --- | --- | --- |
-| Main JS chunk (`index-*.js`) | 2,371.8 kB | 610.0 kB |
-| Export engine chunk (`export-*.js`, lazy) | 6.7 kB | 2.8 kB |
-| CSS (`index-*.css`) | 90.3 kB | 14.8 kB |
-| `index.html` | 1.3 kB | 0.7 kB |
+| Main JS chunk (`index-*.js`) | 1,749.3 kB | 466.7 kB |
+| Export engine chunk (`export-*.js`, lazy) | 6.9 kB | 2.8 kB |
+| CSS (`index-*.css`) | 91.5 kB | 15.0 kB |
+| `index.html` | 1.8 kB | 0.8 kB |
 
 The main chunk decomposes roughly as: maplibre-gl ≈ 230–270 kB gzip (the
 map engine — accepted, the map is the product), the generated Wainwright
@@ -102,19 +105,24 @@ tile fetches until the first frame draws.
 
 ### Thresholds for future PRs
 
+The size thresholds below are **enforced automatically**:
+`npm run perf:budget` (`scripts/check-bundle-budget.ts`) runs after the
+build in `npm run verify`, in the CI build job and in the deploy build
+job, and fails when the gzip output exceeds them.
+
 - **maplibre-gl ≈ 230 kB gzip is accepted.** The map is the product; do
   not swap or fork the engine to chase this number.
 - **The export engine stays a separate lazy chunk**, ≤ 20 kB gzip, and is
   never statically imported from startup code paths.
-- **Total initial JS ≤ 650 kB gzip** (currently 610 kB). A PR that pushes
+- **Total initial JS ≤ 650 kB gzip** (currently 467 kB). A PR that pushes
   past this must say what grew and why it is worth it.
 - **App code excluding maplibre-gl and the bundled hill/peak data stays
   small** — the non-engine, non-data remainder is ≈ 120–160 kB gzip today
   and should not grow past ≈ 200 kB gzip without justification.
-- **CSS ≤ 20 kB gzip** (currently 14.8 kB).
+- **CSS ≤ 20 kB gzip** (currently 15.0 kB).
 - **First map render ≤ 8 s on a Fast-3G-class throttle** measured as
   above (currently ~6.5 s with the proxy caveat).
-- `build.chunkSizeWarningLimit` in `vite.config.ts` is set to 2,500 kB —
+- `build.chunkSizeWarningLimit` in `vite.config.ts` is set to 1,850 kB —
   just above the current main chunk — so Vite's size warning only fires
   when this budget is actually exceeded. If the warning appears, treat it
   as a budget failure, not noise to silence.
@@ -124,8 +132,10 @@ Cheap wins already applied: the export module is code-split;
 host and the AWS terrain host so tile fetches skip DNS + TLS setup once
 the app boots; no web fonts load (system font stacks only, and map glyphs
 come from the OpenFreeMap host already preconnected), so nothing blocks
-render on fonts. Anything beyond this — service workers, bundler plugins,
-dependency swaps — is out of scope for the MVP by design.
+render on fonts. The PWA service worker registers only after the load
+event goes idle, so its ~2.5 MiB shell precache never competes with the
+first map render. Anything beyond this — bundler plugins, dependency
+swaps — remains out of scope by design.
 
 ## If the custom domain is ever dropped
 

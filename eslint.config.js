@@ -42,9 +42,10 @@ export default defineConfig([
         ...globals.node,
       },
       parserOptions: {
-        projectService: {
-          allowDefaultProject: ['scripts/*.ts'],
-        },
+        // Every linted .ts file belongs to a real tsconfig project
+        // (scripts/ has its own scripts/tsconfig.json), so no
+        // allowDefaultProject escape hatch is needed.
+        projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
     },

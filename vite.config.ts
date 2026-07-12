@@ -64,7 +64,8 @@ export default defineConfig({
     // data — both accepted as the product (see "Performance budget" in
     // wiki/operations.md). Vite's default 500 kB warning would fire on every
     // build and carry no signal; this limit sits just above the measured
-    // chunk size so the warning returns only when the budget is exceeded.
-    chunkSizeWarningLimit: 2500,
+    // chunk size (1,750 kB after the hill-profile quantization) so the
+    // warning returns only when the chunk genuinely grows.
+    chunkSizeWarningLimit: 1850,
   },
 });

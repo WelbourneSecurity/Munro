@@ -80,7 +80,8 @@ npm run data:peaks      # refresh Wainwright data from DoBIH
 npm run data:boundary   # refresh Lake District boundary data from Natural England
 npm run data:hill-boundaries # refresh generated Wainwright hill profiles
 npm run data:icons      # regenerate committed PWA icons in public/
-npm run verify          # typecheck -> lint -> format:check -> test -> build
+npm run perf:budget     # enforce the wiki/operations.md bundle budget against dist/
+npm run verify          # typecheck -> lint -> format:check -> test -> build -> perf:budget
 pip install -r requirements.txt
 mkdocs serve            # docs at http://127.0.0.1:8000, live reload
 mkdocs build --strict   # build to site/; fails on broken nav/links

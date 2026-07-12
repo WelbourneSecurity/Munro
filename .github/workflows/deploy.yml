@@ -9,6 +9,13 @@
 # We publish to a branch (not actions/deploy-pages) because per-PR previews
 # (pr-preview.yml) share the same gh-pages branch; clean-exclude keeps the
 # pr-preview/ directory alive across main deploys.
+#
+# Privilege separation (mirrors pr-preview.yml): the build job executes npm
+# lifecycle scripts and vite build — code that a compromised dependency
+# controls — so it runs with a read-only token and no persisted
+# credentials. Only the deploy job gets contents: write, and it executes
+# nothing from the repository; it only runs pinned actions over the
+# uploaded dist artifact.
 
 name: Deploy
 
@@ -17,24 +24,48 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: write
+# No workflow-level grants; each job declares the minimum it needs.
+permissions: {}
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - run: npm run build
+      # Fails the deploy when the gzip output exceeds the performance
+      # budget in wiki/operations.md.
+      - run: npm run perf:budget
+      - uses: actions/upload-artifact@v7
+        with:
+          name: site-dist
+          path: dist
+          retention-days: 1
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: site-dist
+          path: dist
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages

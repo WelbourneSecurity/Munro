@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { format } from 'prettier';
+import { serializeGeoJson } from './geojson-io';
 
 const ATTRIBUTION =
   '© Natural England copyright. Contains Ordnance Survey data © Crown copyright and database right 2026.';
@@ -124,7 +124,7 @@ async function fetchBoundary() {
 }
 
 async function writeJson(data: Awaited<ReturnType<typeof fetchBoundary>>) {
-  const next = await format(JSON.stringify(data), { parser: 'json' });
+  const next = serializeGeoJson(data);
   let previous: string | undefined;
 
   try {

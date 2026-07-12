@@ -10,9 +10,9 @@ import {
   intersect,
 } from '@turf/turf';
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson';
-import { format } from 'prettier';
 
 import { DOBIH_VERSION } from '../src/data/attribution';
+import { serializeGeoJson } from './geojson-io';
 import type { Peak } from '../src/domain/schemas';
 
 const ROOT: string = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -63,7 +63,7 @@ async function readJson<T>(path: string) {
 }
 
 async function writeJson(data: unknown) {
-  const next = await format(JSON.stringify(data), { parser: 'json' });
+  const next = serializeGeoJson(data);
   let previous: string | undefined;
 
   try {
