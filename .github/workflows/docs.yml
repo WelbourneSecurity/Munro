@@ -1,0 +1,33 @@
+# Enforces that the wiki always builds: a broken link or nav entry fails
+# the PR. Runs only when docs inputs change.
+
+name: Docs
+
+on:
+  pull_request:
+    paths:
+      - wiki/**
+      - mkdocs.yml
+      - requirements.txt
+  push:
+    branches: [main]
+    paths:
+      - wiki/**
+      - mkdocs.yml
+      - requirements.txt
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: mkdocs build --strict

@@ -22,4 +22,21 @@ describe('ProgressStats', () => {
       getByText('177 remaining. Progress is stored locally in this browser.'),
     ).toBeVisible();
   });
+
+  it('announces count changes through a polite live region', () => {
+    const { getByText } = render(
+      <ProgressStats
+        stats={{
+          total: 214,
+          bagged: 37,
+          remaining: 177,
+          percentage: 17,
+          recent: [],
+        }}
+      />,
+    );
+
+    const liveRegion = getByText('37 / 214 bagged').closest('[aria-live]');
+    expect(liveRegion).toHaveAttribute('aria-live', 'polite');
+  });
 });

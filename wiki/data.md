@@ -19,15 +19,16 @@ npm run data:peaks
 
 The script downloads the DoBIH CSV ZIP, filters rows where the `W` flag is
 set, and validates that the output contains exactly 214 Wainwrights with
-unique stable identifiers. DoBIH hill `Number` is preserved as `dobihId` and
-is also used to build the app `id`.
+unique stable identifiers. DoBIH hill `Number` is preserved as the numeric
+`dobihId` and is also used to build the app `id` (`dobih-<number>`).
 
-Each peak record follows this schema:
+Each peak record follows this schema (the authoritative Zod version lives in
+`src/domain/schemas.ts`):
 
 ```ts
 type Peak = {
   id: string;
-  dobihId: string;
+  dobihId: number;
   name: string;
   list: string[];
   region: string;
@@ -106,8 +107,10 @@ type Backup = {
 };
 ```
 
-Imports are validated with Zod before replacing local progress, so corrupt
-backup files cannot partially mutate the store.
+`baggedDate` is an ISO date (`YYYY-MM-DD`) and `exportedAt` an ISO
+timestamp. Imports are validated with Zod (`src/domain/schemas.ts`) before
+replacing local progress, so corrupt backup files cannot partially mutate
+the store.
 
 ## Map data and attribution
 

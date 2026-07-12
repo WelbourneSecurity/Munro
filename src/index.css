@@ -3,7 +3,10 @@
 @theme {
   --color-surface: #111713;
   --color-panel: #17201b;
-  --color-line: #34433a;
+  /* Lightened from #34433a (1.60:1) so 1px control borders meet the WCAG AA
+     3:1 non-text contrast minimum against the panel (3.36:1) and surface
+     (3.66:1) backgrounds. Same hue and saturation, lightness only. */
+  --color-line: #5b7666;
   --color-contour: #65786b;
   --color-primary: #f1f4ee;
   --color-secondary: #c8d0c6;
@@ -58,9 +61,31 @@ select {
   background: rgb(17 23 19 / 88%) !important;
   color: var(--color-secondary) !important;
   font-family: var(--font-label);
-  font-size: 0.625rem;
+  font-size: 0.75rem;
 }
 
 .maplibregl-ctrl-attrib a {
   color: var(--color-bagged) !important;
+}
+
+/* Map control buttons meet the 44px touch-target minimum on coarse pointers. */
+@media (pointer: coarse) {
+  .maplibregl-ctrl button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Honour prefers-reduced-motion: stop the marker/hover transitions, the
+   progress bar width animation and any scroll animation. Map camera motion
+   is handled in MapView, which passes a zero duration to flyTo. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }

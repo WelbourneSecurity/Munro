@@ -87,7 +87,7 @@ export function SettingsPage() {
             Download a JSON backup of your local progress.
           </p>
           <button
-            className="border-line bg-bagged text-surface mt-4 min-h-11 border px-4 text-sm font-semibold"
+            className="border-line bg-bagged text-surface focus-visible:outline-bagged mt-4 min-h-11 border px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
             type="button"
             onClick={handleExport}
           >
@@ -100,7 +100,7 @@ export function SettingsPage() {
           <label className="text-secondary mt-4 block text-sm">
             Choose backup JSON
             <input
-              className="border-line bg-surface text-secondary mt-2 block w-full border px-3 py-3 text-sm"
+              className="border-line bg-surface text-secondary focus-visible:outline-bagged mt-2 block w-full border px-3 py-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               accept="application/json,.json"
               type="file"
               onChange={(event) => {
@@ -108,11 +108,17 @@ export function SettingsPage() {
               }}
             />
           </label>
-          {importMessage ? (
-            <p className="text-muted mt-3 text-sm leading-6">{importMessage}</p>
-          ) : null}
+          {/* Persistent polite live region: import and reset outcomes are
+              announced to screen readers when the message text changes. */}
+          <p
+            aria-live="polite"
+            className={`text-muted text-sm leading-6 ${importMessage ? 'mt-3' : ''}`}
+            role="status"
+          >
+            {importMessage}
+          </p>
           <button
-            className="border-line bg-surface text-primary disabled:text-muted mt-4 min-h-11 border px-4 text-sm font-semibold disabled:cursor-not-allowed"
+            className="border-line bg-surface text-primary disabled:text-muted focus-visible:outline-bagged mt-4 min-h-11 border px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
             disabled={!pendingBackup}
             type="button"
             onClick={handleConfirmImport}
@@ -127,7 +133,7 @@ export function SettingsPage() {
             Terrain and contours
             <input
               checked={terrainEnabled}
-              className="accent-bagged h-5 w-5"
+              className="accent-bagged focus-visible:outline-bagged h-5 w-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               type="checkbox"
               onChange={(event) => {
                 setTerrainEnabled(event.currentTarget.checked);
@@ -146,14 +152,14 @@ export function SettingsPage() {
           </label>
           <input
             id="reset-confirmation"
-            className="border-line bg-surface text-primary mt-4 min-h-11 w-full border px-3 text-sm"
+            className="border-line bg-surface text-primary focus-visible:outline-bagged mt-4 min-h-11 w-full border px-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
             value={resetText}
             onChange={(event) => {
               setResetText(event.currentTarget.value);
             }}
           />
           <button
-            className="border-line bg-surface text-primary disabled:text-muted mt-4 min-h-11 border px-4 text-sm font-semibold disabled:cursor-not-allowed"
+            className="border-line bg-surface text-primary disabled:text-muted focus-visible:outline-bagged mt-4 min-h-11 border px-4 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed"
             disabled={resetText !== 'RESET'}
             type="button"
             onClick={handleReset}

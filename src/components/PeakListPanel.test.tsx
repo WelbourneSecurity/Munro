@@ -31,7 +31,9 @@ const peaks: Peak[] = [
   },
 ];
 
-const progress: PeakProgress[] = [{ peakId: 'dobih-2', bagged: true }];
+const progress: PeakProgress[] = [
+  { peakId: 'dobih-2', bagged: true, baggedDate: '2026-03-12' },
+];
 
 describe('PeakListPanel', () => {
   it('renders peak groups and selects a row', async () => {
@@ -54,6 +56,22 @@ describe('PeakListPanel', () => {
     expect(onSelectPeak).toHaveBeenCalledWith('dobih-2');
   });
 
+  it('shows a subtle bagged date on rows that have one', () => {
+    const { getByRole } = render(
+      <PeakListPanel
+        peaks={peaks}
+        progress={progress}
+        selectedPeakId={undefined}
+        onSelectPeak={vi.fn()}
+      />,
+    );
+
+    expect(getByRole('button', { name: /Skiddaw/i })).toHaveTextContent('12 Mar 2026');
+    expect(getByRole('button', { name: /Allen Crags/i })).not.toHaveTextContent(
+      'Mar 2026',
+    );
+  });
+
   it('filters by bagged state and search text', async () => {
     const user = userEvent.setup();
     const { getByLabelText, getByRole, queryByText, getByText } = render(
@@ -65,8 +83,22 @@ describe('PeakListPanel', () => {
       />,
     );
 
+    expect(getByRole('group', { name: 'Filter peaks' })).toBeVisible();
+    expect(getByRole('button', { name: 'All' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
     await user.click(getByRole('button', { name: 'Bagged' }));
 
+    expect(getByRole('button', { name: 'Bagged' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(getByRole('button', { name: 'All' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
     expect(getByText('Skiddaw')).toBeVisible();
     expect(queryByText('Allen Crags')).not.toBeInTheDocument();
 
@@ -74,5 +106,26 @@ describe('PeakListPanel', () => {
     await user.type(getByLabelText('Search peaks'), 'allen');
 
     expect(getByText('No peaks match this view.')).toBeVisible();
+  });
+
+  it('keeps the focus ring visible on the active filter button', () => {
+    const { getByRole } = render(
+      <PeakListPanel
+        peaks={peaks}
+        progress={progress}
+        selectedPeakId={undefined}
+        onSelectPeak={vi.fn()}
+      />,
+    );
+
+    // The active button's inset focus ring sits on the bagged fill, so it
+    // must use the contrasting surface token, not bagged-on-bagged.
+    const active = getByRole('button', { name: 'All' });
+    expect(active.className).toContain('focus-visible:outline-surface');
+    expect(active.className).not.toContain('focus-visible:outline-bagged');
+
+    const inactive = getByRole('button', { name: 'Bagged' });
+    expect(inactive.className).toContain('focus-visible:outline-bagged');
+    expect(inactive.className).not.toContain('focus-visible:outline-surface');
   });
 });

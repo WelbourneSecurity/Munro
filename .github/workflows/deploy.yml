@@ -1,0 +1,43 @@
+# Deploys main to the testing site at https://munro.welbournesecurity.com.
+#
+# One-time repo settings (see wiki/operations.md): Pages source must be
+# "Deploy from branch: gh-pages / root", and the custom domain
+# munro.welbournesecurity.com set in the Pages settings. Every build ships
+# public/CNAME and public/.nojekyll inside dist/, so the gh-pages branch
+# keeps the domain binding after each deploy.
+#
+# We publish to a branch (not actions/deploy-pages) because per-PR previews
+# (pr-preview.yml) share the same gh-pages branch; clean-exclude keeps the
+# pr-preview/ directory alive across main deploys.
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: dist
+          clean-exclude: pr-preview/
+          force: false

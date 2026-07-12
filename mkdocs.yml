@@ -53,7 +53,9 @@ nav:
       - Roadmap: roadmap.md
   - Building it:
       - Implementation plan: implementation-plan.md
+      - MVP acceptance: mvp-acceptance.md
       - Data: data.md
       - Design: design.md
       - Tech stack: tech-stack.md
       - Platforms: platforms.md
+      - Operations: operations.md

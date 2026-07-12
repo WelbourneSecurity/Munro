@@ -29,9 +29,9 @@ hide:
           <path d="M2 19 L72 19 L91 9 L136 28 L180 18 L224 18 L245 30 L296 14 L341 23 L393 12 L432 21 L474 20 L509 30 L553 13 L638 19" />
         </svg>
         <ul class="munro-hero__facts">
-          <li>Wainwrights first</li>
+          <li>Wainwrights MVP built</li>
           <li>No accounts required</li>
-          <li>Built for web, iPhone, and Android</li>
+          <li>Web first; iPhone and Android next</li>
         </ul>
       </div>
 
