@@ -46,6 +46,12 @@ export default defineConfig({
         // The bundled boundary + hill-profile data pushes the main chunk
         // past workbox's 2 MiB default.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // PR previews live under /pr-preview/ on the same origin. The
+        // production service worker's scope is '/', so without this
+        // denylist its navigation fallback would answer preview
+        // navigations with the production app shell for anyone who has
+        // visited the live site.
+        navigateFallbackDenylist: [/^\/pr-preview\//],
         // Deliberately no runtime caching: OpenFreeMap tiles, AWS terrain
         // tiles and style assets stay network-only, respecting the free
         // providers instead of hoarding their tiles on-device.

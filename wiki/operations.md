@@ -15,7 +15,13 @@ Work through this checklist once, top to bottom:
 2. **Pages source** — Settings → Pages: set Source to **Deploy from a
    branch**, branch **gh-pages**, folder **/ (root)**. Both the main deploy
    and PR previews publish to this branch; do not switch to the "GitHub
-   Actions" source.
+   Actions" source. If this ever drifts (for example to `main`), Pages
+   serves the raw repository source instead of the built app — the browser
+   console shows module scripts rejected with an
+   `application/octet-stream` MIME type and a 404 for
+   `/%BASE_URL%favicon.svg`. The deploy workflow's post-deploy check fails
+   loudly when this happens; the fix is to set this setting back, then
+   re-run the deploy from the Actions tab.
 3. **Custom domain** — Settings → Pages: set the custom domain to
    **munro.welbournesecurity.com** and tick **Enforce HTTPS** once the
    certificate is issued. Every build also ships a `CNAME` file (from
