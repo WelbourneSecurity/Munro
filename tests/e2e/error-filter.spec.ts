@@ -67,6 +67,10 @@ test.describe('isExternalTileFailure', () => {
   test('exempts the URL-less maplibre-contour worker timeout only at message start', () => {
     expect(isExternalTileFailure('timed out')).toBe(true);
     expect(isExternalTileFailure('Error: timed out')).toBe(true);
+    // The worker wraps the error and the console prefixes it again.
+    expect(
+      isExternalTileFailure('Error: Error: timed out\n    at Ke.<anonymous>'),
+    ).toBe(true);
     expect(isExternalTileFailure('Export failed: Error: timed out')).toBe(false);
   });
 
@@ -87,8 +91,20 @@ test.describe('isExternalTileFailure', () => {
     ).toBe(false);
   });
 
-  test('counts network-shaped failures with no attributable URL as errors', () => {
-    expect(isExternalTileFailure('TypeError: Failed to fetch')).toBe(false);
+  test('exempts the tile workers bare connection failures', () => {
+    // maplibre-contour's DEM worker re-throws connection failures with no
+    // URL to attribute — the same class as its bare `timed out` errors. The
+    // app's own load failures always carry a URL (see the chunk test
+    // above), so this shape can only come from the tile machinery.
+    expect(isExternalTileFailure('TypeError: Failed to fetch')).toBe(true);
+    expect(
+      isExternalTileFailure(
+        'Error: TypeError: Failed to fetch\n    at Ke.<anonymous> (http://127.0.0.1:4173/assets/index-abc123.js:769:259101)',
+      ),
+    ).toBe(true);
+  });
+
+  test('counts other network-shaped failures with no attributable URL as errors', () => {
     expect(isExternalTileFailure('Failed to load resource', '')).toBe(false);
   });
 
