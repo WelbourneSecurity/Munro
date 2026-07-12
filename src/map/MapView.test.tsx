@@ -38,6 +38,14 @@ vi.mock('./terrain', () => ({
   contourTileUrl: 'munro-contour://tile',
 }));
 
+// jsdom has no WebGL2, so the real check would always report the map as
+// unsupported; default to supported and let one test flip it.
+const mapSupport = vi.hoisted(() => ({ error: null as string | null }));
+
+vi.mock('./support', () => ({
+  getMapSupportError: () => mapSupport.error,
+}));
+
 const firstPeakId = (wainwrights.peaks as { id: string }[])[0]?.id;
 
 if (!firstPeakId) {
@@ -193,5 +201,35 @@ describe('MapView notes persistence', () => {
     document.dispatchEvent(new Event('visibilitychange'));
 
     expect(notesFor(firstPeakId)).toBe('Backgrounded PWA');
+  });
+});
+
+describe('MapView without map support (iOS Lockdown Mode)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    useProgressStore.getState().resetAll();
+    mapSupport.error = 'This browser has WebGL disabled.';
+  });
+
+  afterEach(() => {
+    mapSupport.error = null;
+  });
+
+  it('explains the unavailable map and keeps the tracker panel usable', async () => {
+    const { findByRole, getByRole, getByText, queryByRole } = render(<MapView />);
+
+    expect(getByRole('status')).toBeVisible();
+    expect(getByText('Map unavailable')).toBeVisible();
+    expect(getByText('This browser has WebGL disabled.')).toBeVisible();
+    expect(getByRole('button', { name: 'Export image' })).toBeDisabled();
+    expect(queryByRole('region', { name: 'Map' })).not.toBeInTheDocument();
+
+    // Bagging still works from the panel.
+    fireEvent.click(await findByRole('button', { name: /Ard Crags/ }));
+    fireEvent.click(getByRole('button', { name: 'Mark bagged' }));
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-2460']?.bagged).toBe(
+      true,
+    );
   });
 });

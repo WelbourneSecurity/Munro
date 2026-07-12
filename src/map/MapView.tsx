@@ -44,6 +44,7 @@ import {
   peakMarkerLayer,
 } from './layers';
 import munroDarkStyle from './style/munro-dark.json';
+import { getMapSupportError } from './support';
 import { contourTileUrl, setupTerrainProtocols, terrainDemSource } from './terrain';
 
 type BoundaryData = FeatureCollection<Polygon> & {
@@ -75,6 +76,9 @@ export function MapView() {
   );
   const shownListIdRef = useRef<string>(list.id);
   const [exportOpen, setExportOpen] = useState(false);
+  // Hardened browsers (iOS Lockdown Mode) disable WebGL2/WebAssembly; the
+  // map can never draw there, so the tracker explains instead of mounting it.
+  const mapSupportError = useMemo(() => getMapSupportError(), []);
   // On small screens the panel is a bottom sheet; this collapses it so the
   // map is reachable one-handed. Desktop (lg) always shows the panel.
   const [panelOpen, setPanelOpen] = useState(true);
@@ -236,93 +240,106 @@ export function MapView() {
   return (
     <section className="bg-surface text-primary flex h-[calc(100svh-3.5rem)] min-h-[38rem]">
       <div className="relative min-h-0 flex-1">
-        <Map
-          ref={mapRef}
-          attributionControl={false}
-          canvasContextAttributes={{ preserveDrawingBuffer: true }}
-          initialViewState={{
-            ...list.initialView,
-            bounds: list.bounds,
-            fitBoundsOptions: LIST_FIT_OPTIONS,
-          }}
-          interactiveLayerIds={
-            list.hasHillLighting
-              ? ['hill-area-fill', 'hill-area-line', 'peak-hitbox']
-              : ['peak-hitbox']
-          }
-          mapStyle={mapStyle}
-          maxBounds={maxBounds}
-          maxPitch={68}
-          maxZoom={MAP_MAX_ZOOM}
-          minZoom={MAP_MIN_ZOOM}
-          onClick={handlePeakClick}
-          style={{ width: '100%', height: '100%' }}
-          {...(terrainEnabled
-            ? {
-                terrain: {
-                  source: 'terrain-dem',
-                  exaggeration: 1.28,
-                },
-              }
-            : {})}
-        >
-          <AttributionControl compact customAttribution={mapAttributionHtml()} />
-          <NavigationControl position="top-right" showCompass />
-          {terrainEnabled ? (
-            <>
+        {mapSupportError ? (
+          <div className="flex h-full items-center justify-center px-6" role="status">
+            <div className="border-line bg-panel max-w-md border p-5">
+              <p className="font-label text-label text-muted">Map unavailable</p>
+              <p className="text-secondary mt-3 text-sm leading-6">{mapSupportError}</p>
+              <p className="text-secondary mt-3 text-sm leading-6">
+                Peak tracking still works: search, bag and edit peaks from the panel,
+                and your progress stays saved on this device.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <Map
+            ref={mapRef}
+            attributionControl={false}
+            canvasContextAttributes={{ preserveDrawingBuffer: true }}
+            initialViewState={{
+              ...list.initialView,
+              bounds: list.bounds,
+              fitBoundsOptions: LIST_FIT_OPTIONS,
+            }}
+            interactiveLayerIds={
+              list.hasHillLighting
+                ? ['hill-area-fill', 'hill-area-line', 'peak-hitbox']
+                : ['peak-hitbox']
+            }
+            mapStyle={mapStyle}
+            maxBounds={maxBounds}
+            maxPitch={68}
+            maxZoom={MAP_MAX_ZOOM}
+            minZoom={MAP_MIN_ZOOM}
+            onClick={handlePeakClick}
+            style={{ width: '100%', height: '100%' }}
+            {...(terrainEnabled
+              ? {
+                  terrain: {
+                    source: 'terrain-dem',
+                    exaggeration: 1.28,
+                  },
+                }
+              : {})}
+          >
+            <AttributionControl compact customAttribution={mapAttributionHtml()} />
+            <NavigationControl position="top-right" showCompass />
+            {terrainEnabled ? (
+              <>
+                <Source
+                  id="terrain-dem"
+                  type="raster-dem"
+                  tiles={[terrainDemSource.sharedDemProtocolUrl]}
+                  encoding="terrarium"
+                  maxzoom={13}
+                  tileSize={256}
+                />
+                <Source
+                  id="terrain-hillshade-dem"
+                  type="raster-dem"
+                  tiles={[terrainDemSource.sharedDemProtocolUrl]}
+                  encoding="terrarium"
+                  maxzoom={13}
+                  tileSize={256}
+                >
+                  <Layer {...terrainHillshadeLayer} />
+                </Source>
+              </>
+            ) : null}
+            {list.hasHillLighting ? (
+              <>
+                <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
+                  <Layer {...boundaryFillLayer} />
+                  <Layer {...boundaryLineLayer} />
+                </Source>
+                <Source id="wainwright-areas" type="geojson" data={hillAreaGeoJson}>
+                  <Layer {...hillAreaFillLayer} />
+                  <Layer {...hillAreaLineLayer} />
+                </Source>
+              </>
+            ) : null}
+            {terrainEnabled ? (
               <Source
-                id="terrain-dem"
-                type="raster-dem"
-                tiles={[terrainDemSource.sharedDemProtocolUrl]}
-                encoding="terrarium"
-                maxzoom={13}
-                tileSize={256}
-              />
-              <Source
-                id="terrain-hillshade-dem"
-                type="raster-dem"
-                tiles={[terrainDemSource.sharedDemProtocolUrl]}
-                encoding="terrarium"
-                maxzoom={13}
-                tileSize={256}
+                id="terrain-contours"
+                type="vector"
+                tiles={[contourTileUrl]}
+                maxzoom={16}
               >
-                <Layer {...terrainHillshadeLayer} />
+                <Layer {...terrainContourLayer} />
+                <Layer {...terrainContourLabelLayer} />
               </Source>
-            </>
-          ) : null}
-          {list.hasHillLighting ? (
-            <>
-              <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
-                <Layer {...boundaryFillLayer} />
-                <Layer {...boundaryLineLayer} />
-              </Source>
-              <Source id="wainwright-areas" type="geojson" data={hillAreaGeoJson}>
-                <Layer {...hillAreaFillLayer} />
-                <Layer {...hillAreaLineLayer} />
-              </Source>
-            </>
-          ) : null}
-          {terrainEnabled ? (
-            <Source
-              id="terrain-contours"
-              type="vector"
-              tiles={[contourTileUrl]}
-              maxzoom={16}
-            >
-              <Layer {...terrainContourLayer} />
-              <Layer {...terrainContourLabelLayer} />
-            </Source>
-          ) : null}
-          <Source id="list-peaks" type="geojson" data={peakGeoJson}>
-            <Layer {...peakHitboxLayer} />
-            {/* Lists without hill-lighting profiles illuminate bagged
+            ) : null}
+            <Source id="list-peaks" type="geojson" data={peakGeoJson}>
+              <Layer {...peakHitboxLayer} />
+              {/* Lists without hill-lighting profiles illuminate bagged
                 summits with a soft light instead of the lit hill areas the
                 Wainwrights get, so bagging reads the same everywhere. */}
-            {list.hasHillLighting ? null : <Layer {...baggedSummitLightLayer} />}
-            <Layer {...peakMarkerLayer(!list.hasHillLighting)} />
-            <Layer {...peakLabelLayer} />
-          </Source>
-        </Map>
+              {list.hasHillLighting ? null : <Layer {...baggedSummitLightLayer} />}
+              <Layer {...peakMarkerLayer(!list.hasHillLighting)} />
+              <Layer {...peakLabelLayer} />
+            </Source>
+          </Map>
+        )}
       </div>
 
       <aside
@@ -390,7 +407,10 @@ export function MapView() {
           </div>
 
           <button
-            className="border-line bg-panel text-secondary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mb-5 min-h-11 w-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="border-line bg-panel text-secondary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mb-5 min-h-11 w-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            // The export composes from the live map canvas, which never
+            // exists when the map itself cannot render.
+            disabled={mapSupportError !== null}
             type="button"
             onClick={() => {
               setExportOpen(true);

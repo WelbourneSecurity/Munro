@@ -34,6 +34,7 @@ export default defineConfig({
             'src/domain/**/*.test.ts',
             'src/data/**/*.test.ts',
             'src/export/**/*.test.ts',
+            'src/map/**/*.test.ts',
             'src/store/**/*.test.ts',
           ],
           name: 'domain',

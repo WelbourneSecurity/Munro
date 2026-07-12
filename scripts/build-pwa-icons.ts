@@ -10,35 +10,11 @@ import { fileURLToPath } from 'node:url';
 
 import sharp from 'sharp';
 
+import { buildMarkSvg } from './icon-mark';
+
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicDir = path.join(projectRoot, 'public');
 const iconsDir = path.join(publicDir, 'icons');
-
-// Palette — keep in sync with the theme tokens in src/index.css.
-const SURFACE = '#111713';
-const RING = '#96a095';
-const SUMMIT = '#a7d8b6';
-
-/**
- * The Munro mark: three irregular contour rings closing on a summit dot,
- * drawn in a 512x512 box. `markScale` shrinks the mark towards the centre
- * so maskable icons keep the mark inside the safe zone.
- */
-function buildMarkSvg(markScale: number): string {
-  const translate = (512 * (1 - markScale)) / 2;
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="${SURFACE}"/>
-  <g transform="translate(${translate} ${translate}) scale(${markScale})"
-     fill="none" stroke="${RING}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M 106 300 C 100 222 168 128 264 122 C 352 118 410 206 404 290 C 398 352 340 392 250 394 C 162 396 112 362 106 300 Z"/>
-    <path d="M 162 294 C 158 238 202 176 264 172 C 322 168 356 224 352 282 C 349 328 310 354 252 356 C 200 358 165 340 162 294 Z"/>
-    <path d="M 216 288 C 214 252 236 216 262 214 C 290 212 308 244 306 280 C 304 308 284 322 258 323 C 232 324 218 314 216 288 Z"/>
-    <circle cx="260" cy="268" r="15" fill="${SUMMIT}" stroke="none"/>
-  </g>
-</svg>
-`;
-}
 
 interface PngTarget {
   file: string;
@@ -58,8 +34,9 @@ const targets: PngTarget[] = [
 async function main(): Promise<void> {
   await mkdir(iconsDir, { recursive: true });
 
-  await writeFile(path.join(publicDir, 'favicon.svg'), buildMarkSvg(0.98), 'utf8');
-  console.log('wrote public/favicon.svg');
+  // public/favicon.svg is deliberately NOT generated here: the committed
+  // favicon is a hand-authored 32x32 mark that stays legible at tab size,
+  // where the 512px contour rings would blur to noise.
 
   for (const target of targets) {
     const svg = Buffer.from(buildMarkSvg(target.markScale));
