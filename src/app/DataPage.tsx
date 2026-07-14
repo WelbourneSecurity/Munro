@@ -1,4 +1,5 @@
 import { ATTRIBUTIONS } from '../data/attribution';
+import { HILL_LISTS } from '../data/lists';
 
 export function DataPage() {
   return (
@@ -14,21 +15,27 @@ export function DataPage() {
         <section className="border-line bg-panel border p-5">
           <h2 className="text-primary text-xl font-semibold">Supported hill lists</h2>
           <div className="border-line mt-4 border p-4">
-            <dl className="flex items-baseline justify-between gap-4">
-              <dt className="text-primary text-sm font-semibold">Wainwrights</dt>
-              <dd className="font-label text-label text-muted">214 fells</dd>
+            {/* Rendered from the same registry the tracker uses, so a new
+                list appears here without a page edit. */}
+            <dl className="space-y-2">
+              {HILL_LISTS.map((list) => (
+                <div
+                  key={list.id}
+                  className="flex items-baseline justify-between gap-4"
+                >
+                  <dt className="text-primary text-sm font-semibold">{list.name}</dt>
+                  <dd className="font-label text-label text-muted text-right">
+                    {list.regionLabel}
+                  </dd>
+                </div>
+              ))}
             </dl>
-            <p className="text-secondary mt-2 text-sm leading-6">
-              The 214 fells of Alfred Wainwright&rsquo;s{' '}
-              <span className="text-primary">
-                Pictorial Guides to the Lakeland Fells
-              </span>
-              , all within the Lake District National Park.
-            </p>
           </div>
           <p className="text-muted mt-4 text-sm leading-6">
-            Further lists — Munros, Corbetts and others — are planned. Each will arrive
-            as data, not as a redesign.
+            The published lists overlap — a Wainwright can also be a Hewitt and a
+            Marilyn — so the default <span className="text-primary">All peaks</span>{' '}
+            view holds one record per distinct hill, merged from every list above.
+            Bagging a peak anywhere counts for every list that contains it.
           </p>
         </section>
 
@@ -42,9 +49,10 @@ export function DataPage() {
               Irish Hills (DoBIH). Peaks are treated as summit points, not boundaries.
             </li>
             <li>
-              The hill lighting shown for bagged fells uses generated, summit-centred
-              profiles clipped to the Lake District boundary. They are approximate
-              visual aids, not legal, route or geomorphological boundaries.
+              The hill lighting shown for bagged Wainwrights uses generated,
+              summit-centred profiles clipped to the Lake District boundary. They are
+              approximate visual aids, not legal, route or geomorphological boundaries.
+              Other lists mark bagged peaks with a summit light instead.
             </li>
             <li>
               The Lake District National Park boundary comes from Natural England open

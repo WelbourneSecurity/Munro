@@ -7,27 +7,35 @@ import {
   DOBIH_ATTRIBUTION,
   TERRAIN_ATTRIBUTION,
 } from '../data/attribution';
+import { HILL_LISTS } from '../data/lists';
 import { DataPage } from './DataPage';
 
 describe('DataPage', () => {
-  it('describes the supported list and its limitations', () => {
-    const { getByRole, getByText } = render(<DataPage />);
+  it('describes every registered list and the data limitations', () => {
+    const { getAllByText, getByRole, getByText } = render(<DataPage />);
 
     expect(getByRole('heading', { name: 'Data' })).toBeVisible();
-    expect(getByText('Wainwrights')).toBeVisible();
-    expect(getByText('214 fells')).toBeVisible();
-    expect(getByText(/Munros, Corbetts and others — are planned/)).toBeVisible();
+
+    // Every registry entry appears — a new list must surface here without a
+    // page edit. ("All peaks" also appears in the collated-view paragraph,
+    // hence getAllByText.)
+    for (const list of HILL_LISTS) {
+      const [entry] = getAllByText(list.name);
+      expect(entry).toBeVisible();
+    }
+
+    expect(getByText(/one record per distinct hill/)).toBeVisible();
     expect(getByText(/summit points, not boundaries/)).toBeVisible();
-    expect(getByText(/approximate\s+visual aids/)).toBeVisible();
+    expect(getByText(/approximate visual aids/)).toBeVisible();
     expect(getByText(/Natural England open\s+data/)).toBeVisible();
   });
 
-  it('keeps the hill list description outside the definition list', () => {
+  it('keeps the collated-view description outside the definition list', () => {
     const { getByText } = render(<DataPage />);
 
     // The dl content model only allows dt/dd groups (or div wrappers), so the
     // descriptive paragraph must live alongside the list, not inside it.
-    const description = getByText(/all within the Lake District National Park/);
+    const description = getByText(/one record per distinct hill/);
 
     expect(description.tagName).toBe('P');
     expect(description.closest('dl')).toBeNull();
