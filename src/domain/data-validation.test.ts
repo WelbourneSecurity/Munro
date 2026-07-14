@@ -1,7 +1,7 @@
 import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 
 import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
-import wainwrightAreasRaw from '../data/boundaries/wainwright-areas.geojson?raw';
+import hillAreasRaw from '../data/boundaries/hill-areas.geojson?raw';
 import { DOBIH_SOURCE, DOBIH_VERSION } from '../data/attribution';
 import corbetts from '../data/corbetts.json';
 import donalds from '../data/donalds.json';
@@ -14,7 +14,7 @@ import wainwrights from '../data/wainwrights.json';
 import { peakSchema, type Peak } from './schemas';
 
 const boundary = JSON.parse(boundaryRaw) as unknown;
-const wainwrightAreas = JSON.parse(wainwrightAreasRaw) as unknown;
+const hillAreas = JSON.parse(hillAreasRaw) as unknown;
 
 const LAKE_DISTRICT_BOUNDS = {
   minLat: 54.0,
@@ -364,20 +364,13 @@ describe('committed Lake District boundary', () => {
   });
 });
 
-describe('committed Wainwright area model', () => {
+describe('committed hill area model', () => {
   type AreaFeatureCollection = FeatureCollection<
     Polygon | MultiPolygon,
     {
       id: string;
-      dobihId: number;
       name: string;
-      region: string;
       method: string;
-      profile?: {
-        baseRadiusKm?: number;
-        sampleStepDegrees?: number;
-        neighbourInfluenceDegrees?: number;
-      };
     }
   > & {
     metadata?: {
@@ -387,14 +380,25 @@ describe('committed Wainwright area model', () => {
     };
   };
 
-  const geojson = wainwrightAreas as AreaFeatureCollection;
+  const geojson = hillAreas as AreaFeatureCollection;
 
-  it('contains one generated area for every Wainwright peak', () => {
-    const peakIds = new Set(wainwrights.peaks.map((peak) => peak.id));
+  it('contains one generated area for every hill on every list', () => {
+    const peakIds = new Set(
+      [
+        wainwrights,
+        munros,
+        corbetts,
+        grahams,
+        donalds,
+        ethels,
+        hewitts,
+        marilyns,
+      ].flatMap((file) => file.peaks.map((peak) => peak.id)),
+    );
     const areaIds = new Set(geojson.features.map((feature) => feature.properties.id));
 
-    expect(geojson.metadata?.count).toBe(214);
-    expect(geojson.features).toHaveLength(214);
+    expect(geojson.metadata?.count).toBe(peakIds.size);
+    expect(geojson.features).toHaveLength(peakIds.size);
     expect(areaIds).toEqual(peakIds);
   });
 
@@ -409,14 +413,11 @@ describe('committed Wainwright area model', () => {
     for (const feature of geojson.features) {
       expect(feature.properties.method).toBe('summit-centred-hill-profile');
       expect(feature.properties.name).toBeTruthy();
-      expect(feature.properties.dobihId).toBeGreaterThan(0);
-      expect(feature.properties.profile?.baseRadiusKm).toBeGreaterThan(0);
-      expect(feature.properties.profile?.sampleStepDegrees).toBe(5);
-      expect(feature.properties.profile?.neighbourInfluenceDegrees).toBe(78);
     }
   });
 
-  it('has polygon coordinates in the Lake District area', () => {
+  it('has polygon coordinates within the UK and Isle of Man', () => {
+    // The Marilyns' bounds plus the profiles' 2.75 km maximum radius.
     for (const feature of geojson.features) {
       expect(['Polygon', 'MultiPolygon']).toContain(feature.geometry.type);
 
@@ -424,10 +425,10 @@ describe('committed Wainwright area model', () => {
       expect(pairs.length, feature.properties.name).toBeGreaterThan(3);
 
       for (const [lon, lat] of pairs) {
-        expect(lon).toBeGreaterThanOrEqual(-4);
-        expect(lon).toBeLessThanOrEqual(-2);
-        expect(lat).toBeGreaterThanOrEqual(54);
-        expect(lat).toBeLessThanOrEqual(55.2);
+        expect(lon).toBeGreaterThanOrEqual(-8.8);
+        expect(lon).toBeLessThanOrEqual(0.8);
+        expect(lat).toBeGreaterThanOrEqual(50.0);
+        expect(lat).toBeLessThanOrEqual(61.0);
       }
     }
   });

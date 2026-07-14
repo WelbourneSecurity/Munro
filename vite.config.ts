@@ -60,12 +60,12 @@ export default defineConfig({
     }),
   ],
   build: {
-    // The main chunk is dominated by maplibre-gl and the bundled hill-profile
-    // data — both accepted as the product (see "Performance budget" in
-    // wiki/operations.md). Vite's default 500 kB warning would fire on every
-    // build and carry no signal; this limit sits just above the measured
-    // chunk size (1,750 kB after the hill-profile quantization) so the
-    // warning returns only when the chunk genuinely grows.
-    chunkSizeWarningLimit: 1850,
+    // The main chunk is dominated by maplibre-gl — accepted as the product
+    // (see "Performance budget" in wiki/operations.md); the hill-profile
+    // data is a separate lazy chunk. Vite's default 500 kB warning would
+    // fire on every build and carry no signal; this limit sits just above
+    // the measured chunk sizes (main ~1,380 kB, profiles ~1,690 kB) so the
+    // warning returns only when a chunk genuinely grows.
+    chunkSizeWarningLimit: 1800,
   },
 });

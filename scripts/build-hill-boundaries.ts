@@ -12,22 +12,34 @@ import {
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 
 import { DOBIH_VERSION } from '../src/data/attribution';
+import { mergePeakLists } from '../src/domain/peaks';
 import { serializeGeoJson } from './geojson-io';
 import type { Peak } from '../src/domain/schemas';
 
 const ROOT: string = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const PEAKS_PATH: string = resolve(ROOT, 'src/data/wainwrights.json');
+// Every source list contributes hills; the union is deduplicated by peak id
+// exactly like the app's collated "All peaks" view.
+const PEAK_LIST_FILES = [
+  'wainwrights',
+  'munros',
+  'corbetts',
+  'grahams',
+  'donalds',
+  'ethels',
+  'hewitts',
+  'marilyns',
+].map((list) => resolve(ROOT, `src/data/${list}.json`));
 const BOUNDARY_PATH: string = resolve(
   ROOT,
   'src/data/boundaries/lake-district.geojson',
 );
-const OUTPUT_PATH: string = resolve(
-  ROOT,
-  'src/data/boundaries/wainwright-areas.geojson',
-);
+const OUTPUT_PATH: string = resolve(ROOT, 'src/data/boundaries/hill-areas.geojson');
 
-const BEARING_STEP_DEGREES = 5;
+const BEARING_STEP_DEGREES = 12;
 const NEIGHBOUR_INFLUENCE_DEGREES = 78;
+// UK-wide height range: coastal Marilyns (~90 m) up to Ben Nevis (1345 m).
+const HEIGHT_MIN_M = 90;
+const HEIGHT_MAX_M = 1345;
 
 type PeakFile = {
   peaks: Peak[];
@@ -39,15 +51,8 @@ type BoundaryFile = FeatureCollection<Polygon> & {
 
 type HillAreaProperties = {
   id: string;
-  dobihId: number;
   name: string;
-  region: string;
   method: 'summit-centred-hill-profile';
-  profile: {
-    baseRadiusKm: number;
-    sampleStepDegrees: number;
-    neighbourInfluenceDegrees: number;
-  };
 };
 
 type HillAreaFeature = Feature<Polygon | MultiPolygon, HillAreaProperties>;
@@ -63,7 +68,7 @@ async function readJson<T>(path: string) {
 }
 
 async function writeJson(data: unknown) {
-  const next = serializeGeoJson(data);
+  const next = serializeGeoJson(data, 4);
   let previous: string | undefined;
 
   try {
@@ -101,7 +106,11 @@ function seededWave(seed: number, bearingDegrees: number) {
 }
 
 function profileRadiusKm(peak: Peak, bearingDegrees: number, neighbours: Neighbour[]) {
-  const heightScale = clamp((peak.heightM - 290) / (980 - 290), 0, 1);
+  const heightScale = clamp(
+    (peak.heightM - HEIGHT_MIN_M) / (HEIGHT_MAX_M - HEIGHT_MIN_M),
+    0,
+    1,
+  );
   const baseRadiusKm = 0.82 + heightScale * 1.18;
   const seed = peak.dobihId * 0.013;
   const shapedRadius = baseRadiusKm * seededWave(seed, bearingDegrees);
@@ -131,19 +140,13 @@ function smoothRadii(radii: number[]) {
 }
 
 function propertiesForPeak(peak: Peak): HillAreaProperties {
-  const heightScale = clamp((peak.heightM - 290) / (980 - 290), 0, 1);
-
+  // Only what the map layers read (id for state, name for debugging) plus
+  // the method marker; full generation parameters live once in metadata —
+  // repeating them per feature costs real bundle bytes across 2,170 hills.
   return {
     id: peak.id,
-    dobihId: peak.dobihId,
     name: peak.name,
-    region: peak.region,
     method: 'summit-centred-hill-profile',
-    profile: {
-      baseRadiusKm: Number((0.82 + heightScale * 1.18).toFixed(3)),
-      sampleStepDegrees: BEARING_STEP_DEGREES,
-      neighbourInfluenceDegrees: NEIGHBOUR_INFLUENCE_DEGREES,
-    },
   };
 }
 
@@ -209,7 +212,16 @@ function buildAreas(peaks: Peak[], boundary: BoundaryFile) {
   }
 
   const features = peaks.map((peak) => {
-    const profile = buildProfilePolygon(peak, peaks);
+    const profile = buildProfilePolygon(peak, peaks) as HillAreaFeature;
+
+    // Only Lake District hills are clipped: the park boundary is the one
+    // committed boundary dataset, and clipping keeps the Wainwrights'
+    // lighting exactly as designed. Hills elsewhere keep their full radial
+    // profile — they are approximate visual lighting either way.
+    if (peak.nationalPark !== 'Lake District') {
+      return profile;
+    }
+
     const clipped = intersect(featureCollection([profile, parkFeature]), {
       properties: profile.properties,
     }) as HillAreaFeature | null;
@@ -224,15 +236,16 @@ function buildAreas(peaks: Peak[], boundary: BoundaryFile) {
   return {
     type: 'FeatureCollection' as const,
     metadata: {
-      source: `Generated from DoBIH ${DOBIH_VERSION} Wainwright summit points and Natural England Lake District National Park boundary`,
+      source: `Generated from DoBIH ${DOBIH_VERSION} summit points (all registered hill lists, deduplicated) and Natural England Lake District National Park boundary`,
       method:
-        'Summit-centred hill profiles: generate one soft radial footprint around each Wainwright summit, shape it by height and nearby summits, then clip to the Lake District National Park boundary. These are visual hill-lighting profiles, not authoritative geomorphological, route or land-boundary data.',
+        'Summit-centred hill profiles: generate one soft radial footprint around each summit, shape it by height and nearby summits, and clip Lake District hills to the National Park boundary. These are visual hill-lighting profiles, not authoritative geomorphological, route or land-boundary data.',
       profile: {
         sampleStepDegrees: BEARING_STEP_DEGREES,
         neighbourInfluenceDegrees: NEIGHBOUR_INFLUENCE_DEGREES,
         maximumRadiusKm: 2.75,
+        heightRangeM: [HEIGHT_MIN_M, HEIGHT_MAX_M],
       },
-      generatedAt: '2026-07-05',
+      generatedAt: '2026-07-14',
       count: features.length,
     },
     features: features.sort((a, b) =>
@@ -241,12 +254,13 @@ function buildAreas(peaks: Peak[], boundary: BoundaryFile) {
   };
 }
 
-const peakFile = await readJson<PeakFile>(PEAKS_PATH);
+const peakFiles = await Promise.all(
+  PEAK_LIST_FILES.map((path) => readJson<PeakFile>(path)),
+);
+const peaks = mergePeakLists(peakFiles.map((file) => file.peaks));
 const boundary = await readJson<BoundaryFile>(BOUNDARY_PATH);
-const areas = buildAreas(peakFile.peaks, boundary);
+const areas = buildAreas(peaks, boundary);
 
 await writeJson(areas);
 
-console.log(
-  `Wrote ${areas.features.length} Wainwright hill profiles to ${OUTPUT_PATH}`,
-);
+console.log(`Wrote ${areas.features.length} hill profiles to ${OUTPUT_PATH}`);

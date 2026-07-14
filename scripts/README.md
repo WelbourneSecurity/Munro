@@ -59,7 +59,7 @@ npm run data:hill-boundaries
 by generating a summit-centred hill profile from `src/data/wainwrights.json`,
 shaping it by height and nearby summits, and clipping it to
 `src/data/boundaries/lake-district.geojson`. The committed file is
-`src/data/boundaries/wainwright-areas.geojson`.
+`src/data/boundaries/hill-areas.geojson` (every list, deduplicated).
 
 This is a visual hill-lighting model, not an authoritative geomorphological,
 route or land-boundary dataset.

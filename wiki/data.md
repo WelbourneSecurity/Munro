@@ -55,7 +55,7 @@ identity and selection, but they are not the primary visible map mark.
 Bagged peaks light a generated hill-profile polygon rather than only the
 summit marker. The committed file is:
 
-- `src/data/boundaries/wainwright-areas.geojson`
+- `src/data/boundaries/hill-areas.geojson`
 
 The generation command is:
 
@@ -98,12 +98,13 @@ keyed by the globally unique peak id (`dobih-N`), so each list's progress
 coexists in the same store and switching lists never touches existing
 records; stats are computed against the active list's peaks only.
 
-Hill lighting is per-list: only lists with generated profiles (currently
-the Wainwrights) render the lighting and boundary layers. Lists without
-profiles fall back to summit markers alone — the Munros, Corbetts, Grahams,
-Donalds, Ethels, Hewitts and Marilyns all render this way today, framed by
-each list's map-fit bounds from the registry (from the Peak District up to
-the whole UK for the Marilyns).
+Hill lighting covers every list: the generated profile set holds one
+profile per distinct hill across all registered lists, loaded lazily and
+filtered to the active list on the map. Until the profiles arrive (and on
+any list a future profile set does not cover), summit markers and a soft
+light on bagged peaks carry the tracker. The Lake District boundary layers
+render only on the Wainwrights view; every list is framed by its map-fit
+bounds from the registry (from the Peak District up to the whole UK).
 
 ## Boundary data
 

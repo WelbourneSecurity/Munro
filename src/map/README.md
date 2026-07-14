@@ -12,7 +12,7 @@ upstream and apply Munro-specific source overlays in code:
 - Lake District boundary from `src/data/boundaries/lake-district.geojson`
   (rendered only while a list with hill lighting is active).
 - Generated Wainwright hill-profile polygons from
-  `src/data/boundaries/wainwright-areas.geojson` (hill lighting is per-list;
+  `src/data/boundaries/hill-areas.geojson` (hill lighting covers every list;
   lists without profiles skip these layers cleanly).
 - Summit points for the active hill list, loaded lazily through the registry
   in `src/data/lists.ts`, which also supplies each list's map-fit bounds and

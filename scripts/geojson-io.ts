@@ -10,22 +10,30 @@
  */
 import type { FeatureCollection, Geometry } from 'geojson';
 
-const COORDINATE_PRECISION = 1e5;
-
-function roundCoordinates(value: unknown): unknown {
+function roundCoordinates(value: unknown, precision: number): unknown {
   if (typeof value === 'number') {
-    return Math.round(value * COORDINATE_PRECISION) / COORDINATE_PRECISION;
+    return Math.round(value * precision) / precision;
   }
 
   if (Array.isArray(value)) {
-    return value.map(roundCoordinates);
+    return value.map((entry) => roundCoordinates(entry, precision));
   }
 
   return value;
 }
 
-/** Round every geometry coordinate to ~1 m; properties stay untouched. */
-export function quantizeFeatureCollection<T extends FeatureCollection>(data: T): T {
+/**
+ * Round every geometry coordinate; properties stay untouched. The default
+ * 5 decimal places is ~1 m; generated visual-only data (the hill-lighting
+ * profiles) uses 4 (~11 m) since each digit costs real bundle bytes across
+ * thousands of vertices.
+ */
+export function quantizeFeatureCollection<T extends FeatureCollection>(
+  data: T,
+  decimalPlaces = 5,
+): T {
+  const precision = 10 ** decimalPlaces;
+
   return {
     ...data,
     features: data.features.map((feature) => ({
@@ -34,6 +42,7 @@ export function quantizeFeatureCollection<T extends FeatureCollection>(data: T):
         ...feature.geometry,
         coordinates: roundCoordinates(
           (feature.geometry as Extract<Geometry, { coordinates: unknown }>).coordinates,
+          precision,
         ),
       } as typeof feature.geometry,
     })),
@@ -41,6 +50,6 @@ export function quantizeFeatureCollection<T extends FeatureCollection>(data: T):
 }
 
 /** Compact, quantized serialization for committed GeoJSON files. */
-export function serializeGeoJson(data: FeatureCollection): string {
-  return `${JSON.stringify(quantizeFeatureCollection(data))}\n`;
+export function serializeGeoJson(data: FeatureCollection, decimalPlaces = 5): string {
+  return `${JSON.stringify(quantizeFeatureCollection(data, decimalPlaces))}\n`;
 }

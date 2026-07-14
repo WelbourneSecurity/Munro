@@ -7,7 +7,7 @@ import {
   Source,
 } from '@vis.gl/react-maplibre';
 import type { MapLayerMouseEvent, MapRef } from '@vis.gl/react-maplibre';
-import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
+import type { FeatureCollection, Polygon } from 'geojson';
 import type { StyleSpecification, TerrainSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -19,7 +19,6 @@ import {
   useActiveHillList,
 } from '../components';
 import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
-import hillAreasRaw from '../data/boundaries/wainwright-areas.geojson?raw';
 import { mapAttributionHtml } from '../data/attribution';
 import { calculateProgress, peaksToGeoJSON } from '../domain';
 import { usePreferencesStore, useProgressStore } from '../store';
@@ -46,6 +45,7 @@ import {
   peakLabelLayer,
   peakMarkerLayer,
 } from './layers';
+import { loadHillAreas, type HillAreaData } from './hillAreas';
 import munroDarkStyle from './style/munro-dark.json';
 import { getMapSupportError } from './support';
 import { contourTileUrl, setupTerrainProtocols, terrainDemSource } from './terrain';
@@ -54,12 +54,7 @@ type BoundaryData = FeatureCollection<Polygon> & {
   metadata?: Record<string, unknown>;
 };
 
-type HillAreaData = FeatureCollection<Polygon | MultiPolygon> & {
-  metadata?: Record<string, unknown>;
-};
-
 const boundaryData = JSON.parse(boundaryRaw) as BoundaryData;
-const hillAreaData = JSON.parse(hillAreasRaw) as HillAreaData;
 
 // 3D terrain reads DEM tiles from the always-mounted terrain-dem source.
 const TERRAIN_OPTIONS: TerrainSpecification = {
@@ -99,33 +94,65 @@ export function MapView() {
   const [panelOpen, setPanelOpen] = useState(true);
   const getMap = useCallback(() => mapRef.current?.getMap() ?? null, []);
 
+  // The UK-wide lighting profiles load lazily; until they arrive the summit
+  // markers and bagged summit lights carry the tracker. A failed load keeps
+  // that fallback — lighting is a visual enhancement, never a requirement.
+  const [hillAreas, setHillAreas] = useState<HillAreaData | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    loadHillAreas()
+      .then((data) => {
+        if (!cancelled) {
+          setHillAreas(data);
+        }
+      })
+      .catch(() => {
+        // Markers remain visible; nothing else to do.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const progress = useMemo(() => Object.values(progressByPeakId), [progressByPeakId]);
   const peakGeoJson = useMemo(() => peaksToGeoJSON(peaks, progress), [peaks, progress]);
   const selectedPeak = peaks.find((peak) => peak.id === selectedPeakId) ?? peaks[0];
   // Highlight the same peak everywhere: the map's hill lighting must match
   // the panel, which falls back to the first peak before any click.
   const highlightedPeakId = selectedPeak?.id;
+  const activePeakIds = useMemo(() => new Set(peaks.map((peak) => peak.id)), [peaks]);
   // Only bagged state is baked into the hill-area features; the transient
   // selection highlight lives in the hill-area layer filter/paint instead
   // (see layers.ts), so selecting a peak never re-uploads this ~1 MB
-  // collection through setData.
-  const hillAreaGeoJson = useMemo(
-    () => ({
-      ...hillAreaData,
-      features: hillAreaData.features.map((feature) => {
-        const peakId = feature.properties?.id as string | undefined;
+  // collection through setData. The UK-wide profiles are filtered to the
+  // active list so hills outside it never light up (list switches re-upload
+  // once, like the peak source itself).
+  const hillAreaGeoJson = useMemo(() => {
+    if (!hillAreas) {
+      return null;
+    }
 
-        return {
-          ...feature,
-          properties: {
-            ...feature.properties,
-            bagged: peakId ? progressByPeakId[peakId]?.bagged === true : false,
-          },
-        };
-      }),
-    }),
-    [progressByPeakId],
-  );
+    return {
+      ...hillAreas,
+      features: hillAreas.features
+        .filter((feature) => activePeakIds.has(feature.properties?.id as string))
+        .map((feature) => {
+          const peakId = feature.properties?.id as string | undefined;
+
+          return {
+            ...feature,
+            properties: {
+              ...feature.properties,
+              bagged: peakId ? progressByPeakId[peakId]?.bagged === true : false,
+            },
+          };
+        }),
+    };
+  }, [hillAreas, activePeakIds, progressByPeakId]);
+  const hillLightingReady = hillAreaGeoJson !== null;
   // Suppress the transient selection highlight while the export dialog is
   // open: it shares the bagged green, so a captured image would otherwise
   // show the selected peak as if bagged and overstate progress.
@@ -289,7 +316,7 @@ export function MapView() {
               fitBoundsOptions: LIST_FIT_OPTIONS,
             }}
             interactiveLayerIds={
-              list.hasHillLighting
+              hillLightingReady
                 ? ['hill-area-fill', 'hill-area-line', 'peak-hitbox']
                 : ['peak-hitbox']
             }
@@ -333,23 +360,25 @@ export function MapView() {
                 <Layer {...terrainHillshadeLayer} beforeId={HILLSHADE_ANCHOR_ID} />
               </Source>
             ) : null}
-            {list.hasHillLighting ? (
-              <>
-                <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
-                  <Layer {...boundaryFillLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
-                  <Layer {...boundaryLineLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
-                </Source>
-                <Source id="wainwright-areas" type="geojson" data={hillAreaGeoJson}>
-                  <Layer
-                    {...hillAreaFillLayer(hillAreaSelectedId)}
-                    beforeId={HILL_LIGHTING_ANCHOR_ID}
-                  />
-                  <Layer
-                    {...hillAreaLineLayer(hillAreaSelectedId)}
-                    beforeId={HILL_LIGHTING_ANCHOR_ID}
-                  />
-                </Source>
-              </>
+            {/* The park outline is the Wainwrights' framing device; other
+              lists span regions the committed boundary does not describe. */}
+            {list.id === 'wainwrights' ? (
+              <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
+                <Layer {...boundaryFillLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
+                <Layer {...boundaryLineLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
+              </Source>
+            ) : null}
+            {hillAreaGeoJson ? (
+              <Source id="hill-areas" type="geojson" data={hillAreaGeoJson}>
+                <Layer
+                  {...hillAreaFillLayer(hillAreaSelectedId)}
+                  beforeId={HILL_LIGHTING_ANCHOR_ID}
+                />
+                <Layer
+                  {...hillAreaLineLayer(hillAreaSelectedId)}
+                  beforeId={HILL_LIGHTING_ANCHOR_ID}
+                />
+              </Source>
             ) : null}
             {terrainEnabled ? (
               <Source
@@ -364,11 +393,11 @@ export function MapView() {
             ) : null}
             <Source id="list-peaks" type="geojson" data={peakGeoJson}>
               <Layer {...peakHitboxLayer} />
-              {/* Lists without hill-lighting profiles illuminate bagged
-                summits with a soft light instead of the lit hill areas the
-                Wainwrights get, so bagging reads the same everywhere. */}
-              <Layer {...baggedSummitLightLayer(!list.hasHillLighting)} />
-              <Layer {...peakMarkerLayer(!list.hasHillLighting)} />
+              {/* Until the lazy lighting profiles arrive, markers and a
+                soft summit light on bagged peaks carry the tracker; once
+                the lit hill areas mount, both give way to them. */}
+              <Layer {...baggedSummitLightLayer(!hillLightingReady)} />
+              <Layer {...peakMarkerLayer(!hillLightingReady)} />
               <Layer {...peakLabelLayer} />
             </Source>
           </Map>

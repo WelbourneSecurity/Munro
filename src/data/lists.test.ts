@@ -72,12 +72,14 @@ describe('hill-list registry', () => {
     }
   });
 
-  it('marks hill lighting only where generated profiles exist', () => {
+  it('marks hill lighting on every list the generated profiles cover', () => {
+    // The committed UK-wide profile set covers all registered lists — see
+    // the committed hill area model suite in src/domain/data-validation.
     const listsWithLighting = HILL_LISTS.filter((list) => list.hasHillLighting).map(
       (list) => list.id,
     );
 
-    expect(listsWithLighting).toEqual(['wainwrights']);
+    expect(listsWithLighting).toEqual([...HILL_LIST_IDS]);
   });
 
   it('loads the exact published count for every list', async () => {

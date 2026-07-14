@@ -32,7 +32,7 @@ layout), its test suites, the CI/CD workflows and the documentation site:
 - `src/components/` — peak list panel, progress stats, export dialog
 - `src/domain/` — Zod schemas (`Peak`, `PeakProgress`, `Backup`) and pure
   logic; stays free of React and MapLibre imports
-- `src/data/` — generated Wainwright peak data, boundary/hill-profile
+- `src/data/` — generated peak data for every hill list, boundary/hill-profile
   GeoJSON and attribution constants
 - `src/map/` — the MapLibre/OpenFreeMap tracker wrapper, committed dark
   style fork, terrain/contour setup and map layers; runtime MapLibre
@@ -78,7 +78,7 @@ npm run test:coverage   # Vitest coverage thresholds
 npm run test:e2e        # production build + Playwright (chromium + mobile projects)
 npm run data:peaks      # refresh Wainwright data from DoBIH
 npm run data:boundary   # refresh Lake District boundary data from Natural England
-npm run data:hill-boundaries # refresh generated Wainwright hill profiles
+npm run data:hill-boundaries # refresh generated hill profiles (every list, deduplicated)
 npm run data:icons      # regenerate committed PWA icons in public/
 npm run perf:budget     # enforce the wiki/operations.md bundle budget against dist/
 npm run verify          # typecheck -> lint -> format:check -> test -> build -> perf:budget
@@ -141,9 +141,12 @@ Conventions to preserve:
   toggle, list switches) keep the fresh-load stacking order below the peak
   layers. Keep the anchors when refreshing the style fork, and anchor any
   new conditional layer the same way.
-- Hill lighting uses generated summit-centred hill profiles clipped to the
-  Lake District boundary. Treat them as approximate visual lighting profiles,
-  not authoritative legal, route or geomorphological boundaries.
+- Hill lighting uses generated summit-centred hill profiles for every hill
+  on every list (UK-wide, deduplicated by peak id); Lake District hills are
+  clipped to the park boundary. The profiles live in a lazy chunk loaded by
+  `src/map/hillAreas.ts` — never import them eagerly. Treat them as
+  approximate visual lighting profiles, not authoritative legal, route or
+  geomorphological boundaries.
 - The export engine (`src/export/`) is dynamic-imported by the export dialog
   and must stay a separate lazy chunk — never statically import it from
   startup code paths. Exported images must draw attribution into the pixels.

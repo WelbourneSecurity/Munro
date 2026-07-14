@@ -118,7 +118,7 @@ export function hillAreaFillLayer(
   return {
     id: 'hill-area-fill',
     type: 'fill',
-    source: 'wainwright-areas',
+    source: 'hill-areas',
     filter: ['any', ['==', ['get', 'bagged'], true], selected],
     paint: {
       'fill-color': ['case', selected, '#c4e9cd', '#a7d8b6'],
@@ -135,7 +135,7 @@ export function hillAreaLineLayer(
   return {
     id: 'hill-area-line',
     type: 'line',
-    source: 'wainwright-areas',
+    source: 'hill-areas',
     filter: ['any', ['!=', ['get', 'bagged'], true], selected],
     paint: {
       'line-color': ['case', selected, '#e0f5e5', '#829284'],

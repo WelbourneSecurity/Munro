@@ -49,9 +49,11 @@ export interface HillListDefinition {
   /** Initial camera for the list's region. */
   initialView: HillListView;
   /**
-   * Whether generated hill-lighting profiles (and a matching boundary layer)
-   * exist for this list. Lists without profiles fall back to summit markers
-   * only — lighting layers must no-op cleanly.
+   * Whether generated hill-lighting profiles exist for this list. The
+   * committed UK-wide profile set covers every hill on every registered
+   * list, so this is true across the registry; a future list must either
+   * regenerate the profiles (npm run data:hill-boundaries) or ship false
+   * and fall back to summit markers.
    */
   hasHillLighting: boolean;
   /** Lazily loads the list's peak data so bundles don't grow per list. */
@@ -86,9 +88,9 @@ const wainwrights: HillListDefinition = {
   loadPeaks: async () => (await import('./wainwrights.json')).default.peaks,
 };
 
-// The Scottish lists have no generated hill-lighting profiles or park
-// boundary yet, so they render summit markers only (hasHillLighting: false).
 // The shared camera style (bearing/pitch) matches the Wainwrights view.
+// Every list is covered by the generated UK-wide lighting profiles; only
+// the Wainwrights additionally draw the Lake District boundary layers.
 
 const munros: HillListDefinition = {
   id: 'munros',
@@ -106,7 +108,7 @@ const munros: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./munros.json')).default.peaks,
 };
 
@@ -126,7 +128,7 @@ const corbetts: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./corbetts.json')).default.peaks,
 };
 
@@ -146,7 +148,7 @@ const grahams: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./grahams.json')).default.peaks,
 };
 
@@ -166,7 +168,7 @@ const donalds: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./donalds.json')).default.peaks,
 };
 
@@ -190,7 +192,7 @@ const ethels: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./ethels.json')).default.peaks,
 };
 
@@ -210,7 +212,7 @@ const hewitts: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./hewitts.json')).default.peaks,
 };
 
@@ -230,7 +232,7 @@ const marilyns: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./marilyns.json')).default.peaks,
 };
 
@@ -266,7 +268,7 @@ const allPeaks: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () =>
     mergePeakLists(
       await Promise.all(SOURCE_HILL_LISTS.map((list) => list.loadPeaks())),

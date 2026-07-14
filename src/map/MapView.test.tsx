@@ -119,8 +119,12 @@ describe('MapView panel accessibility', () => {
     const { findByRole, getByRole } = render(<MapView />);
 
     // Select an unbagged peak: its hill area is highlighted through the
-    // hill-area layer filter/paint for the on-screen highlight.
+    // hill-area layer filter/paint for the on-screen highlight. The lighting
+    // profiles load lazily, so wait for the layers to mount.
     fireEvent.click(await findByRole('button', { name: /Ard Crags/ }));
+    await vi.waitFor(() => {
+      expect(layerProps.get('hill-area-fill')).toBeTruthy();
+    });
     expect(JSON.stringify(layerProps.get('hill-area-fill')?.filter)).toContain(
       'dobih-2460',
     );
@@ -143,7 +147,10 @@ describe('MapView panel accessibility', () => {
     const { findByRole, getByRole } = render(<MapView />);
 
     await findByRole('button', { name: /Ard Crags/ });
-    const dataBefore = sourceData.get('wainwright-areas');
+    await vi.waitFor(() => {
+      expect(sourceData.get('hill-areas')).toBeTruthy();
+    });
+    const dataBefore = sourceData.get('hill-areas');
     expect(dataBefore?.features.length).toBeGreaterThan(0);
     // Selection is expressed in the layer filter, not baked into feature
     // properties, so the ~1 MB collection is never re-uploaded via setData.
@@ -154,7 +161,7 @@ describe('MapView panel accessibility', () => {
     fireEvent.click(getByRole('button', { name: /Ard Crags/ }));
     fireEvent.click(getByRole('button', { name: 'Export image' }));
 
-    expect(sourceData.get('wainwright-areas')).toBe(dataBefore);
+    expect(sourceData.get('hill-areas')).toBe(dataBefore);
   });
 
   it(
