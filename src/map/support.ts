@@ -1,15 +1,12 @@
 /**
- * MapLibre GL requires WebGL2 (and modern engines JIT-compile it alongside
- * WebAssembly-backed workers in some browsers). Hardened browser profiles —
- * iOS Lockdown Mode in particular — disable WebGL2 and WebAssembly, which
- * would leave the tracker mounting a map that can never draw. Detect the
- * missing capability up front so the tracker can say what happened instead.
+ * MapLibre GL requires WebGL2. Hardened browser profiles — iOS Lockdown
+ * Mode in particular — disable it, which would leave the tracker mounting
+ * a map that can never draw. Detect that up front so the tracker can say
+ * what happened instead. WebGL2 is the only capability gated here: the
+ * shipped map engine contains no WebAssembly, so a browser with WASM off
+ * but WebGL2 on renders the map fine and must not be blocked.
  */
 export function getMapSupportError(): string | null {
-  if (typeof WebAssembly === 'undefined') {
-    return 'This browser has WebAssembly disabled (iOS Lockdown Mode does this), which the map engine needs.';
-  }
-
   try {
     const canvas = document.createElement('canvas');
 

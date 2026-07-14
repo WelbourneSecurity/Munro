@@ -1,6 +1,9 @@
+// @vitest-environment jsdom
+
 import {
   detectServiceWorkerEnvironment,
   registerServiceWorker,
+  scheduleWhenIdleAfterLoad,
   shouldRegisterServiceWorker,
   type ServiceWorkerEnvironment,
 } from './register-sw';
@@ -130,5 +133,64 @@ describe('registerServiceWorker', () => {
     });
 
     consoleError.mockRestore();
+  });
+});
+
+describe('scheduleWhenIdleAfterLoad', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('waits for idle via requestIdleCallback once the page has loaded', () => {
+    vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete');
+    const requestIdleCallback = vi.fn((cb: IdleRequestCallback) => {
+      cb({} as IdleDeadline);
+      return 1;
+    });
+    vi.stubGlobal('requestIdleCallback', requestIdleCallback);
+    const callback = vi.fn();
+
+    scheduleWhenIdleAfterLoad(callback);
+
+    expect(requestIdleCallback).toHaveBeenCalledWith(expect.any(Function), {
+      timeout: 10_000,
+    });
+    expect(callback).toHaveBeenCalledOnce();
+  });
+
+  it('defers past the load event while the page is still loading', () => {
+    vi.spyOn(document, 'readyState', 'get').mockReturnValue('loading');
+    vi.stubGlobal(
+      'requestIdleCallback',
+      vi.fn((cb: IdleRequestCallback) => {
+        cb({} as IdleDeadline);
+        return 1;
+      }),
+    );
+    const callback = vi.fn();
+
+    scheduleWhenIdleAfterLoad(callback);
+
+    // Nothing runs while first-render fetches are still in flight.
+    expect(callback).not.toHaveBeenCalled();
+
+    window.dispatchEvent(new Event('load'));
+
+    expect(callback).toHaveBeenCalledOnce();
+  });
+
+  it('falls back to a timeout when requestIdleCallback is unavailable', () => {
+    vi.useFakeTimers();
+    vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete');
+    vi.stubGlobal('requestIdleCallback', undefined);
+    const callback = vi.fn();
+
+    scheduleWhenIdleAfterLoad(callback);
+
+    expect(callback).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(3_000);
+    expect(callback).toHaveBeenCalledOnce();
   });
 });

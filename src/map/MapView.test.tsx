@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { FeatureCollection } from 'geojson';
-import { fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import wainwrights from '../data/wainwrights.json';
@@ -107,9 +107,11 @@ describe('MapView panel accessibility', () => {
 
       fireEvent.click(getByRole('button', { name: 'Mark unbagged' }));
 
-      expect(
-        useProgressStore.getState().progressByPeakId['dobih-2460']?.bagged,
-      ).toBeUndefined();
+      // The record survives the unbag (bagged: false) so the date entered
+      // through the panel is preserved against an accidental tap.
+      expect(useProgressStore.getState().progressByPeakId['dobih-2460']?.bagged).toBe(
+        false,
+      );
     },
   );
 
@@ -298,6 +300,24 @@ describe('MapView notes persistence', () => {
     document.dispatchEvent(new Event('visibilitychange'));
 
     expect(notesFor(firstPeakId)).toBe('Backgrounded PWA');
+  });
+
+  it('never writes the stale textarea back over an external notes update', async () => {
+    const { findByLabelText } = render(<MapView />);
+    await findByLabelText('Notes');
+
+    // Another context (a second tab or the installed PWA window) edits the
+    // same peak's notes and the storage listener rehydrates this store. The
+    // uncontrolled textarea still shows the old text — but the user never
+    // typed here, so hiding this tab must not flush the stale value back.
+    act(() => {
+      useProgressStore.getState().setNotes(firstPeakId, 'Edited elsewhere');
+    });
+
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    expect(notesFor(firstPeakId)).toBe('Edited elsewhere');
   });
 });
 

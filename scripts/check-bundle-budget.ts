@@ -5,9 +5,13 @@
  * a slower first load.
  *
  * Thresholds (gzip, matching the wiki):
- * - Total initial JS <= 650 kB — the eagerly-loaded index chunk. Peak-list
- *   data, the export engine and the PWA register helper are lazy chunks and
- *   deliberately excluded.
+ * - Total initial JS <= 650 kB — the eagerly-loaded index chunk. The export
+ *   engine and the PWA register helper are lazy chunks and deliberately
+ *   excluded.
+ * - Default-list data <= 180 kB — the eight hill-list chunks the collated
+ *   "All peaks" default view fetches on first visit. They are lazy chunks,
+ *   but the default list awaits all of them before the first peak renders,
+ *   so they are part of the real first-load payload.
  * - CSS <= 20 kB.
  * - Export engine <= 20 kB and present as its own lazy chunk — if it ever
  *   folds into the main chunk this check fails on both counts.
@@ -19,8 +23,14 @@ import { gzipSync } from 'node:zlib';
 const ASSETS_DIR = 'dist/assets';
 
 const INITIAL_JS_BUDGET_BYTES = 650 * 1024;
+const DEFAULT_LIST_DATA_BUDGET_BYTES = 180 * 1024;
 const CSS_BUDGET_BYTES = 20 * 1024;
 const EXPORT_CHUNK_BUDGET_BYTES = 20 * 1024;
+
+// Keep in sync with the source lists in src/data/lists.ts — the collated
+// default view loads every one of these chunks before its first render.
+const LIST_CHUNK_PATTERN =
+  /^(wainwrights|munros|corbetts|grahams|donalds|ethels|hewitts|marilyns)-.*\.js$/;
 
 function gzipSize(filePath: string): number {
   return gzipSync(readFileSync(filePath), { level: 9 }).length;
@@ -65,6 +75,11 @@ check(
   'Initial JS',
   assets.filter((file) => /^index-.*\.js$/.test(file)),
   INITIAL_JS_BUDGET_BYTES,
+);
+check(
+  'Default-list data (all 8 list chunks)',
+  assets.filter((file) => LIST_CHUNK_PATTERN.test(file)),
+  DEFAULT_LIST_DATA_BUDGET_BYTES,
 );
 check(
   'CSS',

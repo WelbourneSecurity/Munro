@@ -44,10 +44,13 @@ describe('PeakListPanel', () => {
         peaks={peaks}
         progress={progress}
         selectedPeakId="dobih-1"
+        regionPrefixToHide="Lake District - "
         onSelectPeak={onSelectPeak}
       />,
     );
 
+    // With the Wainwrights' shared prefix hidden the heading is the bare
+    // fell group; merged lists omit the prop and keep full region names.
     expect(getByText('Southern Fells')).toBeVisible();
     expect(getByText('Allen Crags')).toBeVisible();
 

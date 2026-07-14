@@ -131,7 +131,14 @@ export const useProgressStore = create<ProgressState>()(
             ...state.progressByPeakId[peakId],
             peakId,
             bagged: true,
-            ...(date ? { baggedDate: date } : {}),
+            // The caller's date is a default for first-time bags (today's
+            // date from the map panel or summit detection). A date the user
+            // already recorded — including one preserved across an
+            // accidental unbag — always wins over that default; edits go
+            // through setBaggedDate.
+            ...(date && !state.progressByPeakId[peakId]?.baggedDate
+              ? { baggedDate: date }
+              : {}),
           }),
         );
       },
@@ -144,14 +151,16 @@ export const useProgressStore = create<ProgressState>()(
           }
 
           // Unbagging is a single unconfirmed tap in the map panel, so it
-          // must not destroy the user's notes: keep them on a bagged:false
-          // record (the shape setNotes already creates) and drop the record
-          // only when no user-authored text remains.
-          if (current.notes) {
+          // must not destroy user-authored data: keep notes AND the bagged
+          // date on a bagged:false record, and drop the record only when
+          // nothing user-authored remains. Re-bagging restores the original
+          // date (see bag()).
+          if (current.notes || current.baggedDate) {
             return withValidatedRecord(state, {
               peakId,
               bagged: false,
-              notes: current.notes,
+              ...(current.notes ? { notes: current.notes } : {}),
+              ...(current.baggedDate ? { baggedDate: current.baggedDate } : {}),
             });
           }
 

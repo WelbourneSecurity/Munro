@@ -15,10 +15,14 @@ describe('getMapSupportError', () => {
     expect(getMapSupportError()).toMatch(/WebGL/);
   });
 
-  it('reports disabled WebAssembly', () => {
+  it('does not block a browser with WebAssembly off but WebGL2 on', () => {
+    // The shipped map engine contains no WASM; only WebGL2 is required.
     vi.stubGlobal('WebAssembly', undefined);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+      {} as unknown as RenderingContext,
+    );
 
-    expect(getMapSupportError()).toMatch(/WebAssembly/);
+    expect(getMapSupportError()).toBeNull();
   });
 
   it('returns null when WebGL2 is available', () => {

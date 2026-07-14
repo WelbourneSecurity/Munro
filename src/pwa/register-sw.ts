@@ -49,8 +49,10 @@ export function shouldRegisterServiceWorker(
 /**
  * Runs `callback` after the load event once the main thread goes idle,
  * keeping the precache download out of the critical first-render window.
+ * Exported for tests; production uses it as registerServiceWorker's
+ * default scheduler.
  */
-function scheduleWhenIdleAfterLoad(callback: () => void): void {
+export function scheduleWhenIdleAfterLoad(callback: () => void): void {
   const scheduleIdle = () => {
     if (typeof window.requestIdleCallback === 'function') {
       // The timeout caps the wait so offline support still arrives on pages

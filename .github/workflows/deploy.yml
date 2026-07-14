@@ -61,7 +61,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      # The deploy action authenticates through its own token input; the
+      # checkout credential would only widen what a compromised step can do.
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/download-artifact@v7
         with:
           name: site-dist
@@ -80,16 +84,26 @@ jobs:
       # scripts 404 or arrive as application/octet-stream and the favicon
       # breaks. Fail the deploy loudly instead of leaving the site silently
       # broken. Pages CDN propagation can take a few minutes, so poll.
+      # The grep targets THIS build's hashed entry chunk (from the artifact's
+      # index.html), not a generic /assets/index- string — a stale previous
+      # deploy would still contain the generic string and mask a failed or
+      # stalled Pages build behind a green check.
       - name: Verify the live site serves the built app
         run: |
+          asset="$(grep -o '/assets/index-[A-Za-z0-9_-]*\.js' dist/index.html | head -n 1)"
+          if [ -z "$asset" ]; then
+            echo "::error::Could not find the hashed entry chunk in dist/index.html."
+            exit 1
+          fi
+          echo "Expecting the live site to reference $asset"
           for i in $(seq 1 20); do
             html="$(curl -fsSL https://munro.welbournesecurity.com/ || true)"
-            if printf '%s' "$html" | grep -q '/assets/index-'; then
-              echo "Live site serves the built app."
+            if printf '%s' "$html" | grep -qF "$asset"; then
+              echo "Live site serves this deploy."
               curl -fsS -o /dev/null https://munro.welbournesecurity.com/favicon.svg
               exit 0
             fi
-            echo "Attempt $i/20: built app not live yet; retrying in 30s..."
+            echo "Attempt $i/20: this deploy not live yet; retrying in 30s..."
             sleep 30
           done
           echo "::error::https://munro.welbournesecurity.com is not serving the built app (raw source or stale content)."

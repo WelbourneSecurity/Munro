@@ -83,9 +83,16 @@ a dynamic import, so the app bundle does not grow as lists are added.
 
 Adding a hill list is a data-only change: commit its generated peak JSON
 under `src/data/` and add one registry entry. No store, component or map
-refactor should be required.
+refactor should be required. A new source list also flows into the
+collated **All peaks** view automatically (and changes its expected count
+in `src/data/lists.test.ts`), because that view is built from the registry
+rather than its own data file.
 
-The active list is a persisted user preference (defaulting to Wainwrights)
+The default view is the collated **All peaks** list: every registered
+source list merged and deduplicated by peak id (the published lists
+overlap — a Wainwright can also be a Hewitt and a Marilyn — so it holds
+one record per distinct hill, with the union of its list memberships).
+The active list is a persisted user preference (defaulting to All peaks)
 and is switched from the tracker's peak list panel. Progress records are
 keyed by the globally unique peak id (`dobih-N`), so each list's progress
 coexists in the same store and switching lists never touches existing

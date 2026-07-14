@@ -15,6 +15,13 @@ interface PeakListPanelProps {
   progress: PeakProgress[];
   selectedPeakId: string | undefined;
   onSelectPeak: (peakId: string) => void;
+  /**
+   * A redundant region-heading prefix to hide, e.g. 'Lake District - ' on
+   * the Wainwrights list where every group shares it. Merged multi-region
+   * lists pass nothing: stripped headings there would be ambiguous ('Eastern
+   * Fells' from which range?) and file out of alphabetical order.
+   */
+  regionPrefixToHide?: string;
 }
 
 const baggedDateFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -93,6 +100,7 @@ export function PeakListPanel({
   progress,
   selectedPeakId,
   onSelectPeak,
+  regionPrefixToHide,
 }: PeakListPanelProps) {
   const [filter, setFilter] = useState<PeakFilter>('all');
   const [query, setQuery] = useState('');
@@ -257,7 +265,9 @@ export function PeakListPanel({
         {visibleGroups.map((group) => (
           <div key={group.region} className="mb-5">
             <h3 className="font-label text-label text-muted bg-panel sticky top-0 py-2">
-              {group.region.replace('Lake District - ', '')}
+              {regionPrefixToHide
+                ? group.region.replace(regionPrefixToHide, '')
+                : group.region}
             </h3>
             <ul className="space-y-1">
               {group.items.map((item) => {

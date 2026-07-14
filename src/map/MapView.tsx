@@ -170,10 +170,18 @@ export function MapView() {
       return;
     }
 
+    // Flush only text the user actually typed in THIS view. The textarea is
+    // uncontrolled, so after another context (a second tab, the installed
+    // PWA window) edits the same peak's notes and the storage listener
+    // rehydrates the store, the mounted textarea still shows the old text —
+    // an unconditional flush would write that stale value back and silently
+    // revert the other window's edit just because this tab was hidden.
+    const mountedValue = notesRef.current?.value ?? '';
+
     function flushNotes() {
       const textarea = notesRef.current;
 
-      if (textarea && peakId) {
+      if (textarea && peakId && textarea.value !== mountedValue) {
         setNotes(peakId, textarea.value || undefined);
       }
     }
@@ -530,6 +538,12 @@ export function MapView() {
             peaks={peaks}
             progress={progress}
             selectedPeakId={selectedPeak?.id}
+            // Only the single-region Wainwrights list shares one redundant
+            // prefix; merged lists keep full region names so headings stay
+            // unambiguous and match their alphabetical order.
+            {...(list.id === 'wainwrights'
+              ? { regionPrefixToHide: 'Lake District - ' }
+              : {})}
             onSelectPeak={(peakId) => {
               selectPeak(peakId, { focusMap: true });
             }}

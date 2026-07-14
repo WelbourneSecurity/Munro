@@ -383,6 +383,7 @@ describe('committed Wainwright area model', () => {
     metadata?: {
       count?: number;
       method?: string;
+      source?: string;
     };
   };
 
@@ -395,6 +396,13 @@ describe('committed Wainwright area model', () => {
     expect(geojson.metadata?.count).toBe(214);
     expect(geojson.features).toHaveLength(214);
     expect(areaIds).toEqual(peakIds);
+  });
+
+  it('was generated from the same DoBIH release the peak data ships', () => {
+    // The profiles are stamped with DOBIH_VERSION at generation time; if the
+    // peak data is regenerated after a DoBIH release bump without also
+    // rerunning data:hill-boundaries, this pins the drift.
+    expect(geojson.metadata?.source).toContain(`DoBIH ${DOBIH_VERSION}`);
   });
 
   it('keeps method provenance on every feature', () => {

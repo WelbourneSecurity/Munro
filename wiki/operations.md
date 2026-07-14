@@ -116,6 +116,10 @@ job, and fails when the gzip output exceeds them.
   never statically imported from startup code paths.
 - **Total initial JS ≤ 650 kB gzip** (currently 467 kB). A PR that pushes
   past this must say what grew and why it is worth it.
+- **Default-list data ≤ 180 kB gzip** (currently 130 kB) — the eight
+  peak-data chunks the collated "All peaks" default view fetches before its
+  first render. They are lazy chunks, but on a first visit they are part of
+  the real payload.
 - **App code excluding maplibre-gl and the bundled hill/peak data stays
   small** — the non-engine, non-data remainder is ≈ 120–160 kB gzip today
   and should not grow past ≈ 200 kB gzip without justification.

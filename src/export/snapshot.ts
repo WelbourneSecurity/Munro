@@ -114,8 +114,22 @@ export async function frameBoundary(
   // already-idle map the idle event awaited below would then never fire.
   // Detect that upfront with the same computation fitBounds uses and fail
   // loudly instead of hanging.
-  if (!map.cameraForBounds(bounds, { bearing: 0, padding: fitPadding })) {
+  const camera = map.cameraForBounds(bounds, { bearing: 0, padding: fitPadding });
+
+  if (!camera) {
     throw new Error('Map viewport is too small to frame the export bounds');
+  }
+
+  // fitBounds also silently CLAMPS its zoom to the live map's minZoom.
+  // Framing a UK-wide list on a phone or laptop viewport needs a zoom below
+  // that floor, and a clamped fit would leave the centre-crop slicing the
+  // north and south of the bounds out of the exported image. Temporarily
+  // lower the floor to the fit's own zoom; restore() puts it back.
+  const originalMinZoom = map.getMinZoom();
+  const framedZoom = camera.zoom ?? originalMinZoom;
+
+  if (framedZoom < originalMinZoom) {
+    map.setMinZoom(framedZoom);
   }
 
   // Listen before moving the camera so the idle after the jump is never
@@ -137,6 +151,10 @@ export async function frameBoundary(
 
   return () => {
     map.jumpTo({ center, zoom, bearing, pitch });
+
+    if (framedZoom < originalMinZoom) {
+      map.setMinZoom(originalMinZoom);
+    }
   };
 }
 

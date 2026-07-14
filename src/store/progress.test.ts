@@ -23,16 +23,37 @@ beforeEach(() => {
 
 describe('useProgressStore', () => {
   it('bags and unbags peaks without storing source data', () => {
-    useProgressStore.getState().bag('dobih-2319', '2026-07-05');
+    useProgressStore.getState().bag('dobih-2319');
 
     expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
       peakId: 'dobih-2319',
       bagged: true,
-      baggedDate: '2026-07-05',
     });
 
     useProgressStore.getState().unbag('dobih-2319');
     expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toBeUndefined();
+  });
+
+  it('keeps the bagged date when unbagging so a mis-tap cannot rewrite history', () => {
+    useProgressStore.getState().bag('dobih-2319', '2019-06-14');
+
+    useProgressStore.getState().unbag('dobih-2319');
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: false,
+      baggedDate: '2019-06-14',
+    });
+
+    // Re-bagging restores the original date; the caller's date is only a
+    // default for first-time bags.
+    useProgressStore.getState().bag('dobih-2319', '2026-07-14');
+
+    expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
+      peakId: 'dobih-2319',
+      bagged: true,
+      baggedDate: '2019-06-14',
+    });
   });
 
   it('keeps notes when unbagging so a mis-tap cannot destroy them', () => {
@@ -44,16 +65,17 @@ describe('useProgressStore', () => {
     expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
       peakId: 'dobih-2319',
       bagged: false,
+      baggedDate: '2019-06-14',
       notes: 'Summited in snow with Dad',
     });
 
-    // Re-bagging keeps the preserved notes on the fresh record.
+    // Re-bagging keeps the preserved notes and the original date.
     useProgressStore.getState().bag('dobih-2319', '2026-07-12');
 
     expect(useProgressStore.getState().progressByPeakId['dobih-2319']).toEqual({
       peakId: 'dobih-2319',
       bagged: true,
-      baggedDate: '2026-07-12',
+      baggedDate: '2019-06-14',
       notes: 'Summited in snow with Dad',
     });
   });
