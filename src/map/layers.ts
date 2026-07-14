@@ -185,11 +185,18 @@ export const peakHitboxLayer: CircleLayerSpecification = {
   },
 };
 
-// Lists with hill lighting represent bagged peaks through the lit hill
-// areas, so the summit light stays invisible there. The layer is mounted
-// either way (visibility toggles through opacity, like peakMarkerLayer) so
-// switching lists never remounts it above the markers and labels.
-export function baggedSummitLightLayer(visible: boolean): CircleLayerSpecification {
+// Once the lighting profiles are loaded they take over from the markers and
+// the summit light — but only where they are legible. Below ~z8 a ~2 km
+// profile spans under 6 px, so the whole-list views (the UK at z5, Scotland
+// at z6.3) would read as a blank map; markers and lights persist there and
+// hand over across z8–9.2 as the profiles grow readable.
+
+// The bagged summit light. The layer is always mounted (visibility toggles
+// through opacity, like peakMarkerLayer) so switching lists never remounts
+// it above the markers and labels.
+export function baggedSummitLightLayer(
+  alwaysVisible: boolean,
+): CircleLayerSpecification {
   return {
     id: 'bagged-summit-light',
     type: 'circle',
@@ -197,9 +204,9 @@ export function baggedSummitLightLayer(visible: boolean): CircleLayerSpecificati
     filter: ['==', ['get', 'bagged'], true],
     paint: {
       'circle-color': '#a7d8b6',
-      'circle-opacity': visible
+      'circle-opacity': alwaysVisible
         ? ['interpolate', ['linear'], ['zoom'], 7, 0.16, 11, 0.28, 14, 0.34]
-        : 0,
+        : ['interpolate', ['linear'], ['zoom'], 7, 0.16, 8, 0.2, 9.2, 0],
       'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 18, 10, 38, 13, 68],
       'circle-blur': ['interpolate', ['linear'], ['zoom'], 7, 0.68, 13, 0.52],
       'circle-pitch-alignment': 'map',
@@ -207,19 +214,18 @@ export function baggedSummitLightLayer(visible: boolean): CircleLayerSpecificati
   };
 }
 
-// Lists with hill lighting represent peaks through the lit hill areas, so
-// their summit markers stay invisible; lists without lighting profiles fall
-// back to visible markers so the whole-list view is never a blank map.
-export function peakMarkerLayer(markersVisible: boolean): CircleLayerSpecification {
+// The summit markers: fully visible until the lighting profiles load, then
+// low-zoom only (see the hand-over note above).
+export function peakMarkerLayer(alwaysVisible: boolean): CircleLayerSpecification {
   return {
     id: 'peak-markers',
     type: 'circle',
     source: 'list-peaks',
     paint: {
       'circle-color': ['case', ['==', ['get', 'bagged'], true], '#a7d8b6', '#aab3aa'],
-      'circle-opacity': markersVisible
+      'circle-opacity': alwaysVisible
         ? ['interpolate', ['linear'], ['zoom'], 5, 0.72, 11, 0.9]
-        : 0,
+        : ['interpolate', ['linear'], ['zoom'], 5, 0.72, 8, 0.79, 9.2, 0],
       'circle-radius': [
         'interpolate',
         ['linear'],
@@ -234,7 +240,9 @@ export function peakMarkerLayer(markersVisible: boolean): CircleLayerSpecificati
         7,
       ],
       'circle-stroke-color': '#111713',
-      'circle-stroke-opacity': markersVisible ? 0.85 : 0,
+      'circle-stroke-opacity': alwaysVisible
+        ? 0.85
+        : ['interpolate', ['linear'], ['zoom'], 5, 0.85, 8, 0.85, 9.2, 0],
       'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 7, 1, 12, 1.6],
     },
   };

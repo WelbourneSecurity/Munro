@@ -12,18 +12,27 @@ import {
 import munroDarkStyle from './style/munro-dark.json';
 
 describe('peakMarkerLayer', () => {
-  it('hides markers for lists whose peaks are shown via hill lighting', () => {
+  it('hands markers over to the hill lighting only at legible zooms', () => {
+    // A ~2 km profile is under 6 px below z8, so the whole-list views (UK
+    // at z5) must keep markers; they fade out by z9.2 where profiles are
+    // readable.
     const layer = peakMarkerLayer(false);
+    const opacity = layer.paint?.['circle-opacity'] as unknown[];
+    const strokeOpacity = layer.paint?.['circle-stroke-opacity'] as unknown[];
 
-    expect(layer.paint?.['circle-opacity']).toBe(0);
-    expect(layer.paint?.['circle-stroke-opacity']).toBe(0);
+    expect(opacity[0]).toBe('interpolate');
+    expect(opacity.slice(-2)).toEqual([9.2, 0]);
+    expect(opacity).toContain(0.72);
+    expect(strokeOpacity.slice(-2)).toEqual([9.2, 0]);
   });
 
-  it('shows markers for lists without hill-lighting profiles', () => {
+  it('keeps markers fully visible while the lighting profiles load', () => {
     const layer = peakMarkerLayer(true);
+    const opacity = layer.paint?.['circle-opacity'] as unknown[];
 
-    expect(layer.paint?.['circle-opacity']).not.toBe(0);
-    expect(layer.paint?.['circle-stroke-opacity']).not.toBe(0);
+    expect(opacity[0]).toBe('interpolate');
+    expect(opacity).not.toContain(0);
+    expect(layer.paint?.['circle-stroke-opacity']).toBe(0.85);
   });
 
   it('keeps a stable layer id for interaction wiring', () => {
@@ -33,12 +42,20 @@ describe('peakMarkerLayer', () => {
 });
 
 describe('baggedSummitLightLayer', () => {
-  it('hides the summit light for lists with hill lighting', () => {
-    expect(baggedSummitLightLayer(false).paint?.['circle-opacity']).toBe(0);
+  it('fades the summit light out where the lit hill areas take over', () => {
+    const opacity = baggedSummitLightLayer(false).paint?.[
+      'circle-opacity'
+    ] as unknown[];
+
+    expect(opacity[0]).toBe('interpolate');
+    expect(opacity.slice(-2)).toEqual([9.2, 0]);
   });
 
-  it('shows the summit light for lists without hill-lighting profiles', () => {
-    expect(baggedSummitLightLayer(true).paint?.['circle-opacity']).not.toBe(0);
+  it('keeps the summit light at every zoom while profiles load', () => {
+    const opacity = baggedSummitLightLayer(true).paint?.['circle-opacity'] as unknown[];
+
+    expect(opacity[0]).toBe('interpolate');
+    expect(opacity).not.toContain(0);
   });
 
   it('keeps a stable layer id so list switches never remount it', () => {
