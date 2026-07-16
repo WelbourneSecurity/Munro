@@ -414,6 +414,7 @@ const HILL_LIST_CONFIGS: readonly HillListConfig[] = [
     flagColumn: 'B',
     outputFile: 'birketts.json',
     expectedCount: 541,
+    nationalPark: 'Lake District',
     heightRangeM: [304, 979],
     spotCheck: (peaks) => {
       if (highestOf(peaks).name !== 'Scafell Pike') {
@@ -427,6 +428,7 @@ const HILL_LIST_CONFIGS: readonly HillListConfig[] = [
     flagColumn: 'Fel',
     outputFile: 'fellrangers.json',
     expectedCount: 230,
+    nationalPark: 'Lake District',
     heightRangeM: [230, 979],
     spotCheck: (peaks) => {
       if (highestOf(peaks).name !== 'Scafell Pike') {
