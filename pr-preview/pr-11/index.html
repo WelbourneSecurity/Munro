@@ -6,7 +6,16 @@
       name="description"
       content="Munro is a calm, local-first peak bagging logbook built around a dark topographic map."
     />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      viewport-fit=cover lets the app draw edge to edge on notched phones and
+      makes env(safe-area-inset-*) report real values — the header and panel
+      pad with them, so without it buttons sit under the iOS status bar.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#111713" />
     <!--
       Warm up connections to the two external hosts the map needs at startup:
       OpenFreeMap (style, vector tiles, glyphs, sprites) and AWS S3 (Terrarium
@@ -20,9 +29,18 @@
     <link rel="preconnect" href="https://s3.amazonaws.com" crossorigin />
     <link rel="dns-prefetch" href="https://s3.amazonaws.com" />
     <link rel="icon" type="image/svg+xml" href="/pr-preview/pr-11/favicon.svg" />
+    <!--
+      iOS ignores the manifest icons for home-screen installs and falls back
+      to a page snapshot unless an apple-touch-icon is linked explicitly.
+    -->
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/pr-preview/pr-11/icons/apple-touch-icon.png"
+    />
     <title>Munro</title>
-    <script type="module" crossorigin src="/pr-preview/pr-11/assets/index-TuNcYx2M.js"></script>
-    <link rel="stylesheet" crossorigin href="/pr-preview/pr-11/assets/index-bNCrimML.css">
+    <script type="module" crossorigin src="/pr-preview/pr-11/assets/index-DzgX1u_r.js"></script>
+    <link rel="stylesheet" crossorigin href="/pr-preview/pr-11/assets/index-BErqJEWZ.css">
   <link rel="manifest" href="/pr-preview/pr-11/manifest.webmanifest"></head>
   <body>
     <div id="root"></div>
