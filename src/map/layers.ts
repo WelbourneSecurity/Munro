@@ -104,7 +104,7 @@ export const terrainContourLabelLayer: SymbolLayerSpecification = {
 // The transient selection highlight is parameterized into these layer
 // filter/paint expressions rather than written into feature properties:
 // react-maplibre diffs them into cheap setFilter/setPaintProperty calls, so
-// selecting a peak never re-uploads the ~1 MB hill-area GeoJSON via setData.
+// selecting a peak never re-uploads the ~4 MB hill-area GeoJSON via setData.
 // Pass undefined to highlight nothing (an empty id matches no hill).
 function hillAreaSelected(selectedPeakId: string | undefined): ExpressionSpecification {
   return ['==', ['get', 'id'], selectedPeakId ?? ''];

@@ -9,7 +9,7 @@ let pending: Promise<HillAreaData> | null = null;
 
 /**
  * Lazily loads the generated UK-wide hill-lighting profiles (one per
- * distinct hill across every list, ~1.4 MB raw). Lighting is a visual
+ * distinct hill across every list, ~3.9 MB raw). Lighting is a visual
  * enhancement layered over the summit markers, so the data must never sit
  * in the eager bundle or block the first map render — markers carry the
  * tracker until this resolves.

@@ -19,6 +19,20 @@ export const HILL_LIST_IDS = [
   'ethels',
   'hewitts',
   'marilyns',
+  'munro-tops',
+  'corbett-tops',
+  'graham-tops',
+  'donald-tops',
+  'furths',
+  'nuttalls',
+  'wainwright-outlying-fells',
+  'birketts',
+  'fellrangers',
+  'deweys',
+  'humps',
+  'simms',
+  'county-tops',
+  'trail-100',
 ] as const;
 
 export type HillListId = (typeof HILL_LIST_IDS)[number];
@@ -172,9 +186,10 @@ const donalds: HillListDefinition = {
   loadPeaks: async () => (await import('./donalds.json')).default.peaks,
 };
 
-// The UK-wide lists are trimmed to the UK (plus the Isle of Man for the
-// Marilyns, whose published list includes it); Republic of Ireland hills
-// are excluded by the data build — see scripts/build-peak-data.ts.
+// Lists whose published scope crosses the British Isles are trimmed to the
+// UK (plus the Isle of Man where the published list includes it); Republic
+// of Ireland and Channel Islands hills are excluded by the data build —
+// see scripts/build-peak-data.ts.
 
 const ethels: HillListDefinition = {
   id: 'ethels',
@@ -236,6 +251,274 @@ const marilyns: HillListDefinition = {
   loadPeaks: async () => (await import('./marilyns.json')).default.peaks,
 };
 
+// The subsidiary-top lists share their parents' regions and camera framing.
+
+const munroTops: HillListDefinition = {
+  id: 'munro-tops',
+  name: 'Munro Tops',
+  regionLabel: 'Scottish Highlands',
+  peakNoun: 'tops',
+  bounds: [
+    [-6.7, 56.05],
+    [-2.9, 58.4],
+  ],
+  initialView: {
+    longitude: -4.7,
+    latitude: 57.2,
+    zoom: 6.6,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./munro-tops.json')).default.peaks,
+};
+
+const corbettTops: HillListDefinition = {
+  id: 'corbett-tops',
+  name: 'Corbett Tops',
+  regionLabel: 'Scottish Highlands & Islands',
+  peakNoun: 'tops',
+  bounds: [
+    [-6.8, 54.95],
+    [-2.6, 58.7],
+  ],
+  initialView: {
+    longitude: -4.7,
+    latitude: 56.85,
+    zoom: 6.3,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./corbett-tops.json')).default.peaks,
+};
+
+const grahamTops: HillListDefinition = {
+  id: 'graham-tops',
+  name: 'Graham Tops',
+  regionLabel: 'Scotland',
+  peakNoun: 'tops',
+  bounds: [
+    [-7.4, 54.75],
+    [-1.95, 58.65],
+  ],
+  initialView: {
+    longitude: -4.7,
+    latitude: 56.7,
+    zoom: 6.3,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./graham-tops.json')).default.peaks,
+};
+
+const donaldTops: HillListDefinition = {
+  id: 'donald-tops',
+  name: 'Donald Tops',
+  regionLabel: 'Southern Scotland',
+  peakNoun: 'tops',
+  bounds: [
+    [-4.85, 54.8],
+    [-1.95, 56.5],
+  ],
+  initialView: {
+    longitude: -3.4,
+    latitude: 55.6,
+    zoom: 7.4,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./donald-tops.json')).default.peaks,
+};
+
+const furths: HillListDefinition = {
+  id: 'furths',
+  name: 'Furths',
+  regionLabel: 'England & Wales',
+  peakNoun: 'mountains',
+  bounds: [
+    [-4.4, 52.9],
+    [-2.75, 54.85],
+  ],
+  initialView: {
+    longitude: -3.55,
+    latitude: 53.85,
+    zoom: 6.7,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./furths.json')).default.peaks,
+};
+
+const nuttalls: HillListDefinition = {
+  id: 'nuttalls',
+  name: 'Nuttalls',
+  regionLabel: 'England & Wales',
+  peakNoun: 'mountains',
+  bounds: [
+    [-4.6, 50.5],
+    [-1.6, 55.7],
+  ],
+  initialView: {
+    longitude: -3.0,
+    latitude: 53.1,
+    zoom: 5.9,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./nuttalls.json')).default.peaks,
+};
+
+// The Outlying Fells range beyond the park boundary (Humphrey Head reaches
+// the Morecambe Bay coast), so they carry their own slightly wider bounds
+// and no national-park framing.
+const wainwrightOutlyingFells: HillListDefinition = {
+  id: 'wainwright-outlying-fells',
+  name: 'Wainwright Outlying Fells',
+  regionLabel: 'Lake District',
+  peakNoun: 'fells',
+  bounds: [
+    [-3.65, 54.06],
+    [-2.55, 54.86],
+  ],
+  initialView: {
+    longitude: -3.1,
+    latitude: 54.45,
+    zoom: 8.4,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () =>
+    (await import('./wainwright-outlying-fells.json')).default.peaks,
+};
+
+const birketts: HillListDefinition = {
+  id: 'birketts',
+  name: 'Birketts',
+  regionLabel: 'Lake District',
+  peakNoun: 'fells',
+  bounds: LAKE_DISTRICT_BOUNDS,
+  initialView: LAKE_DISTRICT_INITIAL_VIEW,
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./birketts.json')).default.peaks,
+};
+
+const fellrangers: HillListDefinition = {
+  id: 'fellrangers',
+  name: 'Fellrangers',
+  regionLabel: 'Lake District',
+  peakNoun: 'fells',
+  bounds: LAKE_DISTRICT_BOUNDS,
+  initialView: LAKE_DISTRICT_INITIAL_VIEW,
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./fellrangers.json')).default.peaks,
+};
+
+const deweys: HillListDefinition = {
+  id: 'deweys',
+  name: 'Deweys',
+  regionLabel: 'England, Wales & Isle of Man',
+  peakNoun: 'hills',
+  bounds: [
+    [-5.1, 50.3],
+    [-1.45, 55.75],
+  ],
+  initialView: {
+    longitude: -3.3,
+    latitude: 53.0,
+    zoom: 5.9,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./deweys.json')).default.peaks,
+};
+
+const humps: HillListDefinition = {
+  id: 'humps',
+  name: 'HuMPs',
+  regionLabel: 'UK & Isle of Man',
+  peakNoun: 'hills',
+  bounds: [
+    [-8.9, 49.95],
+    [1.4, 61.0],
+  ],
+  initialView: {
+    longitude: -4.0,
+    latitude: 55.0,
+    zoom: 5.0,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./humps.json')).default.peaks,
+};
+
+const simms: HillListDefinition = {
+  id: 'simms',
+  name: 'Simms',
+  regionLabel: 'UK & Isle of Man',
+  peakNoun: 'hills',
+  bounds: [
+    [-8.2, 50.45],
+    [-1.6, 58.7],
+  ],
+  initialView: {
+    longitude: -4.2,
+    latitude: 55.3,
+    zoom: 5.4,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./simms.json')).default.peaks,
+};
+
+const countyTops: HillListDefinition = {
+  id: 'county-tops',
+  name: 'County Tops',
+  regionLabel: 'Historic counties',
+  peakNoun: 'summits',
+  bounds: [
+    [-8.2, 50.4],
+    [1.6, 60.8],
+  ],
+  initialView: {
+    longitude: -2.8,
+    latitude: 54.3,
+    zoom: 5.0,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./county-tops.json')).default.peaks,
+};
+
+const trail100: HillListDefinition = {
+  id: 'trail-100',
+  name: 'Trail 100',
+  regionLabel: 'United Kingdom',
+  peakNoun: 'peaks',
+  bounds: [
+    [-6.7, 50.5],
+    [-0.85, 58.65],
+  ],
+  initialView: {
+    longitude: -3.7,
+    latitude: 54.5,
+    zoom: 5.3,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () => (await import('./trail-100.json')).default.peaks,
+};
+
 const SOURCE_HILL_LISTS: readonly HillListDefinition[] = [
   wainwrights,
   munros,
@@ -245,21 +528,36 @@ const SOURCE_HILL_LISTS: readonly HillListDefinition[] = [
   ethels,
   hewitts,
   marilyns,
+  munroTops,
+  corbettTops,
+  grahamTops,
+  donaldTops,
+  furths,
+  nuttalls,
+  wainwrightOutlyingFells,
+  birketts,
+  fellrangers,
+  deweys,
+  humps,
+  simms,
+  countyTops,
+  trail100,
 ];
 
 // The published lists overlap — a Wainwright can also be a Hewitt and a
 // Marilyn — so the default view collates every registered list into one
 // deduplicated UK-wide set. Progress is keyed by peak id, so a peak bagged
 // here is bagged in every list that contains it (and vice versa). The
-// bounds/view match the Marilyns, the widest source list.
+// bounds cover the union of the source lists: the HuMPs reach furthest
+// west and north, the historic county tops furthest east.
 const allPeaks: HillListDefinition = {
   id: 'all',
   name: 'All peaks',
   regionLabel: 'United Kingdom',
   peakNoun: 'peaks',
   bounds: [
-    [-8.7, 50.1],
-    [0.65, 60.9],
+    [-8.9, 49.95],
+    [1.6, 61.0],
   ],
   initialView: {
     longitude: -4.0,

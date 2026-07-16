@@ -64,8 +64,10 @@ export default defineConfig({
     // (see "Performance budget" in wiki/operations.md); the hill-profile
     // data is a separate lazy chunk. Vite's default 500 kB warning would
     // fire on every build and carry no signal; this limit sits just above
-    // the measured chunk sizes (main ~1,380 kB, profiles ~1,690 kB) so the
-    // warning returns only when a chunk genuinely grows.
-    chunkSizeWarningLimit: 1800,
+    // the measured chunk sizes (main ~1,380 kB, profiles ~3,915 kB across
+    // every UK list) so the warning returns only when a chunk genuinely
+    // grows. The gzip ceilings that actually gate a deploy live in
+    // scripts/check-bundle-budget.ts.
+    chunkSizeWarningLimit: 4100,
   },
 });

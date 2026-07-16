@@ -45,9 +45,16 @@ describe('App', () => {
       }),
     ).toBeVisible();
     // The empty-state copy waits for the peak data to load — until then the
-    // page cannot say anything truthful about progress.
+    // page cannot say anything truthful about progress. Loading the full
+    // 22-list collated set takes a while under jsdom, hence the timeout.
     expect(
-      await findByText('Start bagging to build your local progress record.'),
+      await findByText(
+        'Start bagging to build your local progress record.',
+        undefined,
+        {
+          timeout: 10_000,
+        },
+      ),
     ).toBeVisible();
     expect(getByRole('link', { name: 'Open tracker' })).toHaveAttribute(
       'href',
@@ -61,7 +68,9 @@ describe('App', () => {
 
     const { findByText } = render(<App />);
 
-    expect(await findByText('1 / 2170 bagged')).toBeVisible();
+    expect(
+      await findByText('1 / 5471 bagged', undefined, { timeout: 10_000 }),
+    ).toBeVisible();
   });
 
   it('resets scroll when the route changes, but not on same-route hash changes', () => {

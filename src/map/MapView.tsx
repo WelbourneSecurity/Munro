@@ -126,7 +126,7 @@ export function MapView() {
   const activePeakIds = useMemo(() => new Set(peaks.map((peak) => peak.id)), [peaks]);
   // Only bagged state is baked into the hill-area features; the transient
   // selection highlight lives in the hill-area layer filter/paint instead
-  // (see layers.ts), so selecting a peak never re-uploads this ~1 MB
+  // (see layers.ts), so selecting a peak never re-uploads this ~4 MB
   // collection through setData. The UK-wide profiles are filtered to the
   // active list so hills outside it never light up (list switches re-upload
   // once, like the peak source itself).

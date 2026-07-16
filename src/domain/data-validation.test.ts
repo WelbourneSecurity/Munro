@@ -3,13 +3,27 @@ import type { FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
 import hillAreasRaw from '../data/boundaries/hill-areas.geojson?raw';
 import { DOBIH_SOURCE, DOBIH_VERSION } from '../data/attribution';
+import birketts from '../data/birketts.json';
+import corbettTops from '../data/corbett-tops.json';
 import corbetts from '../data/corbetts.json';
+import countyTops from '../data/county-tops.json';
+import deweys from '../data/deweys.json';
+import donaldTops from '../data/donald-tops.json';
 import donalds from '../data/donalds.json';
 import ethels from '../data/ethels.json';
+import fellrangers from '../data/fellrangers.json';
+import furths from '../data/furths.json';
+import grahamTops from '../data/graham-tops.json';
 import grahams from '../data/grahams.json';
 import hewitts from '../data/hewitts.json';
+import humps from '../data/humps.json';
 import marilyns from '../data/marilyns.json';
+import munroTops from '../data/munro-tops.json';
 import munros from '../data/munros.json';
+import nuttalls from '../data/nuttalls.json';
+import simms from '../data/simms.json';
+import trail100 from '../data/trail-100.json';
+import wainwrightOutlyingFells from '../data/wainwright-outlying-fells.json';
 import wainwrights from '../data/wainwrights.json';
 import { peakSchema, type Peak } from './schemas';
 
@@ -191,6 +205,146 @@ const generatedLists: GeneratedListCase[] = [
       [0.65, 60.9],
     ],
   },
+  {
+    id: 'munro-tops',
+    file: munroTops,
+    count: 226,
+    heightRangeM: [914, 1266],
+    bounds: [
+      [-6.7, 56.05],
+      [-2.9, 58.4],
+    ],
+  },
+  {
+    id: 'corbett-tops',
+    file: corbettTops,
+    count: 453,
+    heightRangeM: [762, 915],
+    bounds: [
+      [-6.8, 54.95],
+      [-2.6, 58.7],
+    ],
+  },
+  {
+    id: 'graham-tops',
+    file: grahamTops,
+    count: 844,
+    heightRangeM: [600, 762],
+    bounds: [
+      [-7.4, 54.75],
+      [-1.95, 58.65],
+    ],
+  },
+  {
+    id: 'donald-tops',
+    file: donaldTops,
+    count: 52,
+    heightRangeM: [609, 812],
+    bounds: [
+      [-4.85, 54.8],
+      [-1.95, 56.5],
+    ],
+  },
+  {
+    id: 'furths',
+    file: furths,
+    count: 21,
+    heightRangeM: [914, 1086],
+    bounds: [
+      [-4.4, 52.9],
+      [-2.75, 54.85],
+    ],
+  },
+  {
+    id: 'nuttalls',
+    file: nuttalls,
+    count: 442,
+    heightRangeM: [609, 1086],
+    bounds: [
+      [-4.6, 50.5],
+      [-1.6, 55.7],
+    ],
+  },
+  {
+    id: 'wainwright-outlying-fells',
+    file: wainwrightOutlyingFells,
+    count: 116,
+    heightRangeM: [50, 621],
+    bounds: [
+      [-3.65, 54.06],
+      [-2.55, 54.86],
+    ],
+  },
+  {
+    id: 'birketts',
+    file: birketts,
+    count: 541,
+    heightRangeM: [304, 979],
+    bounds: [
+      [-3.58, 54.18],
+      [-2.55, 54.82],
+    ],
+  },
+  {
+    id: 'fellrangers',
+    file: fellrangers,
+    count: 230,
+    heightRangeM: [230, 979],
+    bounds: [
+      [-3.58, 54.18],
+      [-2.55, 54.82],
+    ],
+  },
+  {
+    id: 'deweys',
+    file: deweys,
+    count: 425,
+    heightRangeM: [500, 610],
+    bounds: [
+      [-5.1, 50.3],
+      [-1.45, 55.75],
+    ],
+  },
+  {
+    id: 'humps',
+    file: humps,
+    count: 3096,
+    heightRangeM: [100, 1345],
+    bounds: [
+      [-8.9, 49.95],
+      [1.4, 61.0],
+    ],
+  },
+  {
+    id: 'simms',
+    file: simms,
+    count: 2552,
+    heightRangeM: [600, 1345],
+    bounds: [
+      [-8.2, 50.45],
+      [-1.6, 58.7],
+    ],
+  },
+  {
+    id: 'county-tops',
+    file: countyTops,
+    count: 90,
+    heightRangeM: [80, 1345],
+    bounds: [
+      [-8.2, 50.4],
+      [1.6, 60.8],
+    ],
+  },
+  {
+    id: 'trail-100',
+    file: trail100,
+    count: 100,
+    heightRangeM: [315, 1345],
+    bounds: [
+      [-6.7, 50.5],
+      [-0.85, 58.65],
+    ],
+  },
 ];
 
 describe.each(generatedLists)(
@@ -263,16 +417,23 @@ describe('generated list spot checks against DoBIH v18.4', () => {
   it('keeps Merrick as the highest Donald, shared with the Corbetts', () => {
     const merrick = donalds.peaks.find((peak) => peak.dobihId === 1688);
     const highest = [...donalds.peaks].sort((a, b) => b.heightM - a.heightM)[0];
+    const merrickLists = [
+      'corbetts',
+      'donalds',
+      'marilyns',
+      'humps',
+      'simms',
+      'county-tops',
+      'trail-100',
+    ];
 
     expect(merrick?.name).toBe('Merrick');
     expect(merrick?.heightM).toBe(843);
     expect(highest).toBe(merrick);
-    expect(merrick?.list).toEqual(['corbetts', 'donalds', 'marilyns']);
-    expect(corbetts.peaks.find((peak) => peak.dobihId === 1688)?.list).toEqual([
-      'corbetts',
-      'donalds',
-      'marilyns',
-    ]);
+    expect(merrick?.list).toEqual(merrickLists);
+    expect(corbetts.peaks.find((peak) => peak.dobihId === 1688)?.list).toEqual(
+      merrickLists,
+    );
   });
 
   it('keeps Kinder Scout as the highest Ethel', () => {
@@ -308,6 +469,38 @@ describe('generated list spot checks against DoBIH v18.4', () => {
     );
   });
 
+  it('scopes the HuMPs to the UK and Isle of Man', () => {
+    const highest = [...humps.peaks].sort((a, b) => b.heightM - a.heightM)[0];
+
+    // Northern Ireland and the Isle of Man are covered; the Republic of
+    // Ireland's and the Channel Islands' HuMPs are excluded.
+    expect(highest?.name).toContain('Ben Nevis');
+    expect(humps.peaks.find((peak) => peak.dobihId === 20016)?.name).toBe(
+      'Slieve Donard',
+    );
+    expect(humps.peaks.find((peak) => peak.dobihId === 1945)?.name).toBe('Snaefell');
+    expect(humps.peaks.some((peak) => peak.name.includes('Carrauntoohil'))).toBe(false);
+    expect(humps.peaks.some((peak) => peak.name.includes('Les Platons'))).toBe(false);
+  });
+
+  it('keeps well-known anchors on the newly added lists', () => {
+    // Scafell Pike anchors the Lake District lists and the county tops.
+    for (const file of [birketts, fellrangers, nuttalls, countyTops]) {
+      expect(
+        file.peaks.find((peak) => peak.dobihId === 2359)?.name,
+        'Scafell Pike',
+      ).toBe('Scafell Pike');
+    }
+
+    expect(furths.peaks.some((peak) => peak.name.includes('Carrauntoohil'))).toBe(
+      false,
+    );
+    expect(trail100.peaks).toHaveLength(100);
+    expect(
+      wainwrightOutlyingFells.peaks.find((peak) => peak.name === 'Humphrey Head'),
+    ).toBeDefined();
+  });
+
   it('shares the dobih peak id namespace so progress records stay unique', () => {
     const allPeaks = [
       ...wainwrights.peaks,
@@ -318,6 +511,20 @@ describe('generated list spot checks against DoBIH v18.4', () => {
       ...ethels.peaks,
       ...hewitts.peaks,
       ...marilyns.peaks,
+      ...munroTops.peaks,
+      ...corbettTops.peaks,
+      ...grahamTops.peaks,
+      ...donaldTops.peaks,
+      ...furths.peaks,
+      ...nuttalls.peaks,
+      ...wainwrightOutlyingFells.peaks,
+      ...birketts.peaks,
+      ...fellrangers.peaks,
+      ...deweys.peaks,
+      ...humps.peaks,
+      ...simms.peaks,
+      ...countyTops.peaks,
+      ...trail100.peaks,
     ];
     const byId = new Map<string, Peak[]>();
 
@@ -393,6 +600,20 @@ describe('committed hill area model', () => {
         ethels,
         hewitts,
         marilyns,
+        munroTops,
+        corbettTops,
+        grahamTops,
+        donaldTops,
+        furths,
+        nuttalls,
+        wainwrightOutlyingFells,
+        birketts,
+        fellrangers,
+        deweys,
+        humps,
+        simms,
+        countyTops,
+        trail100,
       ].flatMap((file) => file.peaks.map((peak) => peak.id)),
     );
     const areaIds = new Set(geojson.features.map((feature) => feature.properties.id));
@@ -417,7 +638,12 @@ describe('committed hill area model', () => {
   });
 
   it('has polygon coordinates within the UK and Isle of Man', () => {
-    // The Marilyns' bounds plus the profiles' 2.75 km maximum radius.
+    // The union of the source lists' bounds (HuMPs west and north, the
+    // historic county tops east) plus the profiles' 2.75 km maximum radius.
+    // Checked with plain comparisons: an expect() per coordinate across
+    // ~5,500 profiles times the suite out.
+    const violations: string[] = [];
+
     for (const feature of geojson.features) {
       expect(['Polygon', 'MultiPolygon']).toContain(feature.geometry.type);
 
@@ -425,11 +651,12 @@ describe('committed hill area model', () => {
       expect(pairs.length, feature.properties.name).toBeGreaterThan(3);
 
       for (const [lon, lat] of pairs) {
-        expect(lon).toBeGreaterThanOrEqual(-8.8);
-        expect(lon).toBeLessThanOrEqual(0.8);
-        expect(lat).toBeGreaterThanOrEqual(50.0);
-        expect(lat).toBeLessThanOrEqual(61.0);
+        if (lon < -8.8 || lon > 1.35 || lat < 50.0 || lat > 61.0) {
+          violations.push(`${feature.properties.name}: ${String(lon)},${String(lat)}`);
+        }
       }
     }
+
+    expect(violations).toEqual([]);
   });
 });

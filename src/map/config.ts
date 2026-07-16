@@ -25,10 +25,11 @@ export const MAP_MIN_ZOOM = 4;
 export const MAP_MAX_ZOOM = 16;
 
 // How far the pan limits extend past a list's bounds, as a multiple of the
-// bounds' span on each side. 3 leaves the whole-list fit reachable for the
-// wide-aspect UK-wide Marilyns bounds even on ultrawide (21:9) viewports —
+// bounds' span on each side. 4 leaves the whole-list fit reachable even for
+// the tall-and-narrow England & Wales lists (Nuttalls, Deweys) on ultrawide
+// (21:9) viewports, where the longitude span hits the clamp first —
 // `src/map/config.test.ts` checks an ultrawide case alongside laptops.
-const MAX_BOUNDS_MARGIN = 3;
+const MAX_BOUNDS_MARGIN = 4;
 
 /**
  * Pan limits for a hill list: its bounds padded by `MAX_BOUNDS_MARGIN`.

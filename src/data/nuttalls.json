@@ -4,9 +4,9 @@
     "license": "CC BY 4.0",
     "sourceUrl": "https://www.hill-bagging.co.uk/dobih",
     "downloadedFrom": "https://www.hill-bagging.co.uk/dobih-downloads/hillcsv.zip",
-    "changes": "Trimmed to Hewitts (England, Wales and Northern Ireland only, Republic of Ireland excluded) and reformatted from DoBIH v18.4",
+    "changes": "Trimmed to Nuttalls and reformatted from DoBIH v18.4",
     "generatedAt": "2026-07-16",
-    "count": 336
+    "count": 442
   },
   "peaks": [
     {
@@ -27,6 +27,19 @@
       "lat": 54.466367,
       "lon": -3.179175,
       "gridRef": "NY236085",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2252",
+      "dobihId": 2252,
+      "name": "Allt Lwyd",
+      "list": ["nuttalls"],
+      "region": "Brecon Beacons",
+      "heightM": 653.1,
+      "heightFt": 2143,
+      "lat": 51.861144,
+      "lon": -3.339432,
+      "gridRef": "SO078189",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -77,6 +90,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2725",
+      "dobihId": 2725,
+      "name": "Archy Styrigg [Gregory Chapel]",
+      "list": ["nuttalls"],
+      "region": "Yorkshire Dales - Northern Fells",
+      "heightM": 695,
+      "heightFt": 2280,
+      "lat": 54.398279,
+      "lon": -2.306238,
+      "gridRef": "NY802003",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2063",
       "dobihId": 2063,
       "name": "Arenig Fach",
@@ -103,6 +129,45 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2061",
+      "dobihId": 2061,
+      "name": "Arenig Fawr South Ridge Top",
+      "list": ["nuttalls"],
+      "region": "The Arenigs",
+      "heightM": 714,
+      "heightFt": 2343,
+      "lat": 52.908067,
+      "lon": -3.744993,
+      "gridRef": "SH827359",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2054",
+      "dobihId": 2054,
+      "name": "Arenig Fawr South Top",
+      "list": ["nuttalls"],
+      "region": "The Arenigs",
+      "heightM": 837,
+      "heightFt": 2746,
+      "lat": 52.91447,
+      "lon": -3.746128,
+      "gridRef": "SH826366",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2323",
+      "dobihId": 2323,
+      "name": "Atkinson Pike [Foule Crag]",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Northern Fells",
+      "heightM": 845.3,
+      "heightFt": 2773,
+      "lat": 54.645272,
+      "lon": -3.048531,
+      "gridRef": "NY324282",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2181",
       "dobihId": 2181,
       "name": "Bache Hill",
@@ -113,6 +178,19 @@
       "lat": 52.264982,
       "lon": -3.15484,
       "gridRef": "SO212636",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2723",
+      "dobihId": 2723,
+      "name": "Backstone Edge",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Western Fells",
+      "heightM": 699,
+      "heightFt": 2293,
+      "lat": 54.643659,
+      "lon": -2.426234,
+      "gridRef": "NY725276",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -182,6 +260,45 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2763",
+      "dobihId": 2763,
+      "name": "Bellbeaver Rigg",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Western Fells",
+      "heightM": 620.1,
+      "heightFt": 2034,
+      "lat": 54.710185,
+      "lon": -2.36955,
+      "gridRef": "NY762350",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-1987",
+      "dobihId": 1987,
+      "name": "Bera Bach",
+      "list": ["nuttalls"],
+      "region": "The Carneddau",
+      "heightM": 806.5,
+      "heightFt": 2646,
+      "lat": 53.190381,
+      "lon": -3.989008,
+      "gridRef": "SH672677",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-1991",
+      "dobihId": 1991,
+      "name": "Bera Mawr",
+      "list": ["nuttalls"],
+      "region": "The Carneddau",
+      "heightM": 793.7,
+      "heightFt": 2604,
+      "lat": 53.194941,
+      "lon": -3.985087,
+      "gridRef": "SH674682",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2764",
       "dobihId": 2764,
       "name": "Bink Moss",
@@ -192,6 +309,32 @@
       "lat": 54.613546,
       "lon": -2.193672,
       "gridRef": "NY875242",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2549",
+      "dobihId": 2549,
+      "name": "Birkhouse Moor",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Eastern Fells",
+      "heightM": 717.6,
+      "heightFt": 2354,
+      "lat": 54.535033,
+      "lon": -2.98532,
+      "gridRef": "NY363159",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2570",
+      "dobihId": 2570,
+      "name": "Birks",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Eastern Fells",
+      "heightM": 624,
+      "heightFt": 2047,
+      "lat": 54.520711,
+      "lon": -2.959051,
+      "gridRef": "NY380143",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -344,6 +487,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2370",
+      "dobihId": 2370,
+      "name": "Bowfell North Top",
+      "list": ["nuttalls"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 866,
+      "heightFt": 2841,
+      "lat": 54.452773,
+      "lon": -3.166676,
+      "gridRef": "NY244070",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2329",
       "dobihId": 2329,
       "name": "Bowscale Fell",
@@ -405,6 +561,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2555",
+      "dobihId": 2555,
+      "name": "Branstree NE Top [Branstree East Top] [High Howes (Mardale)]",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Far Eastern Fells",
+      "heightM": 673,
+      "heightFt": 2208,
+      "lat": 54.485816,
+      "lon": -2.79237,
+      "gridRef": "NY487103",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2636",
+      "dobihId": 2636,
+      "name": "Brim Fell",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 795.9,
+      "heightFt": 2611,
+      "lat": 54.377283,
+      "lon": -3.124197,
+      "gridRef": "SD270985",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2363",
       "dobihId": 2363,
       "name": "Broad Crag",
@@ -431,6 +613,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2765",
+      "dobihId": 2765,
+      "name": "Bullman Hills",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Western Fells",
+      "heightM": 611.4,
+      "heightFt": 2006,
+      "lat": 54.730194,
+      "lon": -2.45823,
+      "gridRef": "NY705373",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2714",
       "dobihId": 2714,
       "name": "Burnhope Seat",
@@ -444,6 +639,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2760",
+      "dobihId": 2760,
+      "name": "Bush Howe",
+      "list": ["nuttalls"],
+      "region": "Yorkshire Dales - Northern Fells",
+      "heightM": 622.3,
+      "heightFt": 2042,
+      "lat": 54.377109,
+      "lon": -2.526415,
+      "gridRef": "SD659980",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2235",
+      "dobihId": 2235,
+      "name": "Bwlch y Ddwyallt [Gwaun Cerrig Llwydion]",
+      "list": ["nuttalls"],
+      "region": "Brecon Beacons",
+      "heightM": 754.1,
+      "heightFt": 2474,
+      "lat": 51.873964,
+      "lon": -3.373936,
+      "gridRef": "SO055203",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2087",
       "dobihId": 2087,
       "name": "Cadair Berwyn",
@@ -454,6 +675,19 @@
       "lat": 52.8806,
       "lon": -3.380993,
       "gridRef": "SJ071323",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2088",
+      "dobihId": 2088,
+      "name": "Cadair Berwyn North Top",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 826.4,
+      "heightFt": 2711,
+      "lat": 52.88389,
+      "lon": -3.380236,
+      "gridRef": "SJ072327",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -509,6 +743,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2325",
+      "dobihId": 2325,
+      "name": "Carl Side",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Northern Fells",
+      "heightM": 746.8,
+      "heightFt": 2450,
+      "lat": 54.642398,
+      "lon": -3.155984,
+      "gridRef": "NY254280",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-1966",
       "dobihId": 1966,
       "name": "Carnedd Dafydd",
@@ -519,6 +766,19 @@
       "lat": 53.147738,
       "lon": -4.000839,
       "gridRef": "SH662630",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2071",
+      "dobihId": 2071,
+      "name": "Carnedd Llechwedd-llyfn [Llechwedd-llyfn]",
+      "list": ["nuttalls"],
+      "region": "The Arenigs",
+      "heightM": 644.1,
+      "heightFt": 2113,
+      "lat": 52.985287,
+      "lon": -3.70283,
+      "gridRef": "SH857444",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -569,6 +829,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2001",
+      "dobihId": 2001,
+      "name": "Carnedd y Filiast North Top [Y Fronllwyd]",
+      "list": ["nuttalls"],
+      "region": "The Glyders",
+      "heightM": 720,
+      "heightFt": 2362,
+      "lat": 53.147622,
+      "lon": -4.068652,
+      "gridRef": "SH617631",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2336",
       "dobihId": 2336,
       "name": "Carrock Fell",
@@ -586,6 +859,19 @@
       "lat": 54.693484,
       "lon": -3.02287,
       "gridRef": "NY341336",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-3662",
+      "dobihId": 3662,
+      "name": "Castell y Gwynt",
+      "list": ["nuttalls"],
+      "region": "The Glyders",
+      "heightM": 972,
+      "heightFt": 3189,
+      "lat": 53.103818,
+      "lon": -4.012035,
+      "gridRef": "SH653581",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -629,6 +915,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2425",
+      "dobihId": 2425,
+      "name": "Caw Fell",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Western Fells",
+      "heightM": 697,
+      "heightFt": 2287,
+      "lat": 54.486868,
+      "lon": -3.341256,
+      "gridRef": "NY132109",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2117",
       "dobihId": 2117,
       "name": "Cefn Dylif [Pen Bwlch Llandrillo Top]",
@@ -639,6 +938,19 @@
       "lat": 52.922182,
       "lon": -3.355823,
       "gridRef": "SJ089369",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2121",
+      "dobihId": 2121,
+      "name": "Cefn Gwyntog",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 614,
+      "heightFt": 2014,
+      "lat": 52.828027,
+      "lon": -3.521299,
+      "gridRef": "SH975266",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -665,19 +977,6 @@
       "lat": 54.706325,
       "lon": -2.194316,
       "gridRef": "NY875346",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20150",
-      "dobihId": 20150,
-      "name": "Chimney Rock Mountain",
-      "list": ["hewitts", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 656,
-      "heightFt": 2152,
-      "lat": 54.162219,
-      "lon": -5.912507,
-      "gridRef": "J364257",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -728,6 +1027,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2012",
+      "dobihId": 2012,
+      "name": "Cnicht North Top",
+      "list": ["nuttalls"],
+      "region": "The Moelwyns",
+      "heightM": 690.2,
+      "heightFt": 2264,
+      "lat": 53.002008,
+      "lon": -4.016209,
+      "gridRef": "SH647468",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2410",
+      "dobihId": 2410,
+      "name": "Codale Head",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Central Fells",
+      "heightM": 732,
+      "heightFt": 2402,
+      "lat": 54.472031,
+      "lon": -3.098878,
+      "gridRef": "NY288090",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2761",
       "dobihId": 2761,
       "name": "Cold Fell",
@@ -761,6 +1086,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2433",
+      "dobihId": 2433,
+      "name": "Cold Pike Far West Top",
+      "list": ["nuttalls"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 668.7,
+      "heightFt": 2194,
+      "lat": 54.423511,
+      "lon": -3.147657,
+      "gridRef": "NY256037",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2429",
+      "dobihId": 2429,
+      "name": "Cold Pike West Top",
+      "list": ["nuttalls"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 682.6,
+      "heightFt": 2240,
+      "lat": 54.422231,
+      "lon": -3.144246,
+      "gridRef": "NY258035",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2307",
       "dobihId": 2307,
       "name": "Comb Fell",
@@ -771,6 +1122,19 @@
       "lat": 55.462404,
       "lon": -2.121519,
       "gridRef": "NT924187",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2431",
+      "dobihId": 2431,
+      "name": "Combe Door Top",
+      "list": ["nuttalls"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 676,
+      "heightFt": 2218,
+      "lat": 54.487811,
+      "lon": -3.15415,
+      "gridRef": "NY253108",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -787,16 +1151,16 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-20153",
-      "dobihId": 20153,
-      "name": "Cove Mountain",
-      "list": ["hewitts", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 654.8,
-      "heightFt": 2148,
-      "lat": 54.175325,
-      "lon": -5.953799,
-      "gridRef": "J336270",
+      "id": "dobih-2227",
+      "dobihId": 2227,
+      "name": "Corn Du",
+      "list": ["nuttalls"],
+      "region": "Brecon Beacons",
+      "heightM": 871.5,
+      "heightFt": 2859,
+      "lat": 51.88167,
+      "lon": -3.443809,
+      "gridRef": "SO007213",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -860,6 +1224,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-1998",
+      "dobihId": 1998,
+      "name": "Craig Eigiau",
+      "list": ["nuttalls"],
+      "region": "The Carneddau",
+      "heightM": 735,
+      "heightFt": 2411,
+      "lat": 53.170351,
+      "lon": -3.926602,
+      "gridRef": "SH713654",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2228",
+      "dobihId": 2228,
+      "name": "Craig Gwaun Taf [Duwynt]",
+      "list": ["nuttalls"],
+      "region": "Brecon Beacons",
+      "heightM": 826.4,
+      "heightFt": 2711,
+      "lat": 51.876157,
+      "lon": -3.446059,
+      "gridRef": "SO005207",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2149",
       "dobihId": 2149,
       "name": "Craig-las [Tyrrau Mawr]",
@@ -883,6 +1273,32 @@
       "lat": 52.689102,
       "lon": -3.976073,
       "gridRef": "SH665119",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2029",
+      "dobihId": 2029,
+      "name": "Craiglwyn",
+      "list": ["nuttalls"],
+      "region": "The Carneddau",
+      "heightM": 621.9,
+      "heightFt": 2040,
+      "lat": 53.130007,
+      "lon": -3.898817,
+      "gridRef": "SH730608",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2010",
+      "dobihId": 2010,
+      "name": "Craigysgafn",
+      "list": ["nuttalls"],
+      "region": "The Moelwyns",
+      "heightM": 689.9,
+      "heightFt": 2263,
+      "lat": 52.979552,
+      "lon": -3.997363,
+      "gridRef": "SH659443",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -935,6 +1351,19 @@
       "lat": 53.075519,
       "lon": -4.07518,
       "gridRef": "SH610551",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2064",
+      "dobihId": 2064,
+      "name": "Crib-y-rhiw",
+      "list": ["nuttalls"],
+      "region": "The Rhinogs",
+      "heightM": 681.2,
+      "heightFt": 2235,
+      "lat": 52.804788,
+      "lon": -3.983764,
+      "gridRef": "SH663248",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1011,19 +1440,6 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-20137",
-      "dobihId": 20137,
-      "name": "Cuilcagh [Binn Chuilceach]",
-      "list": ["hewitts", "marilyns", "humps", "simms", "county-tops"],
-      "region": "Leitrim and W Cavan",
-      "heightM": 666,
-      "heightFt": 2185,
-      "lat": 54.200923,
-      "lon": -7.811475,
-      "gridRef": "H123280",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
       "id": "dobih-2309",
       "dobihId": 2309,
       "name": "Cushat Law",
@@ -1085,19 +1501,6 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-20205",
-      "dobihId": 20205,
-      "name": "Dart Mountain",
-      "list": ["hewitts", "simms"],
-      "region": "Sperrin Mountains",
-      "heightM": 619,
-      "heightFt": 2031,
-      "lat": 54.810964,
-      "lon": -7.063641,
-      "gridRef": "H602963",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
       "id": "dobih-2067",
       "dobihId": 2067,
       "name": "Dduallt",
@@ -1134,6 +1537,32 @@
       "lat": 52.791647,
       "lon": -3.986755,
       "gridRef": "SH661234",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2072",
+      "dobihId": 2072,
+      "name": "Diffwys West Top",
+      "list": ["nuttalls"],
+      "region": "The Rhinogs",
+      "heightM": 643.1,
+      "heightFt": 2110,
+      "lat": 52.786964,
+      "lon": -4.005925,
+      "gridRef": "SH648229",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2441",
+      "dobihId": 2441,
+      "name": "Dodd (Buttermere)",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Western Fells",
+      "heightM": 641.1,
+      "heightFt": 2103,
+      "lat": 54.530107,
+      "lon": -3.29353,
+      "gridRef": "NY163157",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1276,19 +1705,6 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-20183",
-      "dobihId": 20183,
-      "name": "Eagle Mountain",
-      "list": ["hewitts", "marilyns", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 638,
-      "heightFt": 2093,
-      "lat": 54.140122,
-      "lon": -6.09726,
-      "gridRef": "J244229",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
       "id": "dobih-1975",
       "dobihId": 1975,
       "name": "Elidir Fawr",
@@ -1406,6 +1822,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2248",
+      "dobihId": 2248,
+      "name": "Fan Fraith",
+      "list": ["nuttalls"],
+      "region": "Brecon Beacons",
+      "heightM": 668,
+      "heightFt": 2192,
+      "lat": 51.852456,
+      "lon": -3.616576,
+      "gridRef": "SN887183",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2257",
       "dobihId": 2257,
       "name": "Fan Frynych",
@@ -1471,6 +1900,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2240",
+      "dobihId": 2240,
+      "name": "Fan y Big",
+      "list": ["nuttalls"],
+      "region": "Brecon Beacons",
+      "heightM": 716.7,
+      "heightFt": 2351,
+      "lat": 51.876199,
+      "lon": -3.401011,
+      "gridRef": "SO036206",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2754",
       "dobihId": 2754,
       "name": "Fell Head",
@@ -1481,6 +1923,32 @@
       "lat": 54.378005,
       "lon": -2.540906,
       "gridRef": "SD649981",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2724",
+      "dobihId": 2724,
+      "name": "Fendrith Hill",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Eastern Fells",
+      "heightM": 697,
+      "heightFt": 2287,
+      "lat": 54.695041,
+      "lon": -2.192214,
+      "gridRef": "NY877333",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2757",
+      "dobihId": 2757,
+      "name": "Fiend's Fell",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Western Fells",
+      "heightM": 634.9,
+      "heightFt": 2083,
+      "lat": 54.759285,
+      "lon": -2.554905,
+      "gridRef": "NY643406",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1515,6 +1983,19 @@
       "lat": 54.772204,
       "lon": -2.35757,
       "gridRef": "NY770419",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2077",
+      "dobihId": 2077,
+      "name": "Foel Boeth",
+      "list": ["nuttalls"],
+      "region": "The Arenigs",
+      "heightM": 615.4,
+      "heightFt": 2019,
+      "lat": 52.891411,
+      "lon": -3.815235,
+      "gridRef": "SH779342",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1609,6 +2090,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-1990",
+      "dobihId": 1990,
+      "name": "Foel Meirch",
+      "list": ["nuttalls"],
+      "region": "The Carneddau",
+      "heightM": 798.7,
+      "heightFt": 2620,
+      "lat": 53.153878,
+      "lon": -4.007257,
+      "gridRef": "SH658637",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2078",
       "dobihId": 2078,
       "name": "Foel Penolau",
@@ -1622,6 +2116,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2108",
+      "dobihId": 2108,
+      "name": "Foel Rhudd",
+      "list": ["nuttalls"],
+      "region": "The Arans",
+      "heightM": 659,
+      "heightFt": 2162,
+      "lat": 52.801764,
+      "lon": -3.639561,
+      "gridRef": "SH895239",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2095",
       "dobihId": 2095,
       "name": "Foel Wen",
@@ -1632,6 +2139,19 @@
       "lat": 52.890571,
       "lon": -3.340121,
       "gridRef": "SJ099334",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2097",
+      "dobihId": 2097,
+      "name": "Foel Wen South Top",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 687.9,
+      "heightFt": 2257,
+      "lat": 52.887359,
+      "lon": -3.335578,
+      "gridRef": "SJ102330",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1687,6 +2207,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2789",
+      "dobihId": 2789,
+      "name": "Fountains Fell South Top",
+      "list": ["nuttalls"],
+      "region": "Yorkshire Dales - Southern Fells",
+      "heightM": 663.4,
+      "heightFt": 2177,
+      "lat": 54.132847,
+      "lon": -2.20209,
+      "gridRef": "SD868707",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2548",
       "dobihId": 2548,
       "name": "Froswick",
@@ -1720,6 +2253,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2030",
+      "dobihId": 2030,
+      "name": "Gallt y Wenallt",
+      "list": ["nuttalls"],
+      "region": "Snowdon",
+      "heightM": 619.7,
+      "heightFt": 2033,
+      "lat": 53.059362,
+      "lon": -4.0272,
+      "gridRef": "SH642532",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-1995",
       "dobihId": 1995,
       "name": "Gallt yr Ogof",
@@ -1746,6 +2292,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2005",
+      "dobihId": 2005,
+      "name": "Garnedd-goch",
+      "list": ["nuttalls"],
+      "region": "Moel Hebog",
+      "heightM": 700,
+      "heightFt": 2297,
+      "lat": 53.022234,
+      "lon": -4.221197,
+      "gridRef": "SH511495",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2255",
       "dobihId": 2255,
       "name": "Garreg Las [Twyn-Swnd]",
@@ -1769,6 +2328,32 @@
       "lat": 51.845678,
       "lon": -3.829967,
       "gridRef": "SN740179",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2322",
+      "dobihId": 2322,
+      "name": "Gategill Fell Top",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Northern Fells",
+      "heightM": 852.2,
+      "heightFt": 2796,
+      "lat": 54.636693,
+      "lon": -3.058428,
+      "gridRef": "NY317273",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2143",
+      "dobihId": 2143,
+      "name": "Gau Graig",
+      "list": ["nuttalls"],
+      "region": "Cadair Idris",
+      "heightM": 683.7,
+      "heightFt": 2243,
+      "lat": 52.709262,
+      "lon": -3.860938,
+      "gridRef": "SH743140",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1830,6 +2415,32 @@
       "lat": 53.10147,
       "lon": -4.029164,
       "gridRef": "SH642579",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2102",
+      "dobihId": 2102,
+      "name": "Godor",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 679.2,
+      "heightFt": 2228,
+      "lat": 52.866563,
+      "lon": -3.346839,
+      "gridRef": "SJ094307",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2103",
+      "dobihId": 2103,
+      "name": "Godor North Top",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 675,
+      "heightFt": 2215,
+      "lat": 52.869847,
+      "lon": -3.354518,
+      "gridRef": "SJ089311",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1924,6 +2535,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2637",
+      "dobihId": 2637,
+      "name": "Great Carrs",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 785,
+      "heightFt": 2575,
+      "lat": 54.398777,
+      "lon": -3.124738,
+      "gridRef": "NY270009",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2784",
       "dobihId": 2784,
       "name": "Great Coum",
@@ -2014,6 +2638,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2426",
+      "dobihId": 2426,
+      "name": "Great Knott",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 695.1,
+      "heightFt": 2281,
+      "lat": 54.428499,
+      "lon": -3.142925,
+      "gridRef": "NY259042",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2786",
       "dobihId": 2786,
       "name": "Great Knoutberry Hill",
@@ -2024,6 +2661,19 @@
       "lat": 54.279638,
       "lon": -2.326092,
       "gridRef": "SD788871",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2342",
+      "dobihId": 2342,
+      "name": "Great Lingy Hill",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Northern Fells",
+      "heightM": 616,
+      "heightFt": 2021,
+      "lat": 54.696079,
+      "lon": -3.071967,
+      "gridRef": "NY310339",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2119,6 +2769,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2792",
+      "dobihId": 2792,
+      "name": "Green Hill",
+      "list": ["nuttalls"],
+      "region": "Yorkshire Dales - Southern Fells",
+      "heightM": 628.2,
+      "heightFt": 2061,
+      "lat": 54.233804,
+      "lon": -2.458083,
+      "gridRef": "SD702821",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2531",
+      "dobihId": 2531,
+      "name": "Green Side [White Stones - Green Side]",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Eastern Fells",
+      "heightM": 794.1,
+      "heightFt": 2605,
+      "lat": 54.559842,
+      "lon": -3.00245,
+      "gridRef": "NY352187",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2565",
       "dobihId": 2565,
       "name": "Grey Crag [Sleddale Fell]",
@@ -2159,6 +2835,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2424",
+      "dobihId": 2424,
+      "name": "Grey Knotts",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Western Fells",
+      "heightM": 697,
+      "heightFt": 2287,
+      "lat": 54.502362,
+      "lon": -3.210186,
+      "gridRef": "NY217125",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2747",
       "dobihId": 2747,
       "name": "Grey Nag",
@@ -2195,6 +2884,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2112",
+      "dobihId": 2112,
+      "name": "Gwaun Lydan",
+      "list": ["nuttalls"],
+      "region": "The Arans",
+      "heightM": 632,
+      "heightFt": 2073,
+      "lat": 52.776706,
+      "lon": -3.660903,
+      "gridRef": "SH880211",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2099",
       "dobihId": 2099,
       "name": "Gwaun y Llwyni",
@@ -2205,6 +2907,32 @@
       "lat": 52.769845,
       "lon": -3.695314,
       "gridRef": "SH857204",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2022",
+      "dobihId": 2022,
+      "name": "Gyrn Wigau",
+      "list": ["nuttalls"],
+      "region": "The Carneddau",
+      "heightM": 643,
+      "heightFt": 2110,
+      "lat": 53.18782,
+      "lon": -4.015682,
+      "gridRef": "SH654675",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2341",
+      "dobihId": 2341,
+      "name": "Hare Stones",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Northern Fells",
+      "heightM": 627,
+      "heightFt": 2057,
+      "lat": 54.699904,
+      "lon": -3.064216,
+      "gridRef": "NY315343",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2228,6 +2956,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2567",
+      "dobihId": 2567,
+      "name": "Harrop Pike",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Far Eastern Fells",
+      "heightM": 637,
+      "heightFt": 2090,
+      "lat": 54.463013,
+      "lon": -2.771843,
+      "gridRef": "NY500077",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2529",
       "dobihId": 2529,
       "name": "Hart Crag",
@@ -2245,6 +2986,19 @@
       "lat": 54.492752,
       "lon": -2.976954,
       "gridRef": "NY368112",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2543",
+      "dobihId": 2543,
+      "name": "Hart Side",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Eastern Fells",
+      "heightM": 756,
+      "heightFt": 2480,
+      "lat": 54.568719,
+      "lon": -2.992938,
+      "gridRef": "NY359197",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2288,6 +3042,32 @@
       "lat": 54.476414,
       "lon": -2.835323,
       "gridRef": "NY459093",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2572",
+      "dobihId": 2572,
+      "name": "Hartsop Dodd",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Far Eastern Fells",
+      "heightM": 619,
+      "heightFt": 2031,
+      "lat": 54.498538,
+      "lon": -2.910448,
+      "gridRef": "NY411118",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2715",
+      "dobihId": 2715,
+      "name": "Harwood Common",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Eastern Fells",
+      "heightM": 715.2,
+      "heightFt": 2346,
+      "lat": 54.721203,
+      "lon": -2.319504,
+      "gridRef": "NY795362",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2349,6 +3129,45 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2516",
+      "dobihId": 2516,
+      "name": "Helvellyn Lower Man",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Eastern Fells",
+      "heightM": 924.5,
+      "heightFt": 3033,
+      "lat": 54.530827,
+      "lon": -3.025352,
+      "gridRef": "NY337155",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2573",
+      "dobihId": 2573,
+      "name": "Heron Pike (Rydal)",
+      "list": ["wainwrights", "nuttalls", "birketts"],
+      "region": "Lake District - Eastern Fells",
+      "heightM": 612,
+      "heightFt": 2008,
+      "lat": 54.466072,
+      "lon": -2.995142,
+      "gridRef": "NY355083",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2571",
+      "dobihId": 2571,
+      "name": "Heron Pike North Top [Rydal Fell]",
+      "list": ["nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Eastern Fells",
+      "heightM": 621.3,
+      "heightFt": 2038,
+      "lat": 54.469332,
+      "lon": -2.993292,
+      "gridRef": "NY357086",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2401",
       "dobihId": 2401,
       "name": "High Crag (Buttermere)",
@@ -2366,6 +3185,19 @@
       "lat": 54.514628,
       "lon": -3.267412,
       "gridRef": "NY180139",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2428",
+      "dobihId": 2428,
+      "name": "High House Tarn Top [High House - Allen Crags]",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 682.9,
+      "heightFt": 2240,
+      "lat": 54.472871,
+      "lon": -3.17393,
+      "gridRef": "NY240092",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2465,6 +3297,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2443",
+      "dobihId": 2443,
+      "name": "High Spy North Top",
+      "list": ["nuttalls"],
+      "region": "Lake District - North Western Fells",
+      "heightM": 634,
+      "heightFt": 2080,
+      "lat": 54.543543,
+      "lon": -3.181183,
+      "gridRef": "NY236171",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2381",
       "dobihId": 2381,
       "name": "High Stile [Grey Crag - High Stile]",
@@ -2523,6 +3368,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2809",
+      "dobihId": 2809,
+      "name": "Higher Shelf Stones",
+      "list": ["ethels", "nuttalls"],
+      "region": "The Peak District",
+      "heightM": 621.8,
+      "heightFt": 2040,
+      "lat": 53.449816,
+      "lon": -1.86761,
+      "gridRef": "SK088947",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2411",
       "dobihId": 2411,
       "name": "Hindscarth",
@@ -2556,6 +3414,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-3320",
+      "dobihId": 3320,
+      "name": "Honister Crag [Black Star]",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Western Fells",
+      "heightM": 634,
+      "heightFt": 2080,
+      "lat": 54.516539,
+      "lon": -3.218061,
+      "gridRef": "NY212141",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2395",
       "dobihId": 2395,
       "name": "Hopegill Head",
@@ -2573,6 +3444,19 @@
       "lat": 54.588082,
       "lon": -3.261675,
       "gridRef": "NY185221",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2726",
+      "dobihId": 2726,
+      "name": "Hugh Seat",
+      "list": ["nuttalls"],
+      "region": "Yorkshire Dales - Northern Fells",
+      "heightM": 688.1,
+      "heightFt": 2258,
+      "lat": 54.387063,
+      "lon": -2.295375,
+      "gridRef": "SD809991",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2654,6 +3538,19 @@
       "lat": 54.462682,
       "lon": -2.826034,
       "gridRef": "NY465077",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2536",
+      "dobihId": 2536,
+      "name": "Kidsty Pike",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Far Eastern Fells",
+      "heightM": 781,
+      "heightFt": 2562,
+      "lat": 54.505513,
+      "lon": -2.854959,
+      "gridRef": "NY447125",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2762,6 +3659,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2733",
+      "dobihId": 2733,
+      "name": "Knoutberry Haw",
+      "list": ["nuttalls"],
+      "region": "Yorkshire Dales - Northern Fells",
+      "heightM": 675.7,
+      "heightFt": 2217,
+      "lat": 54.322237,
+      "lon": -2.414463,
+      "gridRef": "SD731919",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2420",
+      "dobihId": 2420,
+      "name": "Ladyside Pike",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - North Western Fells",
+      "heightM": 703.5,
+      "heightFt": 2308,
+      "lat": 54.593263,
+      "lon": -3.263027,
+      "gridRef": "NY184227",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2382",
       "dobihId": 2382,
       "name": "Lingmell",
@@ -2808,6 +3731,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2409",
+      "dobihId": 2409,
+      "name": "Little Gowder Crag",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Western Fells",
+      "heightM": 734.5,
+      "heightFt": 2410,
+      "lat": 54.486908,
+      "lon": -3.32866,
+      "gridRef": "NY140109",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2566",
       "dobihId": 2566,
       "name": "Little Hart Crag [Little Hart Crag - West Top]",
@@ -2828,6 +3764,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2403",
+      "dobihId": 2403,
+      "name": "Little Stand",
+      "list": ["nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 740,
+      "heightFt": 2428,
+      "lat": 54.420244,
+      "lon": -3.156628,
+      "gridRef": "NY250033",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2002",
+      "dobihId": 2002,
+      "name": "Llechog",
+      "list": ["nuttalls"],
+      "region": "Snowdon",
+      "heightM": 720,
+      "heightFt": 2362,
+      "lat": 53.089753,
+      "lon": -4.08281,
+      "gridRef": "SH606567",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2122",
       "dobihId": 2122,
       "name": "Llechwedd Du",
@@ -2838,6 +3800,19 @@
       "lat": 52.787792,
       "lon": -3.641513,
       "gridRef": "SH893223",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-1985",
+      "dobihId": 1985,
+      "name": "Lliwedd Bach",
+      "list": ["nuttalls"],
+      "region": "Snowdon",
+      "heightM": 819,
+      "heightFt": 2687,
+      "lat": 53.058649,
+      "lon": -4.049417,
+      "gridRef": "SH627532",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2871,6 +3846,45 @@
       "lat": 54.554737,
       "lon": -2.842087,
       "gridRef": "NY456180",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2430",
+      "dobihId": 2430,
+      "name": "Loft Crag",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Central Fells",
+      "heightM": 681.7,
+      "heightFt": 2237,
+      "lat": 54.454429,
+      "lon": -3.115991,
+      "gridRef": "NY277071",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2762",
+      "dobihId": 2762,
+      "name": "Long Fell",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Western Fells",
+      "heightM": 623.5,
+      "heightFt": 2046,
+      "lat": 54.572987,
+      "lon": -2.359289,
+      "gridRef": "NY768198",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2746",
+      "dobihId": 2746,
+      "name": "Long Man Hill",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Western Fells",
+      "heightM": 658,
+      "heightFt": 2159,
+      "lat": 54.729973,
+      "lon": -2.430338,
+      "gridRef": "NY723373",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2914,6 +3928,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2449",
+      "dobihId": 2449,
+      "name": "Looking Stead (Pillar)",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Western Fells",
+      "heightM": 627.7,
+      "heightFt": 2059,
+      "lat": 54.494956,
+      "lon": -3.25774,
+      "gridRef": "NY186117",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2392",
+      "dobihId": 2392,
+      "name": "Looking Steads (Glaramara)",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 774.5,
+      "heightFt": 2541,
+      "lat": 54.481276,
+      "lon": -3.165465,
+      "gridRef": "NY245101",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2734",
       "dobihId": 2734,
       "name": "Lovely Seat",
@@ -2924,6 +3964,19 @@
       "lat": 54.3508,
       "lon": -2.187588,
       "gridRef": "SD879950",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2435",
+      "dobihId": 2435,
+      "name": "Low Saddle",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Central Fells",
+      "heightM": 656.1,
+      "heightFt": 2153,
+      "lat": 54.509984,
+      "lon": -3.101101,
+      "gridRef": "NY288132",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2966,19 +4019,6 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-20200",
-      "dobihId": 20200,
-      "name": "Meenard Mountain [Min Ard]",
-      "list": ["hewitts", "simms"],
-      "region": "Sperrin Mountains",
-      "heightM": 625,
-      "heightFt": 2051,
-      "lat": 54.83037,
-      "lon": -6.953907,
-      "gridRef": "H672985",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
       "id": "dobih-2712",
       "dobihId": 2712,
       "name": "Meldon Hill",
@@ -3018,6 +4058,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2421",
+      "dobihId": 2421,
+      "name": "Middleboot Knotts",
+      "list": ["nuttalls"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 702.3,
+      "heightFt": 2304,
+      "lat": 54.461861,
+      "lon": -3.214869,
+      "gridRef": "NY213080",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2768",
       "dobihId": 2768,
       "name": "Middlehope Moor [Burtree Fell]",
@@ -3028,6 +4081,19 @@
       "lat": 54.783621,
       "lon": -2.215024,
       "gridRef": "NY862432",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2343",
+      "dobihId": 2343,
+      "name": "Miller Moss [Little Lingy Hill]",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Northern Fells",
+      "heightM": 610.1,
+      "heightFt": 2002,
+      "lat": 54.6952,
+      "lon": -3.081906,
+      "gridRef": "NY303338",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -3174,6 +4240,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2094",
+      "dobihId": 2094,
+      "name": "Moel yr Ewig",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 694.7,
+      "heightFt": 2279,
+      "lat": 52.875588,
+      "lon": -3.367386,
+      "gridRef": "SJ080317",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2018",
       "dobihId": 2018,
       "name": "Moel yr Ogof",
@@ -3236,32 +4315,6 @@
       "lat": 52.984252,
       "lon": -4.000142,
       "gridRef": "SH658448",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20196",
-      "dobihId": 20196,
-      "name": "Mullaghaneany",
-      "list": ["hewitts", "marilyns", "humps", "simms"],
-      "region": "Sperrin Mountains",
-      "heightM": 627,
-      "heightFt": 2057,
-      "lat": 54.830734,
-      "lon": -6.934773,
-      "gridRef": "H685986",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20187",
-      "dobihId": 20187,
-      "name": "Mullaghclogha",
-      "list": ["hewitts", "marilyns", "humps", "simms"],
-      "region": "Sperrin Mountains",
-      "heightM": 635,
-      "heightFt": 2083,
-      "lat": 54.806457,
-      "lon": -7.134132,
-      "gridRef": "H557957",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -3343,6 +4396,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-1986",
+      "dobihId": 1986,
+      "name": "Mynydd Perfedd",
+      "list": ["nuttalls"],
+      "region": "The Glyders",
+      "heightM": 813,
+      "heightFt": 2667,
+      "lat": 53.136253,
+      "lon": -4.059583,
+      "gridRef": "SH623618",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2019",
       "dobihId": 2019,
       "name": "Mynydd Tal-y-mignedd",
@@ -3369,6 +4435,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2517",
+      "dobihId": 2517,
+      "name": "Nethermost Pike",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Eastern Fells",
+      "heightM": 891.3,
+      "heightFt": 2924,
+      "lat": 54.518993,
+      "lon": -3.015446,
+      "gridRef": "NY343142",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2745",
       "dobihId": 2745,
       "name": "Nine Standards Rigg",
@@ -3379,6 +4458,19 @@
       "lat": 54.449969,
       "lon": -2.270489,
       "gridRef": "NY825060",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2423",
+      "dobihId": 2423,
+      "name": "Pavey Ark",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Central Fells",
+      "heightM": 701.6,
+      "heightFt": 2302,
+      "lat": 54.461485,
+      "lon": -3.105214,
+      "gridRef": "NY284079",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -3447,6 +4539,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2253",
+      "dobihId": 2253,
+      "name": "Pen Twyn Glas",
+      "list": ["nuttalls"],
+      "region": "Black Mountains",
+      "heightM": 646,
+      "heightFt": 2119,
+      "lat": 51.924538,
+      "lon": -3.145849,
+      "gridRef": "SO213257",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2251",
+      "dobihId": 2251,
+      "name": "Pen Twyn Mawr",
+      "list": ["nuttalls"],
+      "region": "Black Mountains",
+      "heightM": 658,
+      "heightFt": 2159,
+      "lat": 51.933844,
+      "lon": -3.10354,
+      "gridRef": "SO242267",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2110",
       "dobihId": 2110,
       "name": "Pen y Boncyn Trefeilw",
@@ -3470,6 +4588,19 @@
       "lat": 52.746316,
       "lon": -3.752834,
       "gridRef": "SH817179",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2028",
+      "dobihId": 2028,
+      "name": "Pen y Castell",
+      "list": ["nuttalls"],
+      "region": "The Carneddau",
+      "heightM": 623.5,
+      "heightFt": 2046,
+      "lat": 53.201601,
+      "lon": -3.914947,
+      "gridRef": "SH721688",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -3638,6 +4769,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2390",
+      "dobihId": 2390,
+      "name": "Pillar Rock",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Western Fells",
+      "heightM": 779.9,
+      "heightFt": 2559,
+      "lat": 54.499909,
+      "lon": -3.280793,
+      "gridRef": "NY171123",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2561",
       "dobihId": 2561,
       "name": "Place Fell",
@@ -3684,6 +4828,19 @@
       "lat": 52.853648,
       "lon": -3.415262,
       "gridRef": "SJ047293",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2165",
+      "dobihId": 2165,
+      "name": "Pumlumon Fach",
+      "list": ["nuttalls"],
+      "region": "Central Wales - Pumlumon",
+      "heightM": 664,
+      "heightFt": 2178,
+      "lat": 52.471338,
+      "lon": -3.786822,
+      "gridRef": "SN787874",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -3896,6 +5053,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2241",
+      "dobihId": 2241,
+      "name": "Rhos Dirion",
+      "list": ["nuttalls"],
+      "region": "Black Mountains",
+      "heightM": 713.4,
+      "heightFt": 2341,
+      "lat": 51.99292,
+      "lon": -3.149298,
+      "gridRef": "SO211333",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2405",
       "dobihId": 2405,
       "name": "Robinson",
@@ -3951,6 +5121,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2453",
+      "dobihId": 2453,
+      "name": "Rosthwaite Fell [Rosthwaite Cam]",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 612,
+      "heightFt": 2008,
+      "lat": 54.496312,
+      "lon": -3.150468,
+      "gridRef": "NY255118",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2568",
       "dobihId": 2568,
       "name": "Rough Crag (Riggindale)",
@@ -3974,6 +5157,19 @@
       "lat": 54.719594,
       "lon": -2.398573,
       "gridRef": "NY744361",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2402",
+      "dobihId": 2402,
+      "name": "Round How",
+      "list": ["nuttalls"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 741,
+      "heightFt": 2431,
+      "lat": 54.462345,
+      "lon": -3.207,
+      "gridRef": "NY218081",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -4010,16 +5206,29 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-20120",
-      "dobihId": 20120,
-      "name": "Sawel",
-      "list": ["hewitts", "marilyns", "humps", "simms", "county-tops"],
-      "region": "Sperrin Mountains",
-      "heightM": 678,
-      "heightFt": 2224,
-      "lat": 54.819713,
-      "lon": -7.039419,
-      "gridRef": "H617973",
+      "id": "dobih-2334",
+      "dobihId": 2334,
+      "name": "Sale How",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Northern Fells",
+      "heightM": 666,
+      "heightFt": 2185,
+      "lat": 54.647523,
+      "lon": -3.123243,
+      "gridRef": "NY276286",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2398",
+      "dobihId": 2398,
+      "name": "Sand Hill",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - North Western Fells",
+      "heightM": 756,
+      "heightFt": 2480,
+      "lat": 54.585481,
+      "lon": -3.259429,
+      "gridRef": "NY187218",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -4168,6 +5377,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2448",
+      "dobihId": 2448,
+      "name": "Seathwaite Fell South Top",
+      "list": ["nuttalls"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 631,
+      "heightFt": 2070,
+      "lat": 54.474211,
+      "lon": -3.193197,
+      "gridRef": "NY227094",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2563",
       "dobihId": 2563,
       "name": "Selside Pike",
@@ -4185,19 +5407,6 @@
       "lat": 54.49308,
       "lon": -2.787925,
       "gridRef": "NY490111",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20198",
-      "dobihId": 20198,
-      "name": "Shanlieve",
-      "list": ["hewitts", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 627,
-      "heightFt": 2057,
-      "lat": 54.137525,
-      "lon": -6.1035,
-      "gridRef": "J240226",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -4231,6 +5440,19 @@
       "lat": 54.437988,
       "lon": -3.158284,
       "gridRef": "NY249053",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2391",
+      "dobihId": 2391,
+      "name": "Shelter Crags North Top",
+      "list": ["nuttalls"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 775.7,
+      "heightFt": 2545,
+      "lat": 54.441413,
+      "lon": -3.159137,
+      "gridRef": "NY249057",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -4291,136 +5513,6 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-20071",
-      "dobihId": 20071,
-      "name": "Slieve Bearnagh",
-      "list": ["hewitts", "marilyns", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 739,
-      "heightFt": 2425,
-      "lat": 54.184196,
-      "lon": -5.98953,
-      "gridRef": "J313280",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20067",
-      "dobihId": 20067,
-      "name": "Slieve Binnian",
-      "list": ["hewitts", "marilyns", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 745.9,
-      "heightFt": 2447,
-      "lat": 54.141928,
-      "lon": -5.98001,
-      "gridRef": "J320233",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-21236",
-      "dobihId": 21236,
-      "name": "Slieve Binnian North Tor",
-      "list": ["hewitts", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 682,
-      "heightFt": 2238,
-      "lat": 54.153586,
-      "lon": -5.980774,
-      "gridRef": "J319246",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20053",
-      "dobihId": 20053,
-      "name": "Slieve Commedagh",
-      "list": ["hewitts", "marilyns", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 767,
-      "heightFt": 2516,
-      "lat": 54.188729,
-      "lon": -5.938749,
-      "gridRef": "J346286",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20016",
-      "dobihId": 20016,
-      "name": "Slieve Donard",
-      "list": ["hewitts", "marilyns", "humps", "simms", "county-tops", "trail-100"],
-      "region": "Mourne Mountains",
-      "heightM": 850,
-      "heightFt": 2789,
-      "lat": 54.180268,
-      "lon": -5.920805,
-      "gridRef": "J358276",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20204",
-      "dobihId": 20204,
-      "name": "Slieve Loughshannagh",
-      "list": ["hewitts", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 617,
-      "heightFt": 2024,
-      "lat": 54.177532,
-      "lon": -6.018099,
-      "gridRef": "J294272",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20087",
-      "dobihId": 20087,
-      "name": "Slieve Meelbeg",
-      "list": ["hewitts", "marilyns", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 701.9,
-      "heightFt": 2303,
-      "lat": 54.183732,
-      "lon": -6.008289,
-      "gridRef": "J300279",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20090",
-      "dobihId": 20090,
-      "name": "Slieve Meelmore",
-      "list": ["hewitts", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 687,
-      "heightFt": 2254,
-      "lat": 54.19066,
-      "lon": -5.999942,
-      "gridRef": "J306287",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20127",
-      "dobihId": 20127,
-      "name": "Slieve Muck",
-      "list": ["hewitts", "marilyns", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 670.4,
-      "heightFt": 2199,
-      "lat": 54.15801,
-      "lon": -6.039654,
-      "gridRef": "J281249",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-20091",
-      "dobihId": 20091,
-      "name": "Slievelamagan",
-      "list": ["hewitts", "marilyns", "humps", "simms"],
-      "region": "Mourne Mountains",
-      "heightM": 702.2,
-      "heightFt": 2304,
-      "lat": 54.166125,
-      "lon": -5.966075,
-      "gridRef": "J328260",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
       "id": "dobih-1963",
       "dobihId": 1963,
       "name": "Snowdon - Yr Wyddfa",
@@ -4466,6 +5558,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2114",
+      "dobihId": 2114,
+      "name": "Stac Rhos",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 629.8,
+      "heightFt": 2066,
+      "lat": 52.838968,
+      "lon": -3.531807,
+      "gridRef": "SH969279",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2445",
       "dobihId": 2445,
       "name": "Starling Dodd",
@@ -4483,6 +5588,19 @@
       "lat": 54.529725,
       "lon": -3.327207,
       "gridRef": "NY142157",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2379",
+      "dobihId": 2379,
+      "name": "Steeple",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Western Fells",
+      "heightM": 819,
+      "heightFt": 2687,
+      "lat": 54.493389,
+      "lon": -3.302174,
+      "gridRef": "NY157116",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -4572,6 +5690,19 @@
       "lat": 54.395257,
       "lon": -3.121515,
       "gridRef": "NY272005",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2361",
+      "dobihId": 2361,
+      "name": "Symonds Knott",
+      "list": ["nuttalls"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 959.3,
+      "heightFt": 3147,
+      "lat": 54.450013,
+      "lon": -3.223155,
+      "gridRef": "NY207067",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -4753,6 +5884,58 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2413",
+      "dobihId": 2413,
+      "name": "Thunacar Knott",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Central Fells",
+      "heightM": 723,
+      "heightFt": 2372,
+      "lat": 54.462189,
+      "lon": -3.112653,
+      "gridRef": "NY279079",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2930",
+      "dobihId": 2930,
+      "name": "Tinside Rigg",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Western Fells",
+      "heightM": 624,
+      "heightFt": 2047,
+      "lat": 54.573862,
+      "lon": -2.34884,
+      "gridRef": "NY775199",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2756",
+      "dobihId": 2756,
+      "name": "Tom Smith's Stone Top",
+      "list": ["nuttalls"],
+      "region": "North Pennines - Western Fells",
+      "heightM": 637,
+      "heightFt": 2090,
+      "lat": 54.81375,
+      "lon": -2.537772,
+      "gridRef": "NY655466",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2092",
+      "dobihId": 2092,
+      "name": "Tomle",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 740.6,
+      "heightFt": 2430,
+      "lat": 52.891421,
+      "lon": -3.361032,
+      "gridRef": "SJ085335",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2004",
       "dobihId": 2004,
       "name": "Trum y Ddysgl",
@@ -4763,6 +5946,19 @@
       "lat": 53.042214,
       "lon": -4.171965,
       "gridRef": "SH544516",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2124",
+      "dobihId": 2124,
+      "name": "Trum y Gwragedd [Trum y Gwrgedd]",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 611.1,
+      "heightFt": 2005,
+      "lat": 52.84268,
+      "lon": -3.573535,
+      "gridRef": "SH941284",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -4834,6 +6030,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2644",
+      "dobihId": 2644,
+      "name": "Walna Scar",
+      "list": ["nuttalls", "wainwright-outlying-fells", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 620.8,
+      "heightFt": 2037,
+      "lat": 54.357182,
+      "lon": -3.143745,
+      "gridRef": "SD257963",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2394",
       "dobihId": 2394,
       "name": "Wandope",
@@ -4854,6 +6063,32 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2741",
+      "dobihId": 2741,
+      "name": "Water Crag",
+      "list": ["nuttalls"],
+      "region": "Yorkshire Dales - Northern Fells",
+      "heightM": 668,
+      "heightFt": 2192,
+      "lat": 54.436946,
+      "lon": -2.111681,
+      "gridRef": "NY928046",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2118",
+      "dobihId": 2118,
+      "name": "Waun Camddwr",
+      "list": ["nuttalls"],
+      "region": "The Arans",
+      "heightM": 621.7,
+      "heightFt": 2040,
+      "lat": 52.770218,
+      "lon": -3.710079,
+      "gridRef": "SH847205",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2229",
       "dobihId": 2229,
       "name": "Waun Fach",
@@ -4864,6 +6099,32 @@
       "lat": 51.962786,
       "lon": -3.1432,
       "gridRef": "SO215299",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2070",
+      "dobihId": 2070,
+      "name": "Waun Garnedd-y-Filiast",
+      "list": ["nuttalls"],
+      "region": "The Arenigs",
+      "heightM": 650.9,
+      "heightFt": 2135,
+      "lat": 52.992675,
+      "lon": -3.678983,
+      "gridRef": "SH874452",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2246",
+      "dobihId": 2246,
+      "name": "Waun Lefrith",
+      "list": ["nuttalls"],
+      "region": "Brecon Beacons",
+      "heightM": 676.1,
+      "heightFt": 2218,
+      "lat": 51.878626,
+      "lon": -3.74711,
+      "gridRef": "SN798214",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -4906,6 +6167,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2927",
+      "dobihId": 2927,
+      "name": "Wether Hill",
+      "list": ["nuttalls"],
+      "region": "Lake District - Far Eastern Fells",
+      "heightM": 675.7,
+      "heightFt": 2217,
+      "lat": 54.539092,
+      "lon": -2.844424,
+      "gridRef": "NY454163",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2640",
       "dobihId": 2640,
       "name": "Wetherlam",
@@ -4938,6 +6212,19 @@
       "lat": 54.228953,
       "lon": -2.401977,
       "gridRef": "SD738815",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2645",
+      "dobihId": 2645,
+      "name": "White Maiden",
+      "list": ["nuttalls", "birketts"],
+      "region": "Lake District - Southern Fells",
+      "heightM": 612.6,
+      "heightFt": 2010,
+      "lat": 54.3514,
+      "lon": -3.148816,
+      "gridRef": "SD254957",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -4978,6 +6265,19 @@
       "lat": 54.559367,
       "lon": -3.26931,
       "gridRef": "NY180189",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2418",
+      "dobihId": 2418,
+      "name": "Whiteside [Whiteside West Top]",
+      "list": ["wainwrights", "nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - North Western Fells",
+      "heightM": 707,
+      "heightFt": 2320,
+      "lat": 54.585912,
+      "lon": -3.285161,
+      "gridRef": "NY170219",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -5054,6 +6354,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2026",
+      "dobihId": 2026,
+      "name": "Y Garn",
+      "list": ["nuttalls"],
+      "region": "Moel Hebog",
+      "heightM": 634.4,
+      "heightFt": 2081,
+      "lat": 53.051405,
+      "lon": -4.162504,
+      "gridRef": "SH551526",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2073",
       "dobihId": 2073,
       "name": "Y Garn",
@@ -5077,6 +6390,32 @@
       "lat": 52.450546,
       "lon": -3.803095,
       "gridRef": "SN775851",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2107",
+      "dobihId": 2107,
+      "name": "Y Groes Fagl",
+      "list": ["nuttalls"],
+      "region": "The Berwyns",
+      "heightM": 659,
+      "heightFt": 2162,
+      "lat": 52.849004,
+      "lon": -3.50344,
+      "gridRef": "SH988290",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2259",
+      "dobihId": 2259,
+      "name": "Y Gyrn",
+      "list": ["nuttalls"],
+      "region": "Brecon Beacons",
+      "heightM": 618.7,
+      "heightFt": 2030,
+      "lat": 51.883841,
+      "lon": -3.470353,
+      "gridRef": "SN988216",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -5106,6 +6445,19 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-1979",
+      "dobihId": 1979,
+      "name": "Y Lliwedd East Top",
+      "list": ["nuttalls"],
+      "region": "Snowdon",
+      "heightM": 893.2,
+      "heightFt": 2930,
+      "lat": 53.058748,
+      "lon": -4.05463,
+      "gridRef": "SH624532",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2755",
       "dobihId": 2755,
       "name": "Yarlside",
@@ -5116,6 +6468,19 @@
       "lat": 54.381316,
       "lon": -2.485437,
       "gridRef": "SD685985",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2878",
+      "dobihId": 2878,
+      "name": "Yes Tor",
+      "list": ["nuttalls", "trail-100"],
+      "region": "Dartmoor",
+      "heightM": 618.6,
+      "heightFt": 2030,
+      "lat": 50.693595,
+      "lon": -4.010588,
+      "gridRef": "SX580901",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -5223,6 +6588,19 @@
       "lat": 53.013767,
       "lon": -3.988477,
       "gridRef": "SH666481",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2020",
+      "dobihId": 2020,
+      "name": "Ysgafell Wen Far North Top",
+      "list": ["nuttalls"],
+      "region": "The Moelwyns",
+      "heightM": 659,
+      "heightFt": 2162,
+      "lat": 53.01952,
+      "lon": -3.993379,
+      "gridRef": "SH663487",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
