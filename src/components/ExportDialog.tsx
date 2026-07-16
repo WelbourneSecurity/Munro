@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 // which stays the only module touching maplibre-gl at runtime.
 import type { Map as MapLibreMap } from 'maplibre-gl';
 
+import type { HillListDefinition } from '../data/lists';
 import { downloadBlob, exportFilename } from '../export/download';
 import type { ExportPresetId, MapSnapshot } from '../export';
-import { LAKE_DISTRICT_BOUNDS } from '../map/config';
 
 interface ExportStats {
   bagged: number;
@@ -18,6 +18,8 @@ interface ExportDialogProps {
   onClose: () => void;
   /** The live MapLibre map, or null while it is still loading. */
   getMap: () => MapLibreMap | null;
+  /** The active hill list: frames its bounds, titles and names the image. */
+  list: HillListDefinition;
   stats: ExportStats;
 }
 
@@ -57,7 +59,13 @@ function shareApi(): Partial<Pick<Navigator, 'canShare' | 'share'>> {
  * its code stays out of the initial bundle (the T6.4 performance budget
  * relies on that split).
  */
-export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps) {
+export function ExportDialog({
+  open,
+  onClose,
+  getMap,
+  list,
+  stats,
+}: ExportDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   // Compose runs mutate the shared map camera (frame → capture → restore), so
   // they must never overlap: each run is chained onto the previous one and
@@ -71,7 +79,7 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
 
   // The outcome only applies while its inputs match; otherwise a new
   // composition is in flight and the dialog shows the quiet busy state.
-  const composeKey = `${presetId}:${String(bagged)}:${String(total)}`;
+  const composeKey = `${list.id}:${presetId}:${String(bagged)}:${String(total)}`;
   const current = open && outcome?.key === composeKey ? outcome.result : null;
   const readyBlob = current && 'blob' in current ? current.blob : null;
 
@@ -160,17 +168,27 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
     };
   }, [open, onClose]);
 
-  // Compose the preview whenever the dialog opens, the preset changes or the
-  // progress numbers change. The user's viewport is restored even on failure.
+  // Compose the preview whenever the dialog opens, the list or preset
+  // changes or the progress numbers change. The user's viewport is restored
+  // even on failure.
   useEffect(() => {
     if (!open) {
       return;
     }
 
     let cancelled = false;
-    const key = `${presetId}:${String(bagged)}:${String(total)}`;
+    const key = `${list.id}:${presetId}:${String(bagged)}:${String(total)}`;
 
     const compose = async (): Promise<Blob> => {
+      // A queued run whose effect has already been cleaned up (preset
+      // toggled again, dialog closed) would frame, capture and restore the
+      // shared map camera for an image nobody can see — with the dialog
+      // gone, the user would just watch their map jump to the export
+      // framing and back. Bail before touching the map.
+      if (cancelled) {
+        throw new Error('superseded before composing started');
+      }
+
       const map = getMap();
 
       if (!map) {
@@ -182,13 +200,13 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
       const preset = engine.getExportPreset(presetId);
       const layout = engine.layoutExport(preset, ATTRIBUTION_LINES_ESTIMATE);
 
-      // Frame the Lake District at the destination map box's aspect
+      // Frame the active list's bounds at the destination map box's aspect
       // (frameBoundary widens the fit padding via coverCropPadding so the
       // later centre-crop trims only padding), capture, then always restore
       // the user's exact viewport — even when the capture fails.
       const restore = await engine.frameBoundary(
         map,
-        LAKE_DISTRICT_BOUNDS,
+        list.bounds,
         EXPORT_FRAME_PADDING,
         layout.map.width / layout.map.height,
       );
@@ -201,13 +219,17 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
         restore();
       }
 
-      return engine.composeExport(snapshot, { bagged, total }, { preset: presetId });
+      return engine.composeExport(
+        snapshot,
+        { bagged, total },
+        { preset: presetId, title: `${list.regionLabel} · ${list.name}` },
+      );
     };
 
-    // Queue behind any in-flight run (superseded runs keep executing — only
-    // their setOutcome is cancelled) so camera mutations never interleave:
+    // Queue behind any in-flight run so camera mutations never interleave:
     // this run's frameBoundary reads the true user viewport, not a previous
-    // run's temporary export framing.
+    // run's temporary export framing. A run superseded while still queued
+    // bails at the top of compose() without touching the camera.
     const run = composeQueueRef.current.then(compose);
     composeQueueRef.current = run.catch(() => undefined);
 
@@ -234,7 +256,7 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
     return () => {
       cancelled = true;
     };
-  }, [open, presetId, getMap, bagged, total]);
+  }, [open, presetId, getMap, bagged, total, list]);
 
   // Release each preview's object URL once it is replaced or discarded.
   const previewUrl =
@@ -261,17 +283,29 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
     }
 
     return api.canShare({
-      files: [new File([readyBlob], exportFilename(), { type: 'image/png' })],
+      files: [new File([readyBlob], exportFilename(list.id), { type: 'image/png' })],
     });
-  }, [readyBlob]);
+  }, [readyBlob, list.id]);
 
   if (!open) {
     return null;
   }
 
+  // One persistent live region announces the export lifecycle. The visual
+  // states below swap whole elements, and neither a freshly inserted
+  // role="status"/role="alert" node nor the Download button's disabled
+  // attribute flipping is reliably announced — only a text update inside an
+  // already-mounted live region is.
+  const statusMessage =
+    current === null
+      ? 'Composing image…'
+      : 'error' in current
+        ? `Export failed: ${current.error}.`
+        : 'Export ready.';
+
   function handleDownload() {
     if (readyBlob) {
-      downloadBlob(readyBlob, exportFilename());
+      downloadBlob(readyBlob, exportFilename(list.id));
     }
   }
 
@@ -280,7 +314,7 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
       return;
     }
 
-    const filename = exportFilename();
+    const filename = exportFilename(list.id);
     const api = shareApi();
 
     if (!api.share) {
@@ -314,7 +348,7 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="font-label text-label text-muted">Lake District</p>
+            <p className="font-label text-label text-muted">{list.regionLabel}</p>
             <h2
               id="export-dialog-title"
               className="text-primary mt-1 text-xl font-semibold"
@@ -330,6 +364,10 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
             Close
           </button>
         </div>
+
+        <p aria-atomic="true" className="sr-only" role="status">
+          {statusMessage}
+        </p>
 
         <div
           aria-label="Export preset"
@@ -359,17 +397,11 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
 
         <div className="border-line bg-surface mt-4 border">
           {current === null ? (
-            <p
-              className="font-label text-label text-muted flex min-h-40 items-center justify-center px-4 py-6"
-              role="status"
-            >
+            <p className="font-label text-label text-muted flex min-h-40 items-center justify-center px-4 py-6">
               Composing image…
             </p>
           ) : 'error' in current ? (
-            <p
-              className="text-secondary flex min-h-40 items-center justify-center px-4 py-6 text-sm"
-              role="alert"
-            >
+            <p className="text-secondary flex min-h-40 items-center justify-center px-4 py-6 text-sm">
               Export failed: {current.error}.
             </p>
           ) : (
@@ -404,7 +436,7 @@ export function ExportDialog({ open, onClose, getMap, stats }: ExportDialogProps
         </div>
 
         <p className="text-muted mt-3 text-xs leading-5">
-          Saved as {exportFilename()}. Attribution is drawn into the image.
+          Saved as {exportFilename(list.id)}. Attribution is drawn into the image.
         </p>
       </div>
     </div>

@@ -1,10 +1,20 @@
 import type {
   CircleLayerSpecification,
+  ExpressionSpecification,
   FillLayerSpecification,
   HillshadeLayerSpecification,
   LineLayerSpecification,
   SymbolLayerSpecification,
 } from 'maplibre-gl';
+
+// Invisible no-op anchor layers committed at the top of style/munro-dark.json.
+// Conditional overlays (terrain hillshade, hill lighting, contours) pass
+// these as beforeId so layers remounted mid-session — toggling Terrain,
+// switching hill lists — always return to the same stacking position below
+// the always-mounted peak layers, exactly as on a fresh page load.
+export const HILLSHADE_ANCHOR_ID = 'munro-hillshade-anchor';
+export const HILL_LIGHTING_ANCHOR_ID = 'munro-hill-lighting-anchor';
+export const CONTOURS_ANCHOR_ID = 'munro-contours-anchor';
 
 export const terrainHillshadeLayer: HillshadeLayerSpecification = {
   id: 'terrain-hillshade',
@@ -91,36 +101,57 @@ export const terrainContourLabelLayer: SymbolLayerSpecification = {
   },
 };
 
-export const hillAreaFillLayer: FillLayerSpecification = {
-  id: 'hill-area-fill',
-  type: 'fill',
-  source: 'wainwright-areas',
-  filter: ['any', ['==', ['get', 'bagged'], true], ['==', ['get', 'selected'], true]],
-  paint: {
-    'fill-color': ['case', ['==', ['get', 'selected'], true], '#c4e9cd', '#a7d8b6'],
-    'fill-opacity': ['case', ['==', ['get', 'selected'], true], 0.24, 0.17],
-  },
-};
+// The transient selection highlight is parameterized into these layer
+// filter/paint expressions rather than written into feature properties:
+// react-maplibre diffs them into cheap setFilter/setPaintProperty calls, so
+// selecting a peak never re-uploads the ~1 MB hill-area GeoJSON via setData.
+// Pass undefined to highlight nothing (an empty id matches no hill).
+function hillAreaSelected(selectedPeakId: string | undefined): ExpressionSpecification {
+  return ['==', ['get', 'id'], selectedPeakId ?? ''];
+}
 
-export const hillAreaLineLayer: LineLayerSpecification = {
-  id: 'hill-area-line',
-  type: 'line',
-  source: 'wainwright-areas',
-  filter: ['any', ['!=', ['get', 'bagged'], true], ['==', ['get', 'selected'], true]],
-  paint: {
-    'line-color': ['case', ['==', ['get', 'selected'], true], '#e0f5e5', '#829284'],
-    'line-opacity': ['case', ['==', ['get', 'selected'], true], 0.9, 0.16],
-    'line-width': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      7,
-      ['case', ['==', ['get', 'selected'], true], 1.2, 0.45],
-      12,
-      ['case', ['==', ['get', 'selected'], true], 2.4, 0.72],
-    ],
-  },
-};
+export function hillAreaFillLayer(
+  selectedPeakId: string | undefined,
+): FillLayerSpecification {
+  const selected = hillAreaSelected(selectedPeakId);
+
+  return {
+    id: 'hill-area-fill',
+    type: 'fill',
+    source: 'hill-areas',
+    filter: ['any', ['==', ['get', 'bagged'], true], selected],
+    paint: {
+      'fill-color': ['case', selected, '#c4e9cd', '#a7d8b6'],
+      'fill-opacity': ['case', selected, 0.24, 0.17],
+    },
+  };
+}
+
+export function hillAreaLineLayer(
+  selectedPeakId: string | undefined,
+): LineLayerSpecification {
+  const selected = hillAreaSelected(selectedPeakId);
+
+  return {
+    id: 'hill-area-line',
+    type: 'line',
+    source: 'hill-areas',
+    filter: ['any', ['!=', ['get', 'bagged'], true], selected],
+    paint: {
+      'line-color': ['case', selected, '#e0f5e5', '#829284'],
+      'line-opacity': ['case', selected, 0.9, 0.16],
+      'line-width': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        7,
+        ['case', selected, 1.2, 0.45],
+        12,
+        ['case', selected, 2.4, 0.72],
+      ],
+    },
+  };
+}
 
 export const boundaryFillLayer: FillLayerSpecification = {
   id: 'lake-district-boundary-fill',
@@ -154,43 +185,47 @@ export const peakHitboxLayer: CircleLayerSpecification = {
   },
 };
 
-export const baggedSummitLightLayer: CircleLayerSpecification = {
-  id: 'bagged-summit-light',
-  type: 'circle',
-  source: 'list-peaks',
-  filter: ['==', ['get', 'bagged'], true],
-  paint: {
-    'circle-color': '#a7d8b6',
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      7,
-      0.16,
-      11,
-      0.28,
-      14,
-      0.34,
-    ],
-    'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 18, 10, 38, 13, 68],
-    'circle-blur': ['interpolate', ['linear'], ['zoom'], 7, 0.68, 13, 0.52],
-    'circle-pitch-alignment': 'map',
-  },
-};
+// Once the lighting profiles are loaded they take over from the markers and
+// the summit light — but only where they are legible. Below ~z8 a ~2 km
+// profile spans under 6 px, so the whole-list views (the UK at z5, Scotland
+// at z6.3) would read as a blank map; markers and lights persist there and
+// hand over across z8–9.2 as the profiles grow readable.
 
-// Lists with hill lighting represent peaks through the lit hill areas, so
-// their summit markers stay invisible; lists without lighting profiles fall
-// back to visible markers so the whole-list view is never a blank map.
-export function peakMarkerLayer(markersVisible: boolean): CircleLayerSpecification {
+// The bagged summit light. The layer is always mounted (visibility toggles
+// through opacity, like peakMarkerLayer) so switching lists never remounts
+// it above the markers and labels.
+export function baggedSummitLightLayer(
+  alwaysVisible: boolean,
+): CircleLayerSpecification {
+  return {
+    id: 'bagged-summit-light',
+    type: 'circle',
+    source: 'list-peaks',
+    filter: ['==', ['get', 'bagged'], true],
+    paint: {
+      'circle-color': '#a7d8b6',
+      'circle-opacity': alwaysVisible
+        ? ['interpolate', ['linear'], ['zoom'], 7, 0.16, 11, 0.28, 14, 0.34]
+        : ['interpolate', ['linear'], ['zoom'], 7, 0.16, 8, 0.2, 9.2, 0],
+      'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 18, 10, 38, 13, 68],
+      'circle-blur': ['interpolate', ['linear'], ['zoom'], 7, 0.68, 13, 0.52],
+      'circle-pitch-alignment': 'map',
+    },
+  };
+}
+
+// The summit markers: fully visible until the lighting profiles load, then
+// low-zoom only (see the hand-over note above).
+export function peakMarkerLayer(alwaysVisible: boolean): CircleLayerSpecification {
   return {
     id: 'peak-markers',
     type: 'circle',
     source: 'list-peaks',
     paint: {
       'circle-color': ['case', ['==', ['get', 'bagged'], true], '#a7d8b6', '#aab3aa'],
-      'circle-opacity': markersVisible
+      'circle-opacity': alwaysVisible
         ? ['interpolate', ['linear'], ['zoom'], 5, 0.72, 11, 0.9]
-        : 0,
+        : ['interpolate', ['linear'], ['zoom'], 5, 0.72, 8, 0.79, 9.2, 0],
       'circle-radius': [
         'interpolate',
         ['linear'],
@@ -205,7 +240,9 @@ export function peakMarkerLayer(markersVisible: boolean): CircleLayerSpecificati
         7,
       ],
       'circle-stroke-color': '#111713',
-      'circle-stroke-opacity': markersVisible ? 0.85 : 0,
+      'circle-stroke-opacity': alwaysVisible
+        ? 0.85
+        : ['interpolate', ['linear'], ['zoom'], 5, 0.85, 8, 0.85, 9.2, 0],
       'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 7, 1, 12, 1.6],
     },
   };

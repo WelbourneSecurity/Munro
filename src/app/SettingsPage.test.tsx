@@ -41,6 +41,38 @@ describe('SettingsPage', () => {
     expect(getByText('Imported 1 records, 1 bagged.')).toBeVisible();
   });
 
+  it('reports the deduplicated count when a backup repeats a peak id', async () => {
+    const user = userEvent.setup();
+    const { getByLabelText, getByRole, getByText } = render(<SettingsPage />);
+    // A hand-merged backup (two devices' files concatenated) can repeat a
+    // peak id; the import keeps the last record, so the announcement must
+    // count what actually survives — not the raw array length.
+    const backup = {
+      version: BACKUP_VERSION,
+      exportedAt: '2026-07-05T12:00:00.000Z',
+      progress: [
+        { peakId: 'dobih-2319', bagged: true, notes: 'First device' },
+        { peakId: 'dobih-0010', bagged: true },
+        { peakId: 'dobih-2319', bagged: false },
+      ],
+    };
+    const file = new File([JSON.stringify(backup)], 'backup.json', {
+      type: 'application/json',
+    });
+
+    await user.upload(getByLabelText('Choose backup JSON'), file);
+
+    expect(getByText('Ready to import 2 records, 1 bagged.')).toBeVisible();
+
+    await user.click(getByRole('button', { name: 'Confirm import' }));
+
+    expect(getByText('Imported 2 records, 1 bagged.')).toBeVisible();
+    expect(useProgressStore.getState().progressByPeakId).toEqual({
+      'dobih-0010': { peakId: 'dobih-0010', bagged: true },
+      'dobih-2319': { peakId: 'dobih-2319', bagged: false },
+    });
+  });
+
   it('rejects malformed imports with a plain message', async () => {
     const user = userEvent.setup();
     const { getByLabelText, getByRole, getByText } = render(<SettingsPage />);
@@ -54,6 +86,42 @@ describe('SettingsPage', () => {
       getByText('Import failed. Choose a valid Munro backup JSON file.'),
     ).toBeVisible();
     expect(getByRole('button', { name: 'Confirm import' })).toBeDisabled();
+  });
+
+  it('clears the file input so re-selecting the same file parses again', async () => {
+    const user = userEvent.setup();
+    const { getByLabelText, getByText } = render(<SettingsPage />);
+    const input = getByLabelText('Choose backup JSON') as HTMLInputElement;
+    const malformed = new File(['not json'], 'munro-backup-2026-07-12.json', {
+      type: 'application/json',
+    });
+
+    await user.upload(input, malformed);
+
+    expect(
+      getByText('Import failed. Choose a valid Munro backup JSON file.'),
+    ).toBeVisible();
+    // The input must clear after every pick — browsers only fire change when
+    // the value changes, so a kept value dead-ends fixing and re-selecting
+    // the same file.
+    expect(input.value).toBe('');
+
+    const fixed = new File(
+      [
+        JSON.stringify({
+          version: BACKUP_VERSION,
+          exportedAt: '2026-07-05T12:00:00.000Z',
+          progress: [{ peakId: 'dobih-2319', bagged: true }],
+        }),
+      ],
+      'munro-backup-2026-07-12.json',
+      { type: 'application/json' },
+    );
+
+    await user.upload(input, fixed);
+
+    expect(getByText('Ready to import 1 records, 1 bagged.')).toBeVisible();
+    expect(input.value).toBe('');
   });
 
   it('requires explicit reset confirmation', async () => {

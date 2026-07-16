@@ -4,13 +4,17 @@
 // engine behind index.ts stays behind a dynamic import so it is code-split
 // out of the initial bundle (see T6.4 in wiki/implementation-plan.md).
 
-/** `munro-wainwrights-<yyyy-mm-dd>.png`, using the local calendar date. */
-export function exportFilename(date: Date = new Date()): string {
+/**
+ * `munro-<listId>-<yyyy-mm-dd>.png`, using the local calendar date. The list
+ * id comes from the hill-list registry (`src/data/lists.ts`), so exports name
+ * the list they show — `munro-munros-…` for the Munros, and so on.
+ */
+export function exportFilename(listId: string, date: Date = new Date()): string {
   const year = String(date.getFullYear()).padStart(4, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
-  return `munro-wainwrights-${year}-${month}-${day}.png`;
+  return `munro-${listId}-${year}-${month}-${day}.png`;
 }
 
 /** Save a blob via a temporary object URL and a synthetic anchor click. */

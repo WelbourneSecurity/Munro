@@ -3,7 +3,6 @@
 // 2D canvas and returns a PNG blob. All positioning maths lives in layout.ts.
 import { ATTRIBUTIONS } from '../data/attribution';
 import {
-  EXPORT_TITLE,
   EXPORT_WORDMARK,
   attributionLine,
   coverCrop,
@@ -40,6 +39,8 @@ export interface ComposeStats {
 
 export interface ComposeOptions {
   preset: ExportPresetId;
+  /** Title for the active list, e.g. "Lake District · Wainwrights". */
+  title: string;
   /** Export date shown on the image; defaults to now. */
   date?: Date;
 }
@@ -60,6 +61,9 @@ const runtime = globalThis as {
  * pixels deliberately: canvas capture excludes the DOM attribution control,
  * and the DoBIH (CC BY 4.0), OpenFreeMap/OpenStreetMap, OGL boundary and
  * terrain credits are licence obligations on the produced image.
+ *
+ * Consumes the snapshot: its bitmap (captured or decoded here) is closed as
+ * soon as it has been drawn, so a snapshot cannot be composed twice.
  */
 export async function composeExport(
   snapshot: MapSnapshot,
@@ -112,9 +116,11 @@ export async function composeExport(
     layout.map.height,
   );
 
-  if (!snapshot.bitmap) {
-    image.close();
-  }
+  // Close the bitmap unconditionally — captured ones too, not only the one
+  // decoded above. A captured bitmap is a full-canvas physical-pixel
+  // allocation (tens of MB at DPR 2+) that GC reclaims lazily; a few preset
+  // toggles would otherwise strand several of them at once.
+  image.close();
 
   context.strokeStyle = COLOR_LINE;
   context.lineWidth = 1;
@@ -122,11 +128,21 @@ export async function composeExport(
 
   context.textBaseline = 'alphabetic';
 
-  // Title.
+  // Title — the active list's "Region · Name". Long titles ("England, Wales
+  // & Northern Ireland · Hewitts") shrink to fit the space left of the
+  // wordmark instead of colliding with it.
   context.textAlign = 'left';
-  context.font = `600 ${String(layout.scale.title)}px ${FONT_SANS}`;
+  context.font = `650 ${String(layout.scale.meta)}px ${FONT_LABEL}`;
+  const titleMaxWidth =
+    layout.wordmark.x -
+    context.measureText(EXPORT_WORDMARK).width -
+    layout.scale.title -
+    layout.title.x;
+  context.font = titleFont(
+    fitTitleSize(context, options.title, layout.scale.title, titleMaxWidth),
+  );
   context.fillStyle = COLOR_PRIMARY;
-  context.fillText(EXPORT_TITLE, layout.title.x, layout.title.baseline);
+  context.fillText(options.title, layout.title.x, layout.title.baseline);
 
   // Progress line — the soft green accent marks the bagged count only.
   context.font = `500 ${String(layout.scale.progress)}px ${FONT_SANS}`;
@@ -170,6 +186,31 @@ export async function composeExport(
 
 function labelFont(sizePx: number): string {
   return `400 ${String(sizePx)}px ${FONT_LABEL}`;
+}
+
+function titleFont(sizePx: number): string {
+  return `600 ${String(sizePx)}px ${FONT_SANS}`;
+}
+
+/**
+ * Largest font size ≤ baseSize at which `text` fits within `maxWidth`.
+ * Canvas text width scales linearly with font size, so one measurement at
+ * the base size gives the exact scale factor.
+ */
+function fitTitleSize(
+  context: ExportContext,
+  text: string,
+  baseSize: number,
+  maxWidth: number,
+): number {
+  context.font = titleFont(baseSize);
+  const width = context.measureText(text).width;
+
+  if (width <= maxWidth) {
+    return baseSize;
+  }
+
+  return Math.max(1, Math.floor((baseSize * maxWidth) / width));
 }
 
 interface ExportCanvas {

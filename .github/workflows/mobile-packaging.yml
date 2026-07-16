@@ -43,11 +43,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v6
+      # Nothing in this job pushes to the repository, and every later step
+      # (npm ci, cap add, Gradle/Xcode) runs dependency-controlled code —
+      # don't leave the token sitting in .git/config for it.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
 
       # Capacitor 8's Android project builds with Java 21.
@@ -101,11 +106,16 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v6
+      # Nothing in this job pushes to the repository, and every later step
+      # (npm ci, cap add, Gradle/Xcode) runs dependency-controlled code —
+      # don't leave the token sitting in .git/config for it.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies

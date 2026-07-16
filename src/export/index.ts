@@ -2,7 +2,6 @@ export { composeExport } from './compose';
 export type { ComposeOptions, ComposeStats } from './compose';
 export {
   EXPORT_PRESETS,
-  EXPORT_TITLE,
   EXPORT_WORDMARK,
   attributionLine,
   coverCrop,

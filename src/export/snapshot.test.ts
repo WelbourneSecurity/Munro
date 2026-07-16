@@ -34,6 +34,8 @@ interface MockMapOptions {
   fittable?: boolean;
   canvas?: ReturnType<typeof createMockCanvas>;
   pixelRatio?: number;
+  fitZoom?: number;
+  minZoom?: number;
 }
 
 function createMockMap(options: MockMapOptions = {}) {
@@ -43,6 +45,8 @@ function createMockMap(options: MockMapOptions = {}) {
     fittable = true,
     canvas = createMockCanvas(),
     pixelRatio = 1,
+    fitZoom = 8.6,
+    minZoom = 4,
   } = options;
   const idleListeners: (() => void)[] = [];
 
@@ -57,8 +61,10 @@ function createMockMap(options: MockMapOptions = {}) {
     loaded: vi.fn(() => loaded),
     isMoving: vi.fn(() => moving),
     cameraForBounds: vi.fn(() =>
-      fittable ? { center: { lng: -3.08, lat: 54.53 }, zoom: 8.6 } : undefined,
+      fittable ? { center: { lng: -3.08, lat: 54.53 }, zoom: fitZoom } : undefined,
     ),
+    getMinZoom: vi.fn(() => minZoom),
+    setMinZoom: vi.fn(),
     once: vi.fn((event: string, listener: () => void) => {
       expect(event).toBe('idle');
       idleListeners.push(listener);
@@ -197,10 +203,10 @@ describe('captureMap', () => {
 });
 
 describe('frameBoundary', () => {
-  it('fits the Lake District bounds north-up and flat, then waits for idle', async () => {
+  it('fits the given bounds north-up and flat, then waits for idle', async () => {
     const map = createMockMap();
 
-    await frameBoundary(asMap(map));
+    await frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS);
 
     expect(map.fitBounds).toHaveBeenCalledWith(LAKE_DISTRICT_BOUNDS, {
       animate: false,
@@ -271,7 +277,7 @@ describe('frameBoundary', () => {
     // so no idle would ever fire on an already-idle map.
     const map = createMockMap({ fittable: false });
 
-    await expect(frameBoundary(asMap(map))).rejects.toThrow(
+    await expect(frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS)).rejects.toThrow(
       'Map viewport is too small to frame the export bounds',
     );
 
@@ -285,7 +291,7 @@ describe('frameBoundary', () => {
   it('restore() puts the original viewport back exactly', async () => {
     const map = createMockMap();
 
-    const restore = await frameBoundary(asMap(map));
+    const restore = await frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS);
 
     expect(map.jumpTo).not.toHaveBeenCalled();
 
@@ -302,12 +308,42 @@ describe('frameBoundary', () => {
   it('reads the viewport before moving the camera', async () => {
     const map = createMockMap();
 
-    await frameBoundary(asMap(map));
+    await frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS);
 
     const fitOrder = map.fitBounds.mock.invocationCallOrder[0] ?? 0;
     for (const getter of [map.getCenter, map.getZoom, map.getBearing, map.getPitch]) {
       expect(getter.mock.invocationCallOrder[0]).toBeLessThan(fitOrder);
     }
+  });
+
+  it('lowers minZoom when the fit needs a zoom below the live floor, then restores it', async () => {
+    // UK-wide bounds on a phone/laptop viewport fit at a zoom below the
+    // map's minZoom of 4; without lowering the floor, fitBounds silently
+    // clamps and the centre-crop slices the north and south off the export.
+    const map = createMockMap({ fitZoom: 3.6, minZoom: 4 });
+
+    const restore = await frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS);
+
+    expect(map.setMinZoom).toHaveBeenCalledWith(3.6);
+    const lowerOrder = map.setMinZoom.mock.invocationCallOrder[0] ?? 0;
+    const fitOrder = map.fitBounds.mock.invocationCallOrder[0] ?? 0;
+    expect(lowerOrder).toBeLessThan(fitOrder);
+
+    restore();
+
+    expect(map.setMinZoom).toHaveBeenLastCalledWith(4);
+    const jumpOrder = map.jumpTo.mock.invocationCallOrder[0] ?? 0;
+    const restoreOrder = map.setMinZoom.mock.invocationCallOrder[1] ?? 0;
+    expect(jumpOrder).toBeLessThan(restoreOrder);
+  });
+
+  it('leaves minZoom alone when the fit stays above the floor', async () => {
+    const map = createMockMap({ fitZoom: 8.6, minZoom: 4 });
+
+    const restore = await frameBoundary(asMap(map), LAKE_DISTRICT_BOUNDS);
+    restore();
+
+    expect(map.setMinZoom).not.toHaveBeenCalled();
   });
 });
 

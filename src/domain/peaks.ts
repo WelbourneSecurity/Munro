@@ -24,6 +24,46 @@ export function getProgressMap(progress: PeakProgress[]) {
   return new Map(progress.map((record) => [record.peakId, record]));
 }
 
+/**
+ * Collates several hill lists into one deduplicated array. The published
+ * lists overlap — a Wainwright can also be a Hewitt and a Marilyn — but every
+ * record carries the same stable id, so duplicates fold by id: the first
+ * occurrence is kept, later duplicates only contribute optional fields the
+ * kept record lacks (some source lists omit e.g. `nationalPark`) plus any
+ * list memberships not yet recorded. Progress needs no merging — it is keyed
+ * by peak id, so a peak bagged in one list is bagged everywhere.
+ */
+export function mergePeakLists(lists: readonly Peak[][]): Peak[] {
+  const byId = new Map<string, Peak>();
+
+  for (const peaks of lists) {
+    for (const peak of peaks) {
+      const kept = byId.get(peak.id);
+
+      if (!kept) {
+        byId.set(peak.id, { ...peak, list: [...peak.list] });
+        continue;
+      }
+
+      const memberships = [...kept.list];
+
+      for (const membership of peak.list) {
+        if (!memberships.includes(membership)) {
+          memberships.push(membership);
+        }
+      }
+
+      // Peak records come from parsed JSON, so optional fields are absent
+      // rather than explicitly undefined — spreading the kept record over
+      // the duplicate keeps every field the first occurrence defined while
+      // the duplicate fills in the rest.
+      byId.set(peak.id, { ...peak, ...kept, list: memberships });
+    }
+  }
+
+  return [...byId.values()];
+}
+
 export function filterPeaks(
   peaks: Peak[],
   progress: PeakProgress[],

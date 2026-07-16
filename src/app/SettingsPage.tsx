@@ -9,8 +9,12 @@ function backupFileName() {
 }
 
 function describeBackup(backup: Backup) {
-  const bagged = backup.progress.filter((record) => record.bagged).length;
-  return `${String(backup.progress.length)} records, ${String(bagged)} bagged`;
+  // Imports keep the last record per peak id (hand-merged files can carry
+  // duplicates), so count what the store will actually hold — announcing
+  // the raw array length would overstate what survives the import.
+  const byPeakId = new Map(backup.progress.map((record) => [record.peakId, record]));
+  const bagged = [...byPeakId.values()].filter((record) => record.bagged).length;
+  return `${String(byPeakId.size)} records, ${String(bagged)} bagged`;
 }
 
 export function SettingsPage({
@@ -50,6 +54,7 @@ export function SettingsPage({
     setPendingBackup(undefined);
 
     if (!file) {
+      setImportMessage('');
       return;
     }
 
@@ -115,7 +120,13 @@ export function SettingsPage({
               accept="application/json,.json"
               type="file"
               onChange={(event) => {
-                void handleImportFile(event.currentTarget.files?.[0]);
+                const file = event.currentTarget.files?.[0];
+                // Clear the input synchronously (React nulls currentTarget
+                // after the handler) so picking the same file again fires
+                // another change event — browsers skip it when the value is
+                // unchanged, dead-ending fix-and-retry of a failed import.
+                event.currentTarget.value = '';
+                void handleImportFile(file);
               }}
             />
           </label>

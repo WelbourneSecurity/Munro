@@ -4,6 +4,16 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      // Provided by vite-plugin-pwa in real builds; tests need it resolvable
+      // so src/pwa/register-sw.ts can be imported at all.
+      'virtual:pwa-register': new URL(
+        './src/test/pwa-register-stub.ts',
+        import.meta.url,
+      ).pathname,
+    },
+  },
   test: {
     coverage: {
       exclude: [
@@ -34,6 +44,8 @@ export default defineConfig({
             'src/domain/**/*.test.ts',
             'src/data/**/*.test.ts',
             'src/export/**/*.test.ts',
+            'src/map/**/*.test.ts',
+            'src/pwa/**/*.test.ts',
             'src/store/**/*.test.ts',
           ],
           name: 'domain',

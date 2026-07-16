@@ -28,7 +28,7 @@ export function getExportPreset(id: ExportPresetId): ExportPreset {
 }
 
 export interface ExportTypeScale {
-  /** Title ("Lake District · Wainwrights"). */
+  /** Title (the active list's "Region · Name" line). */
   title: number;
   /** Progress line ("37 / 214 bagged"). */
   progress: number;
@@ -296,6 +296,13 @@ export interface FramePadding {
   right: number;
 }
 
+// Cap on how much of the crop-surviving region's shorter side the base
+// padding may take per side. A fixed padding would dominate a small kept
+// region — a portrait phone cropped to the landscape preset keeps only a
+// ~172 CSS-px-tall strip, where 48px per side leaves the fitted bounds less
+// than half the export's map box, silently upscaled and soft.
+const BASE_PADDING_MAX_FRACTION = 0.08;
+
 /**
  * Padding that makes a contain-fit survive a later centre cover-crop.
  *
@@ -304,8 +311,10 @@ export interface FramePadding {
  * (`dstAspect` = width / height) — a plain symmetric padding would let that
  * crop cut off fitted content whenever the two aspects differ. This widens
  * the padding on the axis the crop trims, so the fitted content sits inside
- * the surviving centre region with `basePadding` still around it. Units
- * follow the viewport (CSS pixels for a live map).
+ * the surviving centre region with `basePadding` still around it. On small
+ * kept regions `basePadding` is scaled down proportionally (see
+ * BASE_PADDING_MAX_FRACTION) so the fitted bounds keep most of the crop.
+ * Units follow the viewport (CSS pixels for a live map).
  */
 export function coverCropPadding(
   viewportWidth: number,
@@ -326,14 +335,15 @@ export function coverCropPadding(
   // The centred region coverCrop keeps, in viewport units.
   const keptWidth = Math.min(viewportWidth, viewportHeight * dstAspect);
   const keptHeight = Math.min(viewportHeight, viewportWidth / dstAspect);
-  const x = (viewportWidth - keptWidth) / 2 + basePadding;
-  const y = (viewportHeight - keptHeight) / 2 + basePadding;
+  const padding = Math.min(
+    basePadding,
+    Math.min(keptWidth, keptHeight) * BASE_PADDING_MAX_FRACTION,
+  );
+  const x = (viewportWidth - keptWidth) / 2 + padding;
+  const y = (viewportHeight - keptHeight) / 2 + padding;
 
   return { top: y, bottom: y, left: x, right: x };
 }
-
-/** The fixed export title for the MVP's single list. */
-export const EXPORT_TITLE = 'Lake District · Wainwrights';
 
 /** The small, restrained Munro wordmark. */
 export const EXPORT_WORDMARK = 'MUNRO';

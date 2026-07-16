@@ -12,7 +12,7 @@ upstream and apply Munro-specific source overlays in code:
 - Lake District boundary from `src/data/boundaries/lake-district.geojson`
   (rendered only while a list with hill lighting is active).
 - Generated Wainwright hill-profile polygons from
-  `src/data/boundaries/wainwright-areas.geojson` (hill lighting is per-list;
+  `src/data/boundaries/hill-areas.geojson` (hill lighting covers every list;
   lists without profiles skip these layers cleanly).
 - Summit points for the active hill list, loaded lazily through the registry
   in `src/data/lists.ts`, which also supplies each list's map-fit bounds and
@@ -20,6 +20,13 @@ upstream and apply Munro-specific source overlays in code:
 - AWS Terrarium DEM tiles for hillshade.
 - Client-generated contour lines from `maplibre-contour`.
 - Attribution strings from `src/data/attribution.ts`.
+
+Three invisible no-op anchor layers (`munro-hillshade-anchor`,
+`munro-hill-lighting-anchor`, `munro-contours-anchor`) are committed at the
+top of `style/munro-dark.json`. Conditional overlay layers pass them as
+`beforeId` so remounting (the Terrain toggle, hill-list switches) always
+restores the fresh-load stacking order below the always-mounted peak layers.
+Keep the anchors when refreshing the style fork from upstream.
 
 The vector-tile source URL is isolated in `config.ts`. If the public OpenFreeMap
 instance stops fitting the MVP, replace that URL with a self-hosted

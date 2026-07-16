@@ -46,6 +46,12 @@ export default defineConfig({
         // The bundled boundary + hill-profile data pushes the main chunk
         // past workbox's 2 MiB default.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        // PR previews live under /pr-preview/ on the same origin. The
+        // production service worker's scope is '/', so without this
+        // denylist its navigation fallback would answer preview
+        // navigations with the production app shell for anyone who has
+        // visited the live site.
+        navigateFallbackDenylist: [/^\/pr-preview\//],
         // Deliberately no runtime caching: OpenFreeMap tiles, AWS terrain
         // tiles and style assets stay network-only, respecting the free
         // providers instead of hoarding their tiles on-device.
@@ -54,11 +60,12 @@ export default defineConfig({
     }),
   ],
   build: {
-    // The main chunk is dominated by maplibre-gl and the bundled hill-profile
-    // data — both accepted as the product (see "Performance budget" in
-    // wiki/operations.md). Vite's default 500 kB warning would fire on every
-    // build and carry no signal; this limit sits just above the measured
-    // chunk size so the warning returns only when the budget is exceeded.
-    chunkSizeWarningLimit: 2500,
+    // The main chunk is dominated by maplibre-gl — accepted as the product
+    // (see "Performance budget" in wiki/operations.md); the hill-profile
+    // data is a separate lazy chunk. Vite's default 500 kB warning would
+    // fire on every build and carry no signal; this limit sits just above
+    // the measured chunk sizes (main ~1,380 kB, profiles ~1,690 kB) so the
+    // warning returns only when a chunk genuinely grows.
+    chunkSizeWarningLimit: 1800,
   },
 });

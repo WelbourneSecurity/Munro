@@ -1,5 +1,8 @@
 coverage/
 dist/
+# Generated data, deliberately compact — bundled bytes are user-facing
+# (see scripts/geojson-io.ts); pretty-printing would triple the file size.
+src/data/boundaries/*.geojson
 node_modules/
 playwright-report/
 site/

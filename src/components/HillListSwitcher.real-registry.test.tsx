@@ -12,7 +12,7 @@ describe('HillListSwitcher against the real registry', () => {
     usePreferencesStore.getState().setActiveListId('wainwrights');
   });
 
-  it('renders one option per registered list, defaulting to Wainwrights', () => {
+  it('renders one option per registered list, with the collated view first', () => {
     const { getByRole, getAllByRole } = render(<HillListSwitcher />);
 
     const select = getByRole('combobox', { name: 'Hill list' });
@@ -23,6 +23,7 @@ describe('HillListSwitcher against the real registry', () => {
       HILL_LISTS.map((list) => list.name),
     );
     expect(options.map((option) => option.textContent)).toEqual([
+      'All peaks',
       'Wainwrights',
       'Munros',
       'Corbetts',

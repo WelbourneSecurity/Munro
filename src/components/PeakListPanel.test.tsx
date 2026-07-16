@@ -2,7 +2,7 @@ import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
-import type { Peak, PeakProgress } from '../domain';
+import { filterPeaks, groupPeakItems, type Peak, type PeakProgress } from '../domain';
 import { PeakListPanel } from './PeakListPanel';
 
 const peaks: Peak[] = [
@@ -44,10 +44,13 @@ describe('PeakListPanel', () => {
         peaks={peaks}
         progress={progress}
         selectedPeakId="dobih-1"
+        regionPrefixToHide="Lake District - "
         onSelectPeak={onSelectPeak}
       />,
     );
 
+    // With the Wainwrights' shared prefix hidden the heading is the bare
+    // fell group; merged lists omit the prop and keep full region names.
     expect(getByText('Southern Fells')).toBeVisible();
     expect(getByText('Allen Crags')).toBeVisible();
 
@@ -106,6 +109,23 @@ describe('PeakListPanel', () => {
     await user.type(getByLabelText('Search peaks'), 'allen');
 
     expect(getByText('No peaks match this view.')).toBeVisible();
+  });
+
+  it('announces the result count as a polite live region', () => {
+    const { getByText } = render(
+      <PeakListPanel
+        peaks={peaks}
+        progress={progress}
+        selectedPeakId={undefined}
+        onSelectPeak={vi.fn()}
+      />,
+    );
+
+    // Typing a search or switching the filter otherwise changes the list
+    // silently for screen-reader users.
+    const count = getByText('2 shown');
+    expect(count).toHaveAttribute('aria-live', 'polite');
+    expect(count).toHaveAttribute('aria-atomic', 'true');
   });
 
   it('keeps the focus ring visible on the active filter button', () => {
@@ -196,5 +216,75 @@ describe('PeakListPanel row windowing', () => {
     );
 
     expect(getByText(lastPeak?.name ?? '')).toBeVisible();
+  });
+
+  /** Peaks in the order the panel renders them (grouped, name-sorted). */
+  const renderedOrder = groupPeakItems(
+    filterPeaks(manyPeaks, [], { filter: 'all', query: '', sort: 'name' }),
+  ).flatMap((group) => group.items.map((item) => item.peak));
+
+  it('commits the window expansion when the selection lies beyond it', async () => {
+    const user = userEvent.setup();
+    const beyondWindow = renderedOrder[150];
+    const { container, getByRole, rerender } = render(
+      <PeakListPanel
+        peaks={manyPeaks}
+        progress={[]}
+        selectedPeakId={beyondWindow?.id}
+        onSelectPeak={vi.fn()}
+      />,
+    );
+
+    // The window grows to whole chunks including the selected row, so the
+    // hidden count, the "Show N more" button and the sentinel observer all
+    // stay consistent with what is actually rendered.
+    expect(renderedRows(container)).toHaveLength(240);
+    expect(getByRole('button', { name: 'Show 60 more' })).toBeVisible();
+
+    // Selecting an earlier peak afterwards must not collapse the window
+    // (which would unmount rows and clamp the scroll position).
+    rerender(
+      <PeakListPanel
+        peaks={manyPeaks}
+        progress={[]}
+        selectedPeakId={renderedOrder[0]?.id}
+        onSelectPeak={vi.fn()}
+      />,
+    );
+
+    expect(renderedRows(container)).toHaveLength(240);
+
+    await user.click(getByRole('button', { name: 'Show 60 more' }));
+
+    expect(renderedRows(container)).toHaveLength(300);
+  });
+
+  it('keeps the window across progress-only changes', async () => {
+    const user = userEvent.setup();
+    const { container, getByRole, rerender } = render(
+      <PeakListPanel
+        peaks={manyPeaks}
+        progress={[]}
+        selectedPeakId={undefined}
+        onSelectPeak={vi.fn()}
+      />,
+    );
+
+    await user.click(getByRole('button', { name: 'Show 180 more' }));
+    expect(renderedRows(container)).toHaveLength(240);
+
+    // A progress write (bag, unbag, a background notes flush) hands down a
+    // new progress array; the grown window must survive it — only search,
+    // filter, sort and list changes reset it.
+    rerender(
+      <PeakListPanel
+        peaks={manyPeaks}
+        progress={[{ peakId: manyPeaks[0]?.id ?? '', bagged: true }]}
+        selectedPeakId={undefined}
+        onSelectPeak={vi.fn()}
+      />,
+    );
+
+    expect(renderedRows(container)).toHaveLength(240);
   });
 });

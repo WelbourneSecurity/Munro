@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 
 import { expect, test } from '@playwright/test';
 
-import { ARD_CRAGS, waitForMapDrawn } from './helpers';
+import { ARD_CRAGS, selectHillList, waitForMapDrawn } from './helpers';
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 
@@ -12,6 +12,10 @@ test('selects a peak, bags it and exports a PNG', async ({ page }) => {
 
   await page.goto('./');
   await waitForMapDrawn(page);
+
+  // Narrow from the collated default to the Wainwrights, whose published
+  // count the stats assertion below relies on.
+  await selectHillList(page, 'wainwrights');
 
   // Select the peak through the list panel (the accessible, reliable path).
   await page.getByRole('searchbox', { name: 'Search peaks' }).fill(ARD_CRAGS.name);

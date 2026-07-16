@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-import { collectPageErrors, waitForMapDrawn } from './helpers';
+import { collectPageErrors, selectHillList, waitForMapDrawn } from './helpers';
 
-test('loads the tracker with a drawn map, all 214 peaks and no errors', async ({
+test('loads the tracker with a drawn map, the collated peaks and no errors', async ({
   page,
 }) => {
   // Real tile loading over the network can take a while.
@@ -12,10 +12,26 @@ test('loads the tracker with a drawn map, all 214 peaks and no errors', async ({
 
   await page.goto('./');
 
+  // The default view collates every hill list, deduplicated.
   await expect(page).toHaveTitle('Munro');
+  await expect(page.getByRole('heading', { name: 'All peaks' })).toBeVisible();
+  await expect(page.getByText('United Kingdom', { exact: true })).toBeVisible();
+  await expect(page.getByText('2170 peaks')).toBeVisible();
+  await expect(page.getByLabel('Terrain')).toBeChecked();
+
+  // Map canvas rendered with real content, checked on the default view: its
+  // thousands of visible markers guarantee colour variance even when the
+  // external tile hosts are slow, unlike the Wainwrights view below whose
+  // markers give way to subtle hill lighting. The peak markers are map
+  // layers painted onto this canvas, so a drawn canvas is how their
+  // presence is asserted (no pixel-colour testing, per the implementation
+  // plan).
+  await waitForMapDrawn(page);
+
+  // Narrowing to a single published list still works, with its exact count.
+  await selectHillList(page, 'wainwrights');
   await expect(page.getByRole('heading', { name: 'Wainwrights' })).toBeVisible();
   await expect(page.getByText('Lake District', { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Terrain')).toBeChecked();
 
   // Every Wainwright reaches the list panel with an unbagged indicator. The
   // panel renders rows in windows that grow on scroll (see PeakListPanel), so
@@ -33,11 +49,6 @@ test('loads the tracker with a drawn map, all 214 peaks and no errors', async ({
 
     await expect(page.getByLabel('Unbagged')).toHaveCount(214, { timeout: 2_000 });
   }).toPass({ timeout: 30_000 });
-
-  // Map canvas rendered with real content. The peak markers are map layers
-  // painted onto this canvas, so a drawn canvas is how their presence is
-  // asserted (no pixel-colour testing, per the implementation plan).
-  await waitForMapDrawn(page);
 
   expect(errors).toEqual([]);
 });

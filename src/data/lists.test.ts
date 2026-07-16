@@ -13,8 +13,8 @@ describe('hill-list registry', () => {
     expect(new Set(HILL_LIST_IDS).size).toBe(HILL_LIST_IDS.length);
   });
 
-  it('defaults to Wainwrights', () => {
-    expect(DEFAULT_HILL_LIST_ID).toBe('wainwrights');
+  it('defaults to the collated all-peaks list', () => {
+    expect(DEFAULT_HILL_LIST_ID).toBe('all');
     expect(isHillListId(DEFAULT_HILL_LIST_ID)).toBe(true);
   });
 
@@ -58,7 +58,12 @@ describe('hill-list registry', () => {
 
       for (const peak of peaks) {
         expect(() => parsePeak(peak)).not.toThrow();
-        expect(peak.list, `${peak.name} list membership`).toContain(list.id);
+
+        // The collated list has no membership of its own — every peak in it
+        // belongs to at least one source list instead.
+        if (list.id !== 'all') {
+          expect(peak.list, `${peak.name} list membership`).toContain(list.id);
+        }
         expect(peak.lon, `${peak.name} longitude`).toBeGreaterThanOrEqual(west);
         expect(peak.lon, `${peak.name} longitude`).toBeLessThanOrEqual(east);
         expect(peak.lat, `${peak.name} latitude`).toBeGreaterThanOrEqual(south);
@@ -67,16 +72,19 @@ describe('hill-list registry', () => {
     }
   });
 
-  it('marks hill lighting only where generated profiles exist', () => {
+  it('marks hill lighting on every list the generated profiles cover', () => {
+    // The committed UK-wide profile set covers all registered lists — see
+    // the committed hill area model suite in src/domain/data-validation.
     const listsWithLighting = HILL_LISTS.filter((list) => list.hasHillLighting).map(
       (list) => list.id,
     );
 
-    expect(listsWithLighting).toEqual(['wainwrights']);
+    expect(listsWithLighting).toEqual([...HILL_LIST_IDS]);
   });
 
   it('loads the exact published count for every list', async () => {
     const expectedCounts: Record<string, number> = {
+      all: 2170,
       wainwrights: 214,
       munros: 282,
       corbetts: 222,
@@ -92,5 +100,26 @@ describe('hill-list registry', () => {
     }
 
     expect(Object.keys(expectedCounts).sort()).toEqual([...HILL_LIST_IDS].sort());
+  });
+
+  it('collates every source list into the all-peaks view, deduplicated', async () => {
+    const allPeaks = await getHillList('all').loadPeaks();
+    const sourceIds = new Set<string>();
+
+    for (const list of HILL_LISTS.filter((candidate) => candidate.id !== 'all')) {
+      for (const peak of await list.loadPeaks()) {
+        sourceIds.add(peak.id);
+      }
+    }
+
+    // One record per distinct hill: nothing dropped, nothing duplicated.
+    expect(allPeaks.length).toBe(sourceIds.size);
+    expect(new Set(allPeaks.map((peak) => peak.id)).size).toBe(allPeaks.length);
+
+    // A hill on several lists keeps every membership on its single record.
+    const allenCrags = allPeaks.find((peak) => peak.id === 'dobih-2388');
+    expect(allenCrags?.list).toEqual(
+      expect.arrayContaining(['wainwrights', 'hewitts']),
+    );
   });
 });

@@ -1,3 +1,4 @@
+import { mergePeakLists } from '../domain';
 import type { Peak } from '../domain';
 
 /**
@@ -9,6 +10,7 @@ import type { Peak } from '../domain';
  */
 
 export const HILL_LIST_IDS = [
+  'all',
   'wainwrights',
   'munros',
   'corbetts',
@@ -21,7 +23,7 @@ export const HILL_LIST_IDS = [
 
 export type HillListId = (typeof HILL_LIST_IDS)[number];
 
-export const DEFAULT_HILL_LIST_ID: HillListId = 'wainwrights';
+export const DEFAULT_HILL_LIST_ID: HillListId = 'all';
 
 /** `[[west, south], [east, north]]` in WGS84, used for map fit and pan limits. */
 export type HillListBounds = [[number, number], [number, number]];
@@ -47,9 +49,11 @@ export interface HillListDefinition {
   /** Initial camera for the list's region. */
   initialView: HillListView;
   /**
-   * Whether generated hill-lighting profiles (and a matching boundary layer)
-   * exist for this list. Lists without profiles fall back to summit markers
-   * only — lighting layers must no-op cleanly.
+   * Whether generated hill-lighting profiles exist for this list. The
+   * committed UK-wide profile set covers every hill on every registered
+   * list, so this is true across the registry; a future list must either
+   * regenerate the profiles (npm run data:hill-boundaries) or ship false
+   * and fall back to summit markers.
    */
   hasHillLighting: boolean;
   /** Lazily loads the list's peak data so bundles don't grow per list. */
@@ -84,9 +88,9 @@ const wainwrights: HillListDefinition = {
   loadPeaks: async () => (await import('./wainwrights.json')).default.peaks,
 };
 
-// The Scottish lists have no generated hill-lighting profiles or park
-// boundary yet, so they render summit markers only (hasHillLighting: false).
 // The shared camera style (bearing/pitch) matches the Wainwrights view.
+// Every list is covered by the generated UK-wide lighting profiles; only
+// the Wainwrights additionally draw the Lake District boundary layers.
 
 const munros: HillListDefinition = {
   id: 'munros',
@@ -104,7 +108,7 @@ const munros: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./munros.json')).default.peaks,
 };
 
@@ -124,7 +128,7 @@ const corbetts: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./corbetts.json')).default.peaks,
 };
 
@@ -144,7 +148,7 @@ const grahams: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./grahams.json')).default.peaks,
 };
 
@@ -164,7 +168,7 @@ const donalds: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./donalds.json')).default.peaks,
 };
 
@@ -188,7 +192,7 @@ const ethels: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./ethels.json')).default.peaks,
 };
 
@@ -208,7 +212,7 @@ const hewitts: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./hewitts.json')).default.peaks,
 };
 
@@ -228,11 +232,11 @@ const marilyns: HillListDefinition = {
     bearing: -12,
     pitch: 38,
   },
-  hasHillLighting: false,
+  hasHillLighting: true,
   loadPeaks: async () => (await import('./marilyns.json')).default.peaks,
 };
 
-export const HILL_LISTS: readonly HillListDefinition[] = [
+const SOURCE_HILL_LISTS: readonly HillListDefinition[] = [
   wainwrights,
   munros,
   corbetts,
@@ -243,7 +247,40 @@ export const HILL_LISTS: readonly HillListDefinition[] = [
   marilyns,
 ];
 
-const DEFAULT_HILL_LIST: HillListDefinition = wainwrights;
+// The published lists overlap — a Wainwright can also be a Hewitt and a
+// Marilyn — so the default view collates every registered list into one
+// deduplicated UK-wide set. Progress is keyed by peak id, so a peak bagged
+// here is bagged in every list that contains it (and vice versa). The
+// bounds/view match the Marilyns, the widest source list.
+const allPeaks: HillListDefinition = {
+  id: 'all',
+  name: 'All peaks',
+  regionLabel: 'United Kingdom',
+  peakNoun: 'peaks',
+  bounds: [
+    [-8.7, 50.1],
+    [0.65, 60.9],
+  ],
+  initialView: {
+    longitude: -4.0,
+    latitude: 55.0,
+    zoom: 5.0,
+    bearing: -12,
+    pitch: 38,
+  },
+  hasHillLighting: true,
+  loadPeaks: async () =>
+    mergePeakLists(
+      await Promise.all(SOURCE_HILL_LISTS.map((list) => list.loadPeaks())),
+    ),
+};
+
+export const HILL_LISTS: readonly HillListDefinition[] = [
+  allPeaks,
+  ...SOURCE_HILL_LISTS,
+];
+
+const DEFAULT_HILL_LIST: HillListDefinition = allPeaks;
 
 export function isHillListId(value: unknown): value is HillListId {
   return typeof value === 'string' && HILL_LIST_IDS.some((id) => id === value);

@@ -44,6 +44,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      # Fails the job when the gzip output exceeds the performance budget
+      # in wiki/operations.md.
+      - run: npm run perf:budget
 
   e2e:
     runs-on: ubuntu-latest

@@ -29,6 +29,16 @@ interface PersistedProgress {
   version: number;
 }
 
+/**
+ * Switch the tracker to a specific hill list via the panel's switcher. The
+ * app defaults to the collated "All peaks" view; specs that assert against a
+ * single published list (e.g. the 214 Wainwrights) narrow the view first.
+ * The choice persists (munro.prefs.v1), so it survives reloads in a spec.
+ */
+export async function selectHillList(page: Page, listId: string): Promise<void> {
+  await page.getByLabel('Hill list').selectOption(listId);
+}
+
 /** Read and unwrap the persisted progress records from localStorage. */
 export async function readProgressStorage(
   page: Page,
@@ -107,11 +117,18 @@ const HTTP_CLIENT_ERROR_MESSAGE =
 
 /**
  * MapLibre's tile machinery (maplibre-contour's DEM worker in particular)
- * rejects with a bare `timed out` error that carries no URL, so it cannot be
- * host-scoped. Anchored to the start of the message so only that exact error
- * shape is exempt; no first-party code throws it.
+ * rejects with bare errors that carry no URL, so they cannot be
+ * host-scoped: `timed out` when a tile fetch stalls, and the worker's
+ * re-thrown `TypeError: Failed to fetch` when the connection itself is
+ * refused (e.g. a sandboxed proxy blocking the terrain host). Anchored to
+ * the start of the message so only these exact shapes are exempt —
+ * first-party fetch failures (stale chunks, same-origin assets) surface
+ * with a URL in the message and still count as errors.
  */
-const TILE_WORKER_TIMEOUT = /^(Error: )?timed out\b/;
+// The `Error: ` prefix can stack: the worker wraps the original error, and
+// the console serialization prefixes it again ("Error: Error: timed out").
+const TILE_WORKER_TIMEOUT = /^(Error: )*timed out\b/;
+const TILE_WORKER_FETCH_FAILURE = /^(Error: )*(TypeError: )?Failed to fetch\s*$/;
 
 const URL_IN_TEXT = /https?:\/\/[^\s'")]+/g;
 
@@ -136,6 +153,12 @@ function isExternalTileHostUrl(url: string): boolean {
  */
 export function isExternalTileFailure(text: string, locationUrl?: string): boolean {
   if (TILE_WORKER_TIMEOUT.test(text)) {
+    return true;
+  }
+
+  // Only the first line is the message; the rest is stack frames, which
+  // point into the first-party bundle even for worker tile failures.
+  if (TILE_WORKER_FETCH_FAILURE.test(text.split('\n', 1)[0] ?? '')) {
     return true;
   }
 
