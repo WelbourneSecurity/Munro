@@ -28,6 +28,20 @@ const PEAK_LIST_FILES = [
   'ethels',
   'hewitts',
   'marilyns',
+  'munro-tops',
+  'corbett-tops',
+  'graham-tops',
+  'donald-tops',
+  'furths',
+  'nuttalls',
+  'wainwright-outlying-fells',
+  'birketts',
+  'fellrangers',
+  'deweys',
+  'humps',
+  'simms',
+  'county-tops',
+  'trail-100',
 ].map((list) => resolve(ROOT, `src/data/${list}.json`));
 const BOUNDARY_PATH: string = resolve(
   ROOT,
@@ -37,7 +51,9 @@ const OUTPUT_PATH: string = resolve(ROOT, 'src/data/boundaries/hill-areas.geojso
 
 const BEARING_STEP_DEGREES = 12;
 const NEIGHBOUR_INFLUENCE_DEGREES = 78;
-// UK-wide height range: coastal Marilyns (~90 m) up to Ben Nevis (1345 m).
+// UK-wide height scale band, from coastal Marilyns (~90 m) up to Ben Nevis
+// (1345 m). Hills below the band (a few Outlying Fells, county tops and
+// HuMPs reach down to ~50 m) clamp to the minimum profile radius.
 const HEIGHT_MIN_M = 90;
 const HEIGHT_MAX_M = 1345;
 
@@ -142,7 +158,7 @@ function smoothRadii(radii: number[]) {
 function propertiesForPeak(peak: Peak): HillAreaProperties {
   // Only what the map layers read (id for state, name for debugging) plus
   // the method marker; full generation parameters live once in metadata —
-  // repeating them per feature costs real bundle bytes across 2,170 hills.
+  // repeating them per feature costs real bundle bytes across ~5,500 hills.
   return {
     id: peak.id,
     name: peak.name,

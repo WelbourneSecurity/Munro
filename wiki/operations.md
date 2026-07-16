@@ -46,6 +46,12 @@ Work through this checklist once, top to bottom:
   per-PR base path and deployed to `pr-preview/pr-<number>/` on `gh-pages`.
   A sticky comment on the PR links to the preview; closing the PR removes
   it. Fork PRs get no preview — that is a security feature, not a bug.
+- **Preview cleanup** (`preview-cleanup.yml`) — deployments to `gh-pages`
+  race each other (the deploy action snapshots the branch before pushing),
+  so a just-removed preview can be resurrected by a concurrent deploy.
+  After every `gh-pages` writer finishes — and daily as a backstop — this
+  sweep deletes `pr-preview/pr-<number>/` directories whose pull request
+  is closed, so the branch always converges to previews for open PRs only.
 - **Manual re-runs** — `deploy.yml` has a `workflow_dispatch` trigger, so
   the site can be redeployed from the Actions tab without a new commit.
   Any failed run (deploy, preview, CI) can also be re-run from its run
@@ -66,9 +72,9 @@ own lazy chunk, and were quantized and written compact:
 
 | Asset | Minified | Gzip |
 | --- | --- | --- |
-| Main JS chunk (`index-*.js`) | 1,374.8 kB | 379.3 kB |
-| Hill-lighting profiles (`hill-areas-*.js`, lazy) | 1,551.3 kB | 420.6 kB |
-| Default-list data (8 lazy list chunks) | 738.8 kB | 130.3 kB |
+| Main JS chunk (`index-*.js`) | 1,379.7 kB | 380.4 kB |
+| Hill-lighting profiles (`hill-areas-*.js`, lazy) | 3,914.2 kB | 949.2 kB |
+| Default-list data (22 lazy list chunks) | 2,942.4 kB | 517.5 kB |
 | Export engine chunk (`export-*.js`, lazy) | 6.9 kB | 2.8 kB |
 | CSS (`index-*.css`) | 91.8 kB | 15.0 kB |
 | `index.html` | 1.8 kB | 0.8 kB |
@@ -118,13 +124,16 @@ job, and fails when the gzip output exceeds them.
   never statically imported from startup code paths.
 - **Total initial JS ≤ 650 kB gzip** (currently 379 kB). A PR that pushes
   past this must say what grew and why it is worth it.
-- **Default-list data ≤ 180 kB gzip** (currently 130 kB) — the eight
+- **Default-list data ≤ 560 kB gzip** (currently 518 kB) — the 22
   peak-data chunks the collated "All peaks" default view fetches before its
   first render. They are lazy chunks, but on a first visit they are part of
-  the real payload.
-- **Hill-lighting profiles ≤ 450 kB gzip** (currently 421 kB) — the lazy
-  UK-wide profile chunk. It loads after first render (markers carry the
-  tracker until it arrives) but downloads on every first visit.
+  the real payload. The ceiling was raised once, deliberately, when the
+  full UK list set landed (the HuMPs and Simms dominate it); treat it as a
+  hard stop, not headroom to grow into.
+- **Hill-lighting profiles ≤ 1,000 kB gzip** (currently 949 kB) — the lazy
+  UK-wide profile chunk, one profile per distinct hill across every list.
+  It loads after first render (markers carry the tracker until it arrives)
+  but downloads on every first visit.
 - **App code excluding maplibre-gl and the bundled hill/peak data stays
   small** — the non-engine, non-data remainder is ≈ 120–160 kB gzip today
   and should not grow past ≈ 200 kB gzip without justification.

@@ -16,7 +16,7 @@ test('loads the tracker with a drawn map, the collated peaks and no errors', asy
   await expect(page).toHaveTitle('Munro');
   await expect(page.getByRole('heading', { name: 'All peaks' })).toBeVisible();
   await expect(page.getByText('United Kingdom', { exact: true })).toBeVisible();
-  await expect(page.getByText('2170 peaks')).toBeVisible();
+  await expect(page.getByText('5471 peaks')).toBeVisible();
   await expect(page.getByLabel('Terrain')).toBeChecked();
 
   // Map canvas rendered with real content, checked on the default view: its

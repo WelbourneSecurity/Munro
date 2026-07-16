@@ -4,9 +4,9 @@
     "license": "CC BY 4.0",
     "sourceUrl": "https://www.hill-bagging.co.uk/dobih",
     "downloadedFrom": "https://www.hill-bagging.co.uk/dobih-downloads/hillcsv.zip",
-    "changes": "Trimmed to Wainwrights and reformatted from DoBIH v18.4",
+    "changes": "Trimmed to Fellrangers and reformatted from DoBIH v18.4",
     "generatedAt": "2026-07-16",
-    "count": 214
+    "count": 230
   },
   "peaks": [
     {
@@ -59,17 +59,17 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-2483",
-      "dobihId": 2483,
-      "name": "Armboth Fell [Armboth Fell South Top]",
-      "list": ["wainwrights"],
+      "id": "dobih-3761",
+      "dobihId": 3761,
+      "name": "Armboth Fell (Birkett)",
+      "list": ["birketts", "fellrangers"],
       "region": "Lake District - Central Fells",
       "nationalPark": "Lake District",
-      "heightM": 475,
-      "heightFt": 1558,
-      "lat": 54.532026,
-      "lon": -3.089702,
-      "gridRef": "NY295157",
+      "heightM": 479.2,
+      "heightFt": 1572,
+      "lat": 54.534097,
+      "lon": -3.088273,
+      "gridRef": "NY296159",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -213,6 +213,20 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-3567",
+      "dobihId": 3567,
+      "name": "Bell Crags [Long Moss] [Blea Tarn Fell]",
+      "list": ["birketts", "fellrangers", "deweys"],
+      "region": "Lake District - Central Fells",
+      "nationalPark": "Lake District",
+      "heightM": 559.1,
+      "heightFt": 1834,
+      "lat": 54.519157,
+      "lon": -3.085558,
+      "gridRef": "NY298143",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2351",
       "dobihId": 2351,
       "name": "Binsey",
@@ -252,6 +266,29 @@
       "lat": 54.520711,
       "lon": -2.959051,
       "gridRef": "NY380143",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2646",
+      "dobihId": 2646,
+      "name": "Black Combe",
+      "list": [
+        "marilyns",
+        "wainwright-outlying-fells",
+        "birketts",
+        "fellrangers",
+        "deweys",
+        "humps",
+        "simms",
+        "trail-100"
+      ],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 600.2,
+      "heightFt": 1969,
+      "lat": 54.257722,
+      "lon": -3.328695,
+      "gridRef": "SD135854",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -332,6 +369,20 @@
       "lat": 54.639949,
       "lon": -3.049789,
       "gridRef": "NY323277",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2506",
+      "dobihId": 2506,
+      "name": "Boat How",
+      "list": ["wainwright-outlying-fells", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 337,
+      "heightFt": 1106,
+      "lat": 54.419381,
+      "lon": -3.26945,
+      "gridRef": "NY177034",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -492,6 +543,20 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2648",
+      "dobihId": 2648,
+      "name": "Buck Barrow",
+      "list": ["wainwright-outlying-fells", "birketts", "fellrangers", "deweys"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 549,
+      "heightFt": 1801,
+      "lat": 54.307983,
+      "lon": -3.304845,
+      "gridRef": "SD151910",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2497",
       "dobihId": 2497,
       "name": "Buckbarrow",
@@ -503,20 +568,6 @@
       "lat": 54.443165,
       "lon": -3.334275,
       "gridRef": "NY135061",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-2484",
-      "dobihId": 2484,
-      "name": "Burnbank Fell",
-      "list": ["wainwrights", "birketts"],
-      "region": "Lake District - Western Fells",
-      "nationalPark": "Lake District",
-      "heightM": 475,
-      "heightFt": 1558,
-      "lat": 54.575943,
-      "lon": -3.37834,
-      "gridRef": "NY110209",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -636,6 +687,26 @@
       "lat": 54.576817,
       "lon": -3.210133,
       "gridRef": "NY218208",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2651",
+      "dobihId": 2651,
+      "name": "Caw",
+      "list": [
+        "wainwright-outlying-fells",
+        "birketts",
+        "fellrangers",
+        "deweys",
+        "humps"
+      ],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 529,
+      "heightFt": 1736,
+      "lat": 54.339804,
+      "lon": -3.18521,
+      "gridRef": "SD230944",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1103,17 +1174,31 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-2489",
-      "dobihId": 2489,
-      "name": "Graystones [Graystones North Top]",
-      "list": ["wainwrights"],
+      "id": "dobih-2603",
+      "dobihId": 2603,
+      "name": "Grayrigg Forest",
+      "list": ["marilyns", "fellrangers", "humps"],
+      "region": "Lake District - Far Eastern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 493.9,
+      "heightFt": 1620,
+      "lat": 54.392108,
+      "lon": -2.619582,
+      "gridRef": "SD598998",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-3713",
+      "dobihId": 3713,
+      "name": "Graystones",
+      "list": ["birketts", "fellrangers"],
       "region": "Lake District - North Western Fells",
       "nationalPark": "Lake District",
-      "heightM": 450.4,
-      "heightFt": 1478,
-      "lat": 54.627991,
-      "lon": -3.277642,
-      "gridRef": "NY176266",
+      "heightM": 455.3,
+      "heightFt": 1494,
+      "lat": 54.626212,
+      "lon": -3.275,
+      "gridRef": "NY177264",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1270,6 +1355,20 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-3571",
+      "dobihId": 3571,
+      "name": "Great How - Eskdale Fell",
+      "list": ["birketts", "fellrangers", "deweys"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 522,
+      "heightFt": 1713,
+      "lat": 54.425014,
+      "lon": -3.238487,
+      "gridRef": "NY197039",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2583",
       "dobihId": 2583,
       "name": "Great Mell Fell",
@@ -1316,6 +1415,20 @@
       "lat": 54.695145,
       "lon": -3.100989,
       "gridRef": "NY291339",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2660",
+      "dobihId": 2660,
+      "name": "Great Worm Crag",
+      "list": ["wainwright-outlying-fells", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 427,
+      "heightFt": 1401,
+      "lat": 54.361004,
+      "lon": -3.241794,
+      "gridRef": "SD194968",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1694,17 +1807,31 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-2573",
-      "dobihId": 2573,
-      "name": "Heron Pike (Rydal)",
-      "list": ["wainwrights", "nuttalls", "birketts"],
+      "id": "dobih-2571",
+      "dobihId": 2571,
+      "name": "Heron Pike North Top [Rydal Fell]",
+      "list": ["nuttalls", "birketts", "fellrangers"],
       "region": "Lake District - Eastern Fells",
       "nationalPark": "Lake District",
-      "heightM": 612,
-      "heightFt": 2008,
-      "lat": 54.466072,
-      "lon": -2.995142,
-      "gridRef": "NY355083",
+      "heightM": 621.3,
+      "heightFt": 2038,
+      "lat": 54.469332,
+      "lon": -2.993292,
+      "gridRef": "NY357086",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2656",
+      "dobihId": 2656,
+      "name": "Hesk Fell",
+      "list": ["wainwright-outlying-fells", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 478.1,
+      "heightFt": 1569,
+      "lat": 54.340895,
+      "lon": -3.268861,
+      "gridRef": "SD176946",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -1872,17 +1999,26 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-3728",
-      "dobihId": 3728,
-      "name": "High Stile",
-      "list": ["wainwrights", "birketts"],
+      "id": "dobih-2381",
+      "dobihId": 2381,
+      "name": "High Stile [Grey Crag - High Stile]",
+      "list": [
+        "hewitts",
+        "marilyns",
+        "nuttalls",
+        "birketts",
+        "fellrangers",
+        "humps",
+        "simms",
+        "trail-100"
+      ],
       "region": "Lake District - Western Fells",
       "nationalPark": "Lake District",
-      "heightM": 806.2,
-      "heightFt": 2645,
-      "lat": 54.521578,
-      "lon": -3.287667,
-      "gridRef": "NY167147",
+      "heightM": 806.5,
+      "heightFt": 2646,
+      "lat": 54.521835,
+      "lon": -3.283704,
+      "gridRef": "NY170148",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2022,6 +2158,20 @@
       "lat": 54.43293,
       "lon": -3.282634,
       "gridRef": "NY168049",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2440",
+      "dobihId": 2440,
+      "name": "Iron Crag [Ennerdale Fell]",
+      "list": ["hewitts", "nuttalls", "birketts", "fellrangers", "simms"],
+      "region": "Lake District - Western Fells",
+      "nationalPark": "Lake District",
+      "heightM": 640,
+      "heightFt": 2100,
+      "lat": 54.495063,
+      "lon": -3.355173,
+      "gridRef": "NY123119",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2229,6 +2379,20 @@
       "lat": 54.608024,
       "lon": -2.894465,
       "gridRef": "NY423240",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2403",
+      "dobihId": 2403,
+      "name": "Little Stand",
+      "list": ["nuttalls", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 740,
+      "heightFt": 2428,
+      "lat": 54.420244,
+      "lon": -3.156628,
+      "gridRef": "NY250033",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -2463,17 +2627,31 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-2340",
-      "dobihId": 2340,
-      "name": "Mungrisdale Common",
-      "list": ["wainwrights"],
-      "region": "Lake District - Northern Fells",
+      "id": "dobih-2694",
+      "dobihId": 2694,
+      "name": "Muncaster Fell - Hooker Crag",
+      "list": ["wainwright-outlying-fells", "fellrangers"],
+      "region": "Lake District - Southern Fells",
       "nationalPark": "Lake District",
-      "heightM": 631.8,
-      "heightFt": 2073,
-      "lat": 54.653232,
-      "lon": -3.068359,
-      "gridRef": "NY311292",
+      "heightM": 231.4,
+      "heightFt": 759,
+      "lat": 54.372911,
+      "lon": -3.368312,
+      "gridRef": "SD112983",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2492",
+      "dobihId": 2492,
+      "name": "Murton Fell [Knock Murton]",
+      "list": ["birketts", "fellrangers", "humps"],
+      "region": "Lake District - Western Fells",
+      "nationalPark": "Lake District",
+      "heightM": 446.4,
+      "heightFt": 1465,
+      "lat": 54.558855,
+      "lon": -3.401208,
+      "gridRef": "NY094190",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -3200,20 +3378,6 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
-      "id": "dobih-2609",
-      "dobihId": 2609,
-      "name": "Sour Howes",
-      "list": ["wainwrights", "birketts"],
-      "region": "Lake District - Far Eastern Fells",
-      "nationalPark": "Lake District",
-      "heightM": 483,
-      "heightFt": 1585,
-      "lat": 54.421166,
-      "lon": -2.883595,
-      "gridRef": "NY427032",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
       "id": "dobih-2348",
       "dobihId": 2348,
       "name": "Souther Fell",
@@ -3249,6 +3413,20 @@
       "lat": 54.51194,
       "lon": -2.975836,
       "gridRef": "NY369133",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2652",
+      "dobihId": 2652,
+      "name": "Stainton Pike",
+      "list": ["wainwright-outlying-fells", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 498,
+      "heightFt": 1634,
+      "lat": 54.336889,
+      "lon": -3.304806,
+      "gridRef": "SD152942",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -3312,6 +3490,20 @@
       "lat": 54.493389,
       "lon": -3.302174,
       "gridRef": "NY157116",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2663",
+      "dobihId": 2663,
+      "name": "Stickle Pike",
+      "list": ["wainwright-outlying-fells", "birketts", "fellrangers", "humps"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 375,
+      "heightFt": 1230,
+      "lat": 54.324643,
+      "lon": -3.213066,
+      "gridRef": "SD212927",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -3429,34 +3621,6 @@
       "lat": 54.463578,
       "lon": -2.791539,
       "gridRef": "NY487078",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-2544",
-      "dobihId": 2544,
-      "name": "The Knott (High Street)",
-      "list": ["wainwrights", "birketts"],
-      "region": "Lake District - Far Eastern Fells",
-      "nationalPark": "Lake District",
-      "heightM": 739,
-      "heightFt": 2425,
-      "lat": 54.506316,
-      "lon": -2.870821,
-      "gridRef": "NY437126",
-      "source": "Database of British and Irish Hills v18.4"
-    },
-    {
-      "id": "dobih-2577",
-      "dobihId": 2577,
-      "name": "The Nab",
-      "list": ["wainwrights", "birketts", "deweys"],
-      "region": "Lake District - Far Eastern Fells",
-      "nationalPark": "Lake District",
-      "heightM": 576,
-      "heightFt": 1890,
-      "lat": 54.528893,
-      "lon": -2.875675,
-      "gridRef": "NY434151",
       "source": "Database of British and Irish Hills v18.4"
     },
     {
@@ -3584,6 +3748,34 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-16122",
+      "dobihId": 16122,
+      "name": "Wallowbarrow Crag",
+      "list": ["fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 292,
+      "heightFt": 958,
+      "lat": 54.360715,
+      "lon": -3.198308,
+      "gridRef": "SD222967",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2644",
+      "dobihId": 2644,
+      "name": "Walna Scar",
+      "list": ["nuttalls", "wainwright-outlying-fells", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 620.8,
+      "heightFt": 2037,
+      "lat": 54.357182,
+      "lon": -3.143745,
+      "gridRef": "SD257963",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2394",
       "dobihId": 2394,
       "name": "Wandope",
@@ -3670,6 +3862,20 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-16092",
+      "dobihId": 16092,
+      "name": "Whinfell Beacon",
+      "list": ["fellrangers"],
+      "region": "Lake District - Far Eastern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 472,
+      "heightFt": 1549,
+      "lat": 54.396342,
+      "lon": -2.658399,
+      "gridRef": "NY573002",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2477",
       "dobihId": 2477,
       "name": "Whinlatter [Brown How - Whinlatter]",
@@ -3740,6 +3946,41 @@
       "source": "Database of British and Irish Hills v18.4"
     },
     {
+      "id": "dobih-2647",
+      "dobihId": 2647,
+      "name": "Whitfell",
+      "list": [
+        "marilyns",
+        "wainwright-outlying-fells",
+        "birketts",
+        "fellrangers",
+        "deweys",
+        "humps"
+      ],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 573.3,
+      "heightFt": 1881,
+      "lat": 54.325473,
+      "lon": -3.294896,
+      "gridRef": "SD158929",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-19519",
+      "dobihId": 19519,
+      "name": "Winterscleugh",
+      "list": ["fellrangers"],
+      "region": "Lake District - Far Eastern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 464.3,
+      "heightFt": 1523,
+      "lat": 54.419489,
+      "lon": -2.654177,
+      "gridRef": "NY576028",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
       "id": "dobih-2450",
       "dobihId": 2450,
       "name": "Yewbarrow",
@@ -3760,6 +4001,20 @@
       "lat": 54.464889,
       "lon": -3.27686,
       "gridRef": "NY173084",
+      "source": "Database of British and Irish Hills v18.4"
+    },
+    {
+      "id": "dobih-2653",
+      "dobihId": 2653,
+      "name": "Yoadcastle",
+      "list": ["wainwright-outlying-fells", "birketts", "fellrangers"],
+      "region": "Lake District - Southern Fells",
+      "nationalPark": "Lake District",
+      "heightM": 494,
+      "heightFt": 1621,
+      "lat": 54.345748,
+      "lon": -3.298441,
+      "gridRef": "SD156952",
       "source": "Database of British and Irish Hills v18.4"
     },
     {

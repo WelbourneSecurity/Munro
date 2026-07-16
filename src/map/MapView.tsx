@@ -126,7 +126,7 @@ export function MapView() {
   const activePeakIds = useMemo(() => new Set(peaks.map((peak) => peak.id)), [peaks]);
   // Only bagged state is baked into the hill-area features; the transient
   // selection highlight lives in the hill-area layer filter/paint instead
-  // (see layers.ts), so selecting a peak never re-uploads this ~1 MB
+  // (see layers.ts), so selecting a peak never re-uploads this ~4 MB
   // collection through setData. The UK-wide profiles are filtered to the
   // active list so hills outside it never light up (list switches re-upload
   // once, like the peak source itself).
@@ -154,8 +154,9 @@ export function MapView() {
   }, [hillAreas, activePeakIds, progressByPeakId]);
   const hillLightingReady = hillAreaGeoJson !== null;
   // Suppress the transient selection highlight while the export dialog is
-  // open: it shares the bagged green, so a captured image would otherwise
-  // show the selected peak as if bagged and overstate progress.
+  // open: the bright selected outline (and the brightened fill on a bagged
+  // hill) is transient UI state, not part of the tracker's record, and it
+  // would read as one in a captured image.
   // highlightedPeakId (not raw selectedPeakId) keeps the map in sync with
   // the panel's peaks[0] fallback.
   const hillAreaSelectedId = exportOpen ? undefined : highlightedPeakId;

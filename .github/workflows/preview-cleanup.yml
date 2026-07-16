@@ -1,0 +1,100 @@
+# Self-healing cleanup of per-PR preview deployments on gh-pages.
+#
+# pr-preview.yml's teardown job removes pr-preview/pr-<N>/ when a PR closes,
+# but every gh-pages writer runs in its own concurrency group, so a removal
+# can be silently resurrected: JamesIves/github-pages-deploy-action (used by
+# both deploy.yml and the preview action) snapshots the branch when its
+# deployment starts, and a deployment that raced the teardown — the main
+# deploy triggered by the same merge, or another PR's preview — lands its
+# stale snapshot, pr-preview/ included via clean-exclude, on top of the
+# removal commit. Observed for PRs 6, 7, 9 and 12: each "Remove preview"
+# commit was followed within seconds by a deploy that restored the directory.
+#
+# Serializing every writer into one concurrency group would not close the
+# hole: GitHub cancels the previously *pending* job when a third one queues,
+# so burst merges (several Dependabot PRs) would silently drop teardowns.
+# Instead this sweep converges the branch after the fact: whenever any
+# gh-pages writer finishes, delete every pr-preview/pr-<N>/ whose PR is
+# closed. A resurrection is always followed by the resurrecting run's own
+# completion event, which triggers another sweep, so the branch converges to
+# previews-for-open-PRs-only. The daily schedule is a backstop and
+# workflow_dispatch allows a manual sweep.
+#
+# The sweep executes nothing from any PR — it only inspects PR states via
+# the API and rewrites gh-pages — so holding contents: write here is safe.
+
+name: Preview cleanup
+
+on:
+  workflow_run:
+    workflows: [Deploy, PR preview]
+    types: [completed]
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+# No workflow-level grants; the job declares the minimum it needs.
+permissions: {}
+
+# Sweeps are idempotent; if several queue up, only the newest pending one
+# needs to run, which is exactly GitHub's queueing behaviour for a group.
+concurrency:
+  group: preview-cleanup
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+      - name: Remove previews for closed pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Retry on push rejection: another writer may land between our
+          # fetch and push; re-sweep from the fresh tip rather than rebasing
+          # a stale removal.
+          for attempt in 1 2 3 4 5; do
+            git fetch origin gh-pages
+            git reset --hard origin/gh-pages
+
+            removed=""
+            for dir in pr-preview/pr-*/; do
+              [ -d "$dir" ] || continue
+              n="${dir#pr-preview/pr-}"
+              n="${n%/}"
+              # Only numeric directory names can be PR previews; leave
+              # anything else alone.
+              case "$n" in '' | *[!0-9]*) continue ;; esac
+              state="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${n}" --jq .state 2>/dev/null || echo unknown)"
+              if [ "$state" = "closed" ]; then
+                git rm -r -q "$dir"
+                removed="${removed} #${n}"
+              fi
+            done
+
+            if [ -z "$removed" ]; then
+              echo "No previews for closed PRs found; nothing to do."
+              exit 0
+            fi
+
+            git commit -m "Remove previews for closed PRs:${removed}"
+            if git push origin HEAD:gh-pages; then
+              echo "Removed previews for closed PRs:${removed}"
+              exit 0
+            fi
+            echo "Push rejected (concurrent gh-pages write); retrying..."
+            sleep $((attempt * 5))
+          done
+
+          echo "::error::Could not push the preview cleanup after 5 attempts."
+          exit 1

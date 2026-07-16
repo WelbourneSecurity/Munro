@@ -37,7 +37,8 @@ describe('hill-list registry', () => {
   it('guards list ids', () => {
     expect(isHillListId('wainwrights')).toBe(true);
     expect(isHillListId('munros')).toBe(true);
-    expect(isHillListId('nuttalls')).toBe(false);
+    expect(isHillListId('nuttalls')).toBe(true);
+    expect(isHillListId('tumps')).toBe(false);
     expect(isHillListId(undefined)).toBe(false);
     expect(isHillListId(42)).toBe(false);
   });
@@ -84,7 +85,7 @@ describe('hill-list registry', () => {
 
   it('loads the exact published count for every list', async () => {
     const expectedCounts: Record<string, number> = {
-      all: 2170,
+      all: 5471,
       wainwrights: 214,
       munros: 282,
       corbetts: 222,
@@ -93,6 +94,20 @@ describe('hill-list registry', () => {
       ethels: 95,
       hewitts: 336,
       marilyns: 1621,
+      'munro-tops': 226,
+      'corbett-tops': 453,
+      'graham-tops': 844,
+      'donald-tops': 52,
+      furths: 21,
+      nuttalls: 442,
+      'wainwright-outlying-fells': 116,
+      birketts: 541,
+      fellrangers: 230,
+      deweys: 425,
+      humps: 3096,
+      simms: 2552,
+      'county-tops': 90,
+      'trail-100': 100,
     };
 
     for (const [id, count] of Object.entries(expectedCounts)) {

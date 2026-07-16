@@ -29,7 +29,11 @@ interface HillListConfig {
    * DoBIH classification flag column. In the hillcsv download each
    * classification is a 0/1 column named by its DoBIH code: `W` Wainwright,
    * `M` Munro, `C` Corbett, `G` Graham, `D` Donald, `E` Ethel,
-   * `Hew` Hewitt, `Ma` Marilyn.
+   * `Hew` Hewitt, `Ma` Marilyn, `MT` Munro Top, `CT` Corbett Top,
+   * `GT` Graham Top, `DT` Donald Top, `F` Furth, `N` Nuttall,
+   * `WO` Wainwright Outlying Fell, `B` Birkett, `Fel` Fellranger,
+   * `Dew` Dewey, `Hu` HuMP, `Sim` Simm, `CoH` historic county top,
+   * `T100` Trail 100.
    */
   flagColumn: string;
   /**
@@ -90,6 +94,17 @@ function inUkOrIsleOfMan(row: DobihRow): boolean {
 }
 
 const UK_SCOPE_NOTE = 'UK and Isle of Man only, Republic of Ireland excluded';
+
+/**
+ * The HuMPs additionally cover the Channel Islands (DoBIH country `C`),
+ * which sit outside the app's UK-and-Isle-of-Man scope.
+ */
+function inUkOrIsleOfManWithoutChannelIslands(row: DobihRow): boolean {
+  return row.Country !== 'C' && inUkOrIsleOfMan(row);
+}
+
+const UK_NO_CHANNEL_ISLANDS_SCOPE_NOTE =
+  'UK and Isle of Man only, Republic of Ireland and Channel Islands excluded';
 
 function isListMember(row: DobihRow, config: HillListConfig): boolean {
   return row[config.flagColumn] === '1' && (config.include?.(row) ?? true);
@@ -283,6 +298,241 @@ const HILL_LIST_CONFIGS: readonly HillListConfig[] = [
       if (peaks.some((peak) => peak.name.includes('Carrauntoohil'))) {
         throw new Error('Republic of Ireland Marilyns should be excluded.');
       }
+    },
+  },
+  {
+    id: 'munro-tops',
+    name: 'Munro Tops',
+    flagColumn: 'MT',
+    outputFile: 'munro-tops.json',
+    expectedCount: 226,
+    heightRangeM: [914, 1266],
+    spotCheck: (peaks) => {
+      // Braeriach's highest subsidiary top leads the list.
+      if (!highestOf(peaks).name.startsWith('Carn na Criche')) {
+        throw new Error(`Highest Munro Top check failed: ${highestOf(peaks).name}`);
+      }
+    },
+  },
+  {
+    id: 'corbett-tops',
+    name: 'Corbett Tops',
+    flagColumn: 'CT',
+    outputFile: 'corbett-tops.json',
+    expectedCount: 453,
+    heightRangeM: [762, 915],
+    spotCheck: (peaks) => {
+      if (!highestOf(peaks).name.startsWith('Creag na Caillich')) {
+        throw new Error(`Highest Corbett Top check failed: ${highestOf(peaks).name}`);
+      }
+    },
+  },
+  {
+    id: 'graham-tops',
+    name: 'Graham Tops',
+    flagColumn: 'GT',
+    outputFile: 'graham-tops.json',
+    expectedCount: 844,
+    heightRangeM: [600, 762],
+    spotCheck: (peaks) => {
+      if (!highestOf(peaks).name.startsWith('Meall Caca')) {
+        throw new Error(`Highest Graham Top check failed: ${highestOf(peaks).name}`);
+      }
+    },
+  },
+  {
+    id: 'donald-tops',
+    name: 'Donald Tops',
+    flagColumn: 'DT',
+    outputFile: 'donald-tops.json',
+    expectedCount: 52,
+    heightRangeM: [609, 812],
+    spotCheck: (peaks) => {
+      if (highestOf(peaks).name !== 'Fifescar Knowe') {
+        throw new Error(`Highest Donald Top check failed: ${highestOf(peaks).name}`);
+      }
+    },
+  },
+  {
+    id: 'furths',
+    name: 'Furths',
+    flagColumn: 'F',
+    include: inUkOrIsleOfMan,
+    scopeNote: 'England and Wales only, Republic of Ireland excluded',
+    outputFile: 'furths.json',
+    expectedCount: 21,
+    heightRangeM: [914, 1086],
+    spotCheck: (peaks) => {
+      if (!highestOf(peaks).name.includes('Yr Wyddfa')) {
+        throw new Error(`Highest Furth check failed: ${highestOf(peaks).name}`);
+      }
+
+      findPeak(peaks, 2359, 'Furths'); // Scafell Pike
+
+      if (peaks.some((peak) => peak.name.includes('Carrauntoohil'))) {
+        throw new Error('Republic of Ireland Furths should be excluded.');
+      }
+    },
+  },
+  {
+    id: 'nuttalls',
+    name: 'Nuttalls',
+    flagColumn: 'N',
+    outputFile: 'nuttalls.json',
+    expectedCount: 442,
+    heightRangeM: [609, 1086],
+    spotCheck: (peaks) => {
+      if (!highestOf(peaks).name.includes('Yr Wyddfa')) {
+        throw new Error(`Highest Nuttall check failed: ${highestOf(peaks).name}`);
+      }
+
+      findPeak(peaks, 2359, 'Nuttalls'); // Scafell Pike
+    },
+  },
+  {
+    id: 'wainwright-outlying-fells',
+    name: 'Wainwright Outlying Fells',
+    flagColumn: 'WO',
+    outputFile: 'wainwright-outlying-fells.json',
+    expectedCount: 116,
+    heightRangeM: [50, 621],
+    spotCheck: (peaks) => {
+      if (highestOf(peaks).name !== 'Walna Scar') {
+        throw new Error(`Highest Outlying Fell check failed: ${highestOf(peaks).name}`);
+      }
+
+      // The book ranges beyond the fells proper — Humphrey Head is a
+      // 53 m coastal limestone headland and the list's low anchor.
+      if (lowestOf(peaks).name !== 'Humphrey Head') {
+        throw new Error(`Lowest Outlying Fell check failed: ${lowestOf(peaks).name}`);
+      }
+    },
+  },
+  {
+    id: 'birketts',
+    name: 'Birketts',
+    flagColumn: 'B',
+    outputFile: 'birketts.json',
+    expectedCount: 541,
+    nationalPark: 'Lake District',
+    heightRangeM: [304, 979],
+    spotCheck: (peaks) => {
+      if (highestOf(peaks).name !== 'Scafell Pike') {
+        throw new Error(`Highest Birkett check failed: ${highestOf(peaks).name}`);
+      }
+    },
+  },
+  {
+    id: 'fellrangers',
+    name: 'Fellrangers',
+    flagColumn: 'Fel',
+    outputFile: 'fellrangers.json',
+    expectedCount: 230,
+    nationalPark: 'Lake District',
+    heightRangeM: [230, 979],
+    spotCheck: (peaks) => {
+      if (highestOf(peaks).name !== 'Scafell Pike') {
+        throw new Error(`Highest Fellranger check failed: ${highestOf(peaks).name}`);
+      }
+    },
+  },
+  {
+    id: 'deweys',
+    name: 'Deweys',
+    flagColumn: 'Dew',
+    outputFile: 'deweys.json',
+    expectedCount: 425,
+    heightRangeM: [500, 610],
+    spotCheck: (peaks) => {
+      if (highestOf(peaks).name !== 'Horse Head Moor') {
+        throw new Error(`Highest Dewey check failed: ${highestOf(peaks).name}`);
+      }
+
+      // The published list covers England, Wales and the Isle of Man.
+      findPeak(peaks, 3340, 'Deweys'); // Carraghan
+    },
+  },
+  {
+    id: 'humps',
+    name: 'HuMPs',
+    flagColumn: 'Hu',
+    include: inUkOrIsleOfManWithoutChannelIslands,
+    scopeNote: UK_NO_CHANNEL_ISLANDS_SCOPE_NOTE,
+    outputFile: 'humps.json',
+    expectedCount: 3096,
+    heightRangeM: [100, 1345],
+    spotCheck: (peaks) => {
+      const benNevis = findPeak(peaks, 278, 'HuMPs');
+
+      if (highestOf(peaks) !== benNevis) {
+        throw new Error(`Highest HuMP check failed: ${highestOf(peaks).name}`);
+      }
+
+      findPeak(peaks, 20016, 'HuMPs'); // Slieve Donard
+      findPeak(peaks, 1945, 'HuMPs'); // Snaefell
+
+      if (peaks.some((peak) => peak.name.includes('Les Platons'))) {
+        throw new Error('Channel Islands HuMPs should be excluded.');
+      }
+    },
+  },
+  {
+    id: 'simms',
+    name: 'Simms',
+    flagColumn: 'Sim',
+    include: inUkOrIsleOfMan,
+    scopeNote: UK_SCOPE_NOTE,
+    outputFile: 'simms.json',
+    expectedCount: 2552,
+    heightRangeM: [600, 1345],
+    spotCheck: (peaks) => {
+      const benNevis = findPeak(peaks, 278, 'Simms');
+
+      if (highestOf(peaks) !== benNevis) {
+        throw new Error(`Highest Simm check failed: ${highestOf(peaks).name}`);
+      }
+
+      findPeak(peaks, 20016, 'Simms'); // Slieve Donard
+    },
+  },
+  {
+    id: 'county-tops',
+    name: 'County Tops',
+    flagColumn: 'CoH',
+    include: inUkOrIsleOfMan,
+    scopeNote: UK_SCOPE_NOTE,
+    outputFile: 'county-tops.json',
+    expectedCount: 90,
+    heightRangeM: [80, 1345],
+    spotCheck: (peaks) => {
+      const benNevis = findPeak(peaks, 278, 'County Tops');
+
+      if (highestOf(peaks) !== benNevis) {
+        throw new Error(`Highest county top check failed: ${highestOf(peaks).name}`);
+      }
+
+      findPeak(peaks, 2359, 'County Tops'); // Scafell Pike, Cumberland
+
+      if (peaks.some((peak) => peak.name.includes('Carrauntoohil'))) {
+        throw new Error('Republic of Ireland county tops should be excluded.');
+      }
+    },
+  },
+  {
+    id: 'trail-100',
+    name: 'Trail 100',
+    flagColumn: 'T100',
+    outputFile: 'trail-100.json',
+    expectedCount: 100,
+    heightRangeM: [315, 1345],
+    spotCheck: (peaks) => {
+      const benNevis = findPeak(peaks, 278, 'Trail 100');
+
+      if (highestOf(peaks) !== benNevis) {
+        throw new Error(`Highest Trail 100 check failed: ${highestOf(peaks).name}`);
+      }
+
+      findPeak(peaks, 5611, 'Trail 100'); // Roseberry Topping
     },
   },
 ];

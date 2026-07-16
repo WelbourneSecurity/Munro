@@ -32,6 +32,20 @@ describe('HillListSwitcher against the real registry', () => {
       'Ethels',
       'Hewitts',
       'Marilyns',
+      'Munro Tops',
+      'Corbett Tops',
+      'Graham Tops',
+      'Donald Tops',
+      'Furths',
+      'Nuttalls',
+      'Wainwright Outlying Fells',
+      'Birketts',
+      'Fellrangers',
+      'Deweys',
+      'HuMPs',
+      'Simms',
+      'County Tops',
+      'Trail 100',
     ]);
   });
 });

@@ -104,12 +104,18 @@ export const terrainContourLabelLayer: SymbolLayerSpecification = {
 // The transient selection highlight is parameterized into these layer
 // filter/paint expressions rather than written into feature properties:
 // react-maplibre diffs them into cheap setFilter/setPaintProperty calls, so
-// selecting a peak never re-uploads the ~1 MB hill-area GeoJSON via setData.
+// selecting a peak never re-uploads the ~4 MB hill-area GeoJSON via setData.
 // Pass undefined to highlight nothing (an empty id matches no hill).
 function hillAreaSelected(selectedPeakId: string | undefined): ExpressionSpecification {
   return ['==', ['get', 'id'], selectedPeakId ?? ''];
 }
 
+// The lit fill means exactly one thing: this hill is bagged. Selection must
+// never put it there — an unbagged hill that is still selected after "Mark
+// unbagged" would keep glowing in the bagged green until the selection
+// moved (or the page reloaded). The selected case below only brightens a
+// hill that is already bagged; unbagged selected hills get the outline
+// highlight from hillAreaLineLayer instead.
 export function hillAreaFillLayer(
   selectedPeakId: string | undefined,
 ): FillLayerSpecification {
@@ -119,7 +125,7 @@ export function hillAreaFillLayer(
     id: 'hill-area-fill',
     type: 'fill',
     source: 'hill-areas',
-    filter: ['any', ['==', ['get', 'bagged'], true], selected],
+    filter: ['==', ['get', 'bagged'], true],
     paint: {
       'fill-color': ['case', selected, '#c4e9cd', '#a7d8b6'],
       'fill-opacity': ['case', selected, 0.24, 0.17],

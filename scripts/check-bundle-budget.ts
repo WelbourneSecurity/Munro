@@ -8,13 +8,16 @@
  * - Total initial JS <= 650 kB — the eagerly-loaded index chunk. The export
  *   engine and the PWA register helper are lazy chunks and deliberately
  *   excluded.
- * - Default-list data <= 180 kB — the eight hill-list chunks the collated
+ * - Default-list data <= 560 kB — the 22 hill-list chunks the collated
  *   "All peaks" default view fetches on first visit. They are lazy chunks,
  *   but the default list awaits all of them before the first peak renders,
- *   so they are part of the real first-load payload.
- * - Hill-lighting profiles <= 450 kB — the lazy UK-wide profile chunk.
- *   It loads after first render and never blocks it, but it downloads on
- *   every first visit, so it stays budgeted.
+ *   so they are part of the real first-load payload. The ceiling absorbed
+ *   the full UK list set (HuMPs and Simms dominate); it is a hard stop
+ *   against further growth, not headroom to spend.
+ * - Hill-lighting profiles <= 1000 kB — the lazy UK-wide profile chunk
+ *   (one profile per distinct hill across every list). It loads after
+ *   first render and never blocks it, but it downloads on every first
+ *   visit, so it stays budgeted.
  * - CSS <= 20 kB.
  * - Export engine <= 20 kB and present as its own lazy chunk — if it ever
  *   folds into the main chunk this check fails on both counts.
@@ -26,15 +29,15 @@ import { gzipSync } from 'node:zlib';
 const ASSETS_DIR = 'dist/assets';
 
 const INITIAL_JS_BUDGET_BYTES = 650 * 1024;
-const DEFAULT_LIST_DATA_BUDGET_BYTES = 180 * 1024;
-const HILL_PROFILE_BUDGET_BYTES = 450 * 1024;
+const DEFAULT_LIST_DATA_BUDGET_BYTES = 560 * 1024;
+const HILL_PROFILE_BUDGET_BYTES = 1000 * 1024;
 const CSS_BUDGET_BYTES = 20 * 1024;
 const EXPORT_CHUNK_BUDGET_BYTES = 20 * 1024;
 
 // Keep in sync with the source lists in src/data/lists.ts — the collated
 // default view loads every one of these chunks before its first render.
 const LIST_CHUNK_PATTERN =
-  /^(wainwrights|munros|corbetts|grahams|donalds|ethels|hewitts|marilyns)-.*\.js$/;
+  /^(wainwrights|munros|corbetts|grahams|donalds|ethels|hewitts|marilyns|munro-tops|corbett-tops|graham-tops|donald-tops|furths|nuttalls|wainwright-outlying-fells|birketts|fellrangers|deweys|humps|simms|county-tops|trail-100)-.*\.js$/;
 
 function gzipSize(filePath: string): number {
   return gzipSync(readFileSync(filePath), { level: 9 }).length;
@@ -81,7 +84,7 @@ check(
   INITIAL_JS_BUDGET_BYTES,
 );
 check(
-  'Default-list data (all 8 list chunks)',
+  'Default-list data (all 22 list chunks)',
   assets.filter((file) => LIST_CHUNK_PATTERN.test(file)),
   DEFAULT_LIST_DATA_BUDGET_BYTES,
 );

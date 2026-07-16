@@ -41,8 +41,12 @@ Possible later features:
 
 1. **Wainwrights MVP** — the complete polished experience described in
    [MVP](mvp.md).
-2. **More hill lists** — Munros, Munro Tops, Corbetts, Grahams, Donalds,
-   Furths, Nuttalls, Hewitts, Marilyns, UK county tops.
+2. **More hill lists** — done: every recognised UK list DoBIH carries is
+   shipped (Munros, Munro Tops, Corbetts and Corbett Tops, Grahams and
+   Graham Tops, Donalds and Donald Tops, Furths, Nuttalls, Hewitts,
+   Marilyns, HuMPs, Simms, Deweys, Ethels, Birketts, Fellrangers, the
+   Wainwright Outlying Fells, historic county tops and the Trail 100).
+   The TuMPs are deliberately out — see [Data](data.md).
 3. **Native reach** — PWA install, then store presence if warranted; see
    [Platforms](platforms.md).
 4. **Everything else** — drawn from the future features list above, always

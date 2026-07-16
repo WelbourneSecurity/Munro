@@ -17,6 +17,28 @@ Peak datasets are generated from the Database of British and Irish Hills
 - `src/data/ethels.json` — 95 Ethels (Peak District)
 - `src/data/hewitts.json` — 336 Hewitts (England, Wales & Northern Ireland)
 - `src/data/marilyns.json` — 1,621 Marilyns (UK & Isle of Man)
+- `src/data/munro-tops.json` — 226 Munro Tops
+- `src/data/corbett-tops.json` — 453 Corbett Tops
+- `src/data/graham-tops.json` — 844 Graham Tops
+- `src/data/donald-tops.json` — 52 Donald Tops
+- `src/data/furths.json` — 21 Furths (England & Wales)
+- `src/data/nuttalls.json` — 442 Nuttalls (England & Wales)
+- `src/data/wainwright-outlying-fells.json` — 116 Wainwright Outlying Fells
+- `src/data/birketts.json` — 541 Birketts (Lake District)
+- `src/data/fellrangers.json` — 230 Fellrangers (Lake District)
+- `src/data/deweys.json` — 425 Deweys (England, Wales & Isle of Man)
+- `src/data/humps.json` — 3,096 HuMPs (UK & Isle of Man)
+- `src/data/simms.json` — 2,552 Simms (UK & Isle of Man)
+- `src/data/county-tops.json` — 90 historic county tops
+- `src/data/trail-100.json` — 100 Trail 100 peaks
+
+Lists whose published scope crosses the British Isles are trimmed to the
+UK and Isle of Man: Republic of Ireland hills are excluded everywhere, and
+the Channel Islands' HuMPs are excluded too. The TuMPs (~17,000 hills) are
+deliberately not shipped — roughly tripling the app's data for the most
+completist list contradicts the product's restraint — and the New Donalds
+cannot be generated because DoBIH's CSV download carries no flag column
+for them.
 
 The generation command is:
 
