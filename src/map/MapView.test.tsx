@@ -119,13 +119,16 @@ describe('MapView panel accessibility', () => {
     const { findByRole, getByRole } = render(<MapView />);
 
     // Select an unbagged peak: its hill area is highlighted through the
-    // hill-area layer filter/paint for the on-screen highlight. The lighting
-    // profiles load lazily, so wait for the layers to mount.
+    // hill-area layer paint (fill brightening) and filter (line outline).
+    // The lighting profiles load lazily, so wait for the layers to mount.
     fireEvent.click(await findByRole('button', { name: /Ard Crags/ }));
     await vi.waitFor(() => {
       expect(layerProps.get('hill-area-fill')).toBeTruthy();
     });
-    expect(JSON.stringify(layerProps.get('hill-area-fill')?.filter)).toContain(
+    expect(JSON.stringify(layerProps.get('hill-area-fill')?.paint)).toContain(
+      'dobih-2460',
+    );
+    expect(JSON.stringify(layerProps.get('hill-area-line')?.filter)).toContain(
       'dobih-2460',
     );
     expect(JSON.stringify(layerProps.get('hill-area-line')?.paint)).toContain(
@@ -133,9 +136,12 @@ describe('MapView panel accessibility', () => {
     );
 
     // Opening the export dialog must clear it so the captured image never
-    // paints the selected (unbagged) peak with the bagged green.
+    // carries the transient selection highlight.
     fireEvent.click(getByRole('button', { name: 'Export image' }));
-    expect(JSON.stringify(layerProps.get('hill-area-fill')?.filter)).not.toContain(
+    expect(JSON.stringify(layerProps.get('hill-area-fill')?.paint)).not.toContain(
+      'dobih-2460',
+    );
+    expect(JSON.stringify(layerProps.get('hill-area-line')?.filter)).not.toContain(
       'dobih-2460',
     );
     expect(JSON.stringify(layerProps.get('hill-area-line')?.paint)).not.toContain(

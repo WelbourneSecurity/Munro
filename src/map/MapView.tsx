@@ -154,8 +154,9 @@ export function MapView() {
   }, [hillAreas, activePeakIds, progressByPeakId]);
   const hillLightingReady = hillAreaGeoJson !== null;
   // Suppress the transient selection highlight while the export dialog is
-  // open: it shares the bagged green, so a captured image would otherwise
-  // show the selected peak as if bagged and overstate progress.
+  // open: the bright selected outline (and the brightened fill on a bagged
+  // hill) is transient UI state, not part of the tracker's record, and it
+  // would read as one in a captured image.
   // highlightedPeakId (not raw selectedPeakId) keeps the map in sync with
   // the panel's peaks[0] fallback.
   const hillAreaSelectedId = exportOpen ? undefined : highlightedPeakId;

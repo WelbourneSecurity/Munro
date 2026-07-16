@@ -65,24 +65,34 @@ describe('baggedSummitLightLayer', () => {
 });
 
 describe('hill-area layers', () => {
-  it('highlights only the selected hill through the filter and paint', () => {
+  it('parameterizes the selection into the layer expressions', () => {
     const fill = hillAreaFillLayer('dobih-2460');
     const line = hillAreaLineLayer('dobih-2460');
 
-    expect(JSON.stringify(fill.filter)).toContain('dobih-2460');
     expect(JSON.stringify(fill.paint)).toContain('dobih-2460');
     expect(JSON.stringify(line.filter)).toContain('dobih-2460');
     expect(JSON.stringify(line.paint)).toContain('dobih-2460');
   });
 
-  it('matches no hill when nothing is selected', () => {
-    const fill = hillAreaFillLayer(undefined);
+  it('lights the fill for bagged hills only, regardless of selection', () => {
+    // Selection must never put the bagged glow on an unbagged hill: after
+    // "Mark unbagged" the peak stays selected, and the light has to go out
+    // immediately rather than linger until the selection moves or the page
+    // reloads. Selection brightens the paint, but only bagged features pass
+    // the filter at all.
+    const baggedOnly = ['==', ['get', 'bagged'], true];
 
-    // An empty id matches no feature, so only bagged hills pass the filter.
-    expect(fill.filter).toEqual([
+    expect(hillAreaFillLayer('dobih-2460').filter).toEqual(baggedOnly);
+    expect(hillAreaFillLayer(undefined).filter).toEqual(baggedOnly);
+  });
+
+  it('outlines the selected hill even when nothing is bagged', () => {
+    const line = hillAreaLineLayer('dobih-2460');
+
+    expect(line.filter).toEqual([
       'any',
-      ['==', ['get', 'bagged'], true],
-      ['==', ['get', 'id'], ''],
+      ['!=', ['get', 'bagged'], true],
+      ['==', ['get', 'id'], 'dobih-2460'],
     ]);
   });
 
