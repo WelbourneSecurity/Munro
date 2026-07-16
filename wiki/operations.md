@@ -46,6 +46,12 @@ Work through this checklist once, top to bottom:
   per-PR base path and deployed to `pr-preview/pr-<number>/` on `gh-pages`.
   A sticky comment on the PR links to the preview; closing the PR removes
   it. Fork PRs get no preview — that is a security feature, not a bug.
+- **Preview cleanup** (`preview-cleanup.yml`) — deployments to `gh-pages`
+  race each other (the deploy action snapshots the branch before pushing),
+  so a just-removed preview can be resurrected by a concurrent deploy.
+  After every `gh-pages` writer finishes — and daily as a backstop — this
+  sweep deletes `pr-preview/pr-<number>/` directories whose pull request
+  is closed, so the branch always converges to previews for open PRs only.
 - **Manual re-runs** — `deploy.yml` has a `workflow_dispatch` trigger, so
   the site can be redeployed from the Actions tab without a new commit.
   Any failed run (deploy, preview, CI) can also be re-run from its run

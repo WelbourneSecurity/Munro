@@ -3,7 +3,9 @@
 # rossjrw/pr-preview-action deploys into pr-preview/pr-<N>/ on the gh-pages
 # branch, posts a sticky comment with the URL, and removes the directory when
 # the PR closes. The main deploy (deploy.yml) uses clean-exclude to leave
-# pr-preview/ alone.
+# pr-preview/ alone. A concurrent gh-pages deploy can resurrect a removed
+# preview from its stale branch snapshot; preview-cleanup.yml sweeps those
+# up after every gh-pages writer finishes.
 #
 # Fork PRs get no preview, deliberately: the pull_request token on a fork PR
 # has no write access, and that is a security feature. Never "fix" this with
