@@ -1,8 +1,7 @@
 import { render } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import type { HillListDefinition } from '../data/lists';
-import type { Peak, ProgressStats } from '../domain';
+import type { Peak, ProgressStats, RangeEditionView } from '../domain';
 import { usePreferencesStore } from '../store';
 import { MapView } from './MapView';
 
@@ -44,18 +43,19 @@ const peak: Peak = {
   lat: 54.5,
   lon: -3,
 };
-const list: HillListDefinition = {
+const edition: RangeEditionView = {
   id: 'wainwrights',
+  key: 'range:wainwrights',
   name: 'Wainwrights',
-  regionLabel: 'Lake District',
+  identity: 'Wainwrights',
+  descriptor: 'The 214 fells and every Outlying Fell',
   peakNoun: 'fells',
   bounds: [
     [-3.5, 54.1],
     [-2.5, 54.8],
   ],
   initialView: { longitude: -3, latitude: 54.5, zoom: 8, bearing: 0, pitch: 0 },
-  hasHillLighting: true,
-  loadPeaks: () => Promise.resolve([peak]),
+  peaks: [peak],
 };
 const stats: ProgressStats = {
   total: 1,
@@ -65,7 +65,7 @@ const stats: ProgressStats = {
   recent: [],
 };
 const props = {
-  list,
+  edition,
   peaks: [peak],
   stats,
   selectedPeakId: undefined,

@@ -1,4 +1,4 @@
-import { parsePeak } from '../domain';
+import { buildRangeEdition, parsePeak } from '../domain';
 import {
   DEFAULT_HILL_LIST_ID,
   HILL_LISTS,
@@ -136,5 +136,23 @@ describe('hill-list registry', () => {
     expect(allenCrags?.list).toEqual(
       expect.arrayContaining(['wainwrights', 'hewitts']),
     );
+  });
+
+  it('builds the complete Wainwright edition including every Outlying Fell', async () => {
+    const allPeaks = await getHillList('all').loadPeaks();
+    const edition = buildRangeEdition('wainwrights', allPeaks);
+
+    expect(edition.peaks).toHaveLength(330);
+    expect(new Set(edition.peaks.map((peak) => peak.id)).size).toBe(330);
+    expect(edition.peaks.some((peak) => peak.list.includes('wainwrights'))).toBe(true);
+    expect(
+      edition.peaks.some((peak) => peak.list.includes('wainwright-outlying-fells')),
+    ).toBe(true);
+  });
+
+  it('builds the complete Cairngorms geographic section', async () => {
+    const allPeaks = await getHillList('all').loadPeaks();
+
+    expect(buildRangeEdition('cairngorms', allPeaks).peaks).toHaveLength(124);
   });
 });

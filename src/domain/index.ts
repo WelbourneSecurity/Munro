@@ -1,6 +1,18 @@
 export { peaksToGeoJSON } from './geojson';
 export type { PeakFeatureCollection, PeakFeatureProperties } from './geojson';
 export { formatBaggedDate, toLocalISODate } from './date';
+export {
+  RANGE_EDITIONS,
+  boundsForPeaks,
+  buildRangeEdition,
+  isRangeEditionId,
+} from './editions';
+export type {
+  EditionBounds,
+  RangeEditionId,
+  RangeEditionSummary,
+  RangeEditionView,
+} from './editions';
 export { getProductName } from './identity';
 export { filterPeaks, getProgressMap, groupPeakItems, mergePeakLists } from './peaks';
 export type {

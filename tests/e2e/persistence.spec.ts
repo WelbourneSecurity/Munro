@@ -4,7 +4,7 @@ import {
   ARD_CRAGS,
   readProgressStorage,
   seedProgressStorage,
-  selectHillList,
+  selectRangeEdition,
 } from './helpers';
 
 test('rehydrates existing local progress without a migration', async ({ page }) => {
@@ -18,7 +18,7 @@ test('rehydrates existing local progress without a migration', async ({ page }) 
     },
   ]);
   await page.reload();
-  await selectHillList(page, 'wainwrights');
+  await selectRangeEdition(page, 'Wainwrights');
 
   await page.getByRole('button', { name: /Ard Crags.*bagged/ }).click();
   await expect(page.getByText('Recorded 12 Jul 2026')).toBeVisible();

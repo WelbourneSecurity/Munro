@@ -20,16 +20,16 @@ import type { MapSnapshot } from './snapshot';
 // Colour constants mirror the @theme design tokens in src/index.css. A 2D
 // canvas cannot read CSS custom properties without a live DOM element, so the
 // hex values are duplicated here — keep them in sync with src/index.css.
-const COLOR_SURFACE = '#111713'; // --color-surface
-const COLOR_LINE = '#5b7666'; // --color-line
-const COLOR_PRIMARY = '#f1f4ee'; // --color-primary
-const COLOR_SECONDARY = '#c8d0c6'; // --color-secondary
-const COLOR_MUTED = '#96a095'; // --color-muted
-const COLOR_BAGGED = '#a7d8b6'; // --color-bagged — bagged count only
+const COLOR_SURFACE = '#f2efe7'; // --color-bone
+const COLOR_LINE = '#c8c1b3'; // --color-hairline
+const COLOR_PRIMARY = '#11110f'; // --color-ink
+const COLOR_SECONDARY = '#34342f'; // --color-graphite
+const COLOR_MUTED = '#77746b'; // --color-stone
+const COLOR_BAGGED = '#11110f'; // completion is ink, never green
 
 // Font stacks mirror --font-sans and --font-label in src/index.css.
 const FONT_SANS =
-  "'Aptos', 'Aptos Display', 'Helvetica Neue', Helvetica, Arial, sans-serif";
+  "'Instrument Sans Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 const FONT_LABEL = "'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace";
 
 export interface ComposeStats {
@@ -92,7 +92,7 @@ export async function composeExport(
   );
   const layout = layoutExport(preset, attributionLines.length);
 
-  // Dark charcoal ground.
+  // Warm bone poster stock.
   context.fillStyle = COLOR_SURFACE;
   context.fillRect(0, 0, preset.width, preset.height);
 
@@ -123,7 +123,7 @@ export async function composeExport(
   image.close();
 
   context.strokeStyle = COLOR_LINE;
-  context.lineWidth = 1;
+  context.lineWidth = 2;
   context.strokeRect(layout.map.x, layout.map.y, layout.map.width, layout.map.height);
 
   context.textBaseline = 'alphabetic';
@@ -144,7 +144,7 @@ export async function composeExport(
   context.fillStyle = COLOR_PRIMARY;
   context.fillText(options.title, layout.title.x, layout.title.baseline);
 
-  // Progress line — the soft green accent marks the bagged count only.
+  // Progress line — ink marks the bagged count, graphite carries context.
   context.font = `500 ${String(layout.scale.progress)}px ${FONT_SANS}`;
   let segmentX = layout.progress.x;
 
@@ -154,7 +154,7 @@ export async function composeExport(
     segmentX += context.measureText(segment.text).width;
   }
 
-  // Wordmark and export date, right-aligned in muted grey.
+  // Field-edition wordmark and export date, right-aligned in stone.
   context.textAlign = 'right';
   context.font = `650 ${String(layout.scale.meta)}px ${FONT_LABEL}`;
   context.fillStyle = COLOR_MUTED;

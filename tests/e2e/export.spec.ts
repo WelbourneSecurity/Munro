@@ -1,7 +1,9 @@
+import { readFile } from 'node:fs/promises';
+
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
-import { selectHillList } from './helpers';
+import { selectRangeEdition } from './helpers';
 
 // The export capture path (T5.1/T5.2) cannot be tested in jsdom: reading the
 // WebGL canvas back yields real pixels only in a browser, and only when the
@@ -142,12 +144,22 @@ test('offers the map postcard download from Explore', async ({ page }) => {
   test.setTimeout(120_000);
 
   await page.goto('./#/explore');
-  await selectHillList(page, 'wainwrights');
-  await page.getByRole('button', { name: 'Export image' }).click();
+  await selectRangeEdition(page, 'Wainwrights');
+  await page.getByRole('button', { name: 'Export poster' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Export image' });
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole('button', { name: 'Download PNG' })).toBeEnabled({
-    timeout: 60_000,
-  });
+  const downloadButton = dialog.getByRole('button', { name: 'Download PNG' });
+  await expect(downloadButton).toBeEnabled({ timeout: 60_000 });
+
+  const downloadPromise = page.waitForEvent('download');
+  await downloadButton.click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(
+    /^munro-wainwrights-\d{4}-\d{2}-\d{2}\.png$/,
+  );
+  const bytes = await readFile(await download.path());
+  expect([...bytes.subarray(0, 8)]).toEqual([
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+  ]);
 });

@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-import { ARD_CRAGS, readProgressStorage, selectHillList } from './helpers';
+import { ARD_CRAGS, readProgressStorage, selectRangeEdition } from './helpers';
 
 test('searches, bags, persists, removes and restores a hill', async ({ page }) => {
   test.setTimeout(120_000);
 
   await page.goto('./#/explore');
-  await selectHillList(page, 'wainwrights');
+  await selectRangeEdition(page, 'Wainwrights');
 
   await page.getByRole('button', { name: 'Find a hill' }).click();
   const search = page.getByRole('dialog', { name: 'Find a hill' });
@@ -20,7 +20,7 @@ test('searches, bags, persists, removes and restores a hill', async ({ page }) =
       hasText: `${ARD_CRAGS.name} added to your logbook.`,
     }),
   ).toBeVisible();
-  await expect(page.getByRole('link', { name: '1 of 214 hills bagged' })).toBeVisible();
+  await expect(page.getByRole('link', { name: '1 of 330 hills bagged' })).toBeVisible();
 
   const stored = await readProgressStorage(page);
   expect(stored[ARD_CRAGS.id]).toMatchObject({
@@ -37,7 +37,7 @@ test('searches, bags, persists, removes and restores a hill', async ({ page }) =
   await expect(tile).toBeVisible();
 
   await page.reload();
-  await expect(page.getByRole('link', { name: '1 of 214 hills bagged' })).toBeVisible();
+  await expect(page.getByRole('link', { name: '1 of 330 hills bagged' })).toBeVisible();
   await page.getByRole('button', { name: /Ard Crags.*bagged/ }).click();
   await page.getByRole('button', { name: 'Remove status' }).click();
   await expect(page.getByRole('button', { name: /Ard Crags.*open/ })).toBeVisible();

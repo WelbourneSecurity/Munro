@@ -9,9 +9,12 @@ import {
 } from '../components';
 import {
   calculateProgress,
+  buildRangeEdition,
+  isRangeEditionId,
   toLocalISODate,
   type Peak,
   type PeakProgress,
+  type RangeEditionId,
 } from '../domain';
 import { useSummitDetection } from '../hooks';
 import { useProgressStore, useStorageHealthStore } from '../store';
@@ -23,6 +26,17 @@ interface UndoState {
   message: string;
   peakId: string;
   previous: PeakProgress | undefined;
+}
+
+const RANGE_STORAGE_KEY = 'munro.range.v1';
+
+function initialRangeEdition(): RangeEditionId {
+  try {
+    const saved = localStorage.getItem(RANGE_STORAGE_KEY);
+    return isRangeEditionId(saved) ? saved : 'uk';
+  } catch {
+    return 'uk';
+  }
 }
 
 function resolveRoute(hash: string): TrackerRoute {
@@ -47,7 +61,13 @@ function useHashRoute() {
 
 export function App() {
   const route = useHashRoute();
-  const { list, peaks, loadFailed, retryLoad } = useActiveHillList();
+  const { peaks: allPeaks, loadFailed, retryLoad } = useActiveHillList('all');
+  const [editionId, setEditionId] = useState<RangeEditionId>(initialRangeEdition);
+  const edition = useMemo(
+    () => buildRangeEdition(editionId, allPeaks),
+    [allPeaks, editionId],
+  );
+  const peaks = edition.peaks;
   const summitDetection = useSummitDetection(peaks);
   const progressWriteFailed = useStorageHealthStore(
     (state) => state.progressWriteFailed,
@@ -63,6 +83,11 @@ export function App() {
   const stats = useMemo(() => calculateProgress(peaks, progress), [peaks, progress]);
   const selectedPeak = peaks.find((peak) => peak.id === selectedPeakId);
   const selectedProgress = selectedPeak ? progressByPeakId[selectedPeak.id] : undefined;
+
+  useEffect(() => {
+    document.title =
+      edition.identity === 'Munro' ? 'Munro' : `${edition.identity} · Munro`;
+  }, [edition.identity]);
 
   useEffect(
     () => () => {
@@ -102,6 +127,15 @@ export function App() {
     setUndoState(undefined);
     if (undoTimer.current) clearTimeout(undoTimer.current);
   }
+  function handleEditionChange(nextEditionId: RangeEditionId) {
+    setEditionId(nextEditionId);
+    setSelectedPeakId(undefined);
+    try {
+      localStorage.setItem(RANGE_STORAGE_KEY, nextEditionId);
+    } catch {
+      // The edition still changes for this session when storage is unavailable.
+    }
+  }
 
   return (
     <div className="bg-bone text-ink min-h-dvh">
@@ -111,7 +145,7 @@ export function App() {
       >
         Skip to content
       </a>
-      <TrackerNavigation current={route} stats={stats} />
+      <TrackerNavigation current={route} stats={stats} identity={edition.identity} />
       {progressWriteFailed ? (
         <p
           className="border-hairline bg-paper text-graphite border-b px-4 py-3 text-sm"
@@ -124,7 +158,8 @@ export function App() {
       <main id="main-content">
         {route === 'explore' ? (
           <ExplorePage
-            list={list}
+            edition={edition}
+            allPeaks={allPeaks}
             peaks={peaks}
             progress={progress}
             stats={stats}
@@ -138,11 +173,13 @@ export function App() {
             }}
             onBag={handleBag}
             onUnbag={handleUnbag}
+            onEditionChange={handleEditionChange}
           />
         ) : null}
         {route === 'logbook' ? (
           <LogbookPage
-            list={list}
+            edition={edition}
+            allPeaks={allPeaks}
             peaks={peaks}
             progress={progress}
             stats={stats}
@@ -156,6 +193,7 @@ export function App() {
             }}
             onBag={handleBag}
             onUnbag={handleUnbag}
+            onEditionChange={handleEditionChange}
           />
         ) : null}
         {route === 'settings' ? (

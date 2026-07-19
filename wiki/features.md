@@ -37,27 +37,27 @@ interaction.
 
 The app should show:
 
-- Total peaks in selected list
+- Total peaks in the selected geographic edition
 - Number bagged
 - Number remaining
 - Completion percentage
 - Recent bagged peaks if dates are used
 - Filter by bagged, unbagged or all
 
-## 4. Export image
+## 4. Export poster
 
-Users should be able to export a clean image of the current national park or
-hill list.
+Users can export a clean field poster of the currently selected edition at any
+point.
 
 The export should include:
 
 - Map area
 - Bagged peaks shown with solid/inverted bone-and-ink status
 - Unbagged peaks shown with hollow/open status
-- Title, for example "Lake District Wainwrights"
-- Progress count, for example "37 / 214 bagged"
+- Edition title, for example "Wainwrights" or "Scotland"
+- Edition progress count, for example "37 / 330 BAGGED"
 - Date exported
-- Munro branding
+- Munro / Field Edition branding on warm bone stock
 
 The exported image should be suitable for sharing on LinkedIn, Instagram,
 Discord or personal blogs.

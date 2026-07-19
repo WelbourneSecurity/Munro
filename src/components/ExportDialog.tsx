@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 
 import type { HillListDefinition } from '../data/lists';
+import type { RangeEditionView } from '../domain';
 import { downloadBlob, exportFilename } from '../export/download';
 import type { ExportPresetId, MapSnapshot } from '../export';
 
@@ -19,7 +20,7 @@ interface ExportDialogProps {
   /** The live MapLibre map, or null while it is still loading. */
   getMap: () => MapLibreMap | null;
   /** The active hill list: frames its bounds, titles and names the image. */
-  list: HillListDefinition;
+  list: HillListDefinition | RangeEditionView;
   stats: ExportStats;
 }
 
@@ -76,10 +77,14 @@ export function ExportDialog({
   const [presetId, setPresetId] = useState<ExportPresetId>('portrait');
   const [outcome, setOutcome] = useState<ComposeOutcome | null>(null);
   const { bagged, total } = stats;
+  const isEdition = 'identity' in list;
+  const subjectKey = isEdition ? list.key : list.id;
+  const subjectTitle = isEdition ? list.name : `${list.regionLabel} · ${list.name}`;
+  const subjectLabel = isEdition ? list.descriptor : list.regionLabel;
 
   // The outcome only applies while its inputs match; otherwise a new
   // composition is in flight and the dialog shows the quiet busy state.
-  const composeKey = `${list.id}:${presetId}:${String(bagged)}:${String(total)}`;
+  const composeKey = `${subjectKey}:${presetId}:${String(bagged)}:${String(total)}`;
   const current = open && outcome?.key === composeKey ? outcome.result : null;
   const readyBlob = current && 'blob' in current ? current.blob : null;
 
@@ -177,7 +182,7 @@ export function ExportDialog({
     }
 
     let cancelled = false;
-    const key = `${list.id}:${presetId}:${String(bagged)}:${String(total)}`;
+    const key = `${subjectKey}:${presetId}:${String(bagged)}:${String(total)}`;
 
     const compose = async (): Promise<Blob> => {
       // A queued run whose effect has already been cleaned up (preset
@@ -222,7 +227,7 @@ export function ExportDialog({
       return engine.composeExport(
         snapshot,
         { bagged, total },
-        { preset: presetId, title: `${list.regionLabel} · ${list.name}` },
+        { preset: presetId, title: subjectTitle },
       );
     };
 
@@ -256,7 +261,7 @@ export function ExportDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, presetId, getMap, bagged, total, list]);
+  }, [open, presetId, getMap, bagged, total, list, subjectKey, subjectTitle]);
 
   // Release each preview's object URL once it is replaced or discarded.
   const previewUrl =
@@ -337,32 +342,39 @@ export function ExportDialog({
   }
 
   return (
-    <div className="bg-surface/80 fixed inset-0 z-50 flex items-center justify-center pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))]">
+    <div className="bg-ink/70 fixed inset-0 z-50 flex items-center justify-center pt-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))]">
       <div
         ref={dialogRef}
         aria-labelledby="export-dialog-title"
         aria-modal="true"
-        className="border-line bg-panel max-h-[92svh] w-full max-w-md overflow-y-auto border p-5 focus:outline-none"
+        className="border-ink bg-bone max-h-[92svh] w-full max-w-lg overflow-y-auto border p-5 focus:outline-none md:p-7"
         role="dialog"
         tabIndex={-1}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="font-label text-label text-muted">{list.regionLabel}</p>
+            <p className="font-label text-stone text-[0.62rem]">FIELD POSTER</p>
             <h2
               id="export-dialog-title"
-              className="text-primary mt-1 text-xl font-semibold"
+              className="text-ink mt-1 text-2xl font-semibold tracking-[-0.04em]"
             >
               Export image
             </h2>
           </div>
           <button
-            className="border-line bg-panel text-secondary hover:text-primary focus-visible:outline-bagged min-h-11 min-w-11 border px-3 text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="focus-ring text-stone hover:text-ink min-h-11 min-w-11 px-3 text-sm"
             type="button"
             onClick={handleClose}
           >
             Close
           </button>
+        </div>
+
+        <div className="border-hairline mb-5 border-y py-3">
+          <p className="font-label text-stone text-[0.6rem]">{subjectLabel}</p>
+          <p className="mt-1 text-sm font-semibold">
+            {bagged} / {total} bagged
+          </p>
         </div>
 
         <p aria-atomic="true" className="sr-only" role="status">
@@ -371,19 +383,17 @@ export function ExportDialog({
 
         <div
           aria-label="Export preset"
-          className="border-line grid grid-cols-2 border"
+          className="border-hairline grid grid-cols-2 border-b"
           role="group"
         >
           {PRESET_OPTIONS.map((option) => (
             <button
               key={option.id}
               aria-pressed={presetId === option.id}
-              className={`font-label text-label border-r-line min-h-11 border-r px-2 transition-colors last:border-r-0 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 ${
+              className={`focus-ring font-label relative min-h-11 px-2 text-[0.65rem] ${
                 presetId === option.id
-                  ? // The inset ring sits on the bagged-green fill, so it uses
-                    // the dark surface token — outline-bagged would vanish.
-                    'bg-bagged text-surface focus-visible:outline-surface'
-                  : 'bg-panel text-secondary hover:text-primary focus-visible:outline-bagged'
+                  ? 'text-ink after:bg-ink after:absolute after:inset-x-4 after:bottom-[-1px] after:h-px'
+                  : 'text-stone hover:text-ink'
               }`}
               type="button"
               onClick={() => {
@@ -395,13 +405,13 @@ export function ExportDialog({
           ))}
         </div>
 
-        <div className="border-line bg-surface mt-4 border">
+        <div className="border-ink bg-paper mt-5 border p-2">
           {current === null ? (
-            <p className="font-label text-label text-muted flex min-h-40 items-center justify-center px-4 py-6">
+            <p className="font-label text-stone flex min-h-40 items-center justify-center px-4 py-6 text-[0.65rem]">
               Composing image…
             </p>
           ) : 'error' in current ? (
-            <p className="text-secondary flex min-h-40 items-center justify-center px-4 py-6 text-sm">
+            <p className="text-graphite flex min-h-40 items-center justify-center px-4 py-6 text-sm">
               Export failed: {current.error}.
             </p>
           ) : (
@@ -416,7 +426,7 @@ export function ExportDialog({
         <div className="mt-4 flex flex-col gap-2">
           {canShareFiles ? (
             <button
-              className="border-line bg-panel text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged min-h-11 w-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              className="focus-ring border-ink bg-bone text-ink hover:bg-paper min-h-12 w-full border px-4 text-sm font-semibold"
               type="button"
               onClick={() => {
                 void handleShare();
@@ -426,7 +436,7 @@ export function ExportDialog({
             </button>
           ) : null}
           <button
-            className="border-line bg-panel text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged min-h-11 w-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            className="focus-ring bg-ink text-bone hover:bg-graphite min-h-12 w-full px-4 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
             disabled={!readyBlob}
             type="button"
             onClick={handleDownload}
@@ -435,7 +445,7 @@ export function ExportDialog({
           </button>
         </div>
 
-        <p className="text-muted mt-3 text-xs leading-5">
+        <p className="text-stone mt-3 text-xs leading-5">
           Saved as {exportFilename(list.id)}. Attribution is drawn into the image.
         </p>
       </div>

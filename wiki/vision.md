@@ -2,8 +2,8 @@
 
 ## Core idea
 
-Users open the app, choose a hill list or national park, and see all
-relevant peaks plotted on a restrained topographic map. Hollow stone survey
+Users open the app, choose a complete geographic edition, and see its summit
+extent deliberately fitted to a restrained topographic map. Hollow stone survey
 marks identify open peaks; solid bone marks identify bagged peaks. The user
 can click a peak, view basic information, mark it as bagged, and see their
 progress update.

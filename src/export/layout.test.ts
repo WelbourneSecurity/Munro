@@ -169,21 +169,21 @@ describe('progressSegments', () => {
   it('emphasises only the bagged count', () => {
     expect(progressSegments({ bagged: 37, total: 214 })).toEqual([
       { text: '37', emphasis: true },
-      { text: ' / 214 bagged', emphasis: false },
+      { text: ' / 214 BAGGED', emphasis: false },
     ]);
   });
 
   it('handles zero bagged', () => {
     expect(progressSegments({ bagged: 0, total: 214 })).toEqual([
       { text: '0', emphasis: true },
-      { text: ' / 214 bagged', emphasis: false },
+      { text: ' / 214 BAGGED', emphasis: false },
     ]);
   });
 
   it('handles a complete round of 214', () => {
     expect(progressSegments({ bagged: 214, total: 214 })).toEqual([
       { text: '214', emphasis: true },
-      { text: ' / 214 bagged', emphasis: false },
+      { text: ' / 214 BAGGED', emphasis: false },
     ]);
   });
 
@@ -347,6 +347,6 @@ describe('coverCropPadding', () => {
 
 describe('export copy constants', () => {
   it('matches the product copy', () => {
-    expect(EXPORT_WORDMARK).toBe('MUNRO');
+    expect(EXPORT_WORDMARK).toBe('MUNRO / FIELD EDITION');
   });
 });

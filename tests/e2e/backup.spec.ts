@@ -27,10 +27,12 @@ test('backup exports, reset clears and import restores progress', async ({
   test.setTimeout(90_000);
 
   await page.goto('./#/explore');
-  await page.getByLabel('Hill list').selectOption('wainwrights');
+  await page.evaluate(() => {
+    localStorage.setItem('munro.range.v1', 'wainwrights');
+  });
   await seedProgressStorage(page, SEEDED);
   await page.reload();
-  await expect(page.getByRole('link', { name: '2 of 214 hills bagged' })).toBeVisible({
+  await expect(page.getByRole('link', { name: '2 of 330 hills bagged' })).toBeVisible({
     timeout: 30_000,
   });
 
@@ -71,7 +73,7 @@ test('backup exports, reset clears and import restores progress', async ({
     .locator('nav[aria-label="Primary"]:visible')
     .getByRole('link', { name: 'Explore' })
     .click();
-  await expect(page.getByRole('link', { name: '2 of 214 hills bagged' })).toBeVisible({
+  await expect(page.getByRole('link', { name: '2 of 330 hills bagged' })).toBeVisible({
     timeout: 30_000,
   });
 });

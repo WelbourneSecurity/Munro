@@ -6,6 +6,7 @@ export { PeakAtlas } from './PeakAtlas';
 export { PeakInspector } from './PeakInspector';
 export { PeakListPanel } from './PeakListPanel';
 export { ProgressStats } from './ProgressStats';
+export { RangeSwitcher } from './RangeSwitcher';
 export { TrackerNavigation } from './TrackerNavigation';
 export type { TrackerRoute } from './TrackerNavigation';
 export { UndoToast } from './UndoToast';

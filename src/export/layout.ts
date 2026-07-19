@@ -190,11 +190,11 @@ export function wrapText(
 
 export interface TextSegment {
   text: string;
-  /** True for the bagged count — the only place the green accent is allowed. */
+  /** True for the bagged count — rendered in ink as the status cue. */
   emphasis: boolean;
 }
 
-/** Split "N / total bagged" so only the bagged count carries the accent. */
+/** Split "N / total BAGGED" so the bagged count can carry stronger weight. */
 export function progressSegments(stats: {
   bagged: number;
   total: number;
@@ -209,7 +209,7 @@ export function progressSegments(stats: {
 
   return [
     { text: String(stats.bagged), emphasis: true },
-    { text: ` / ${String(stats.total)} bagged`, emphasis: false },
+    { text: ` / ${String(stats.total)} BAGGED`, emphasis: false },
   ];
 }
 
@@ -345,5 +345,5 @@ export function coverCropPadding(
   return { top: y, bottom: y, left: x, right: x };
 }
 
-/** The small, restrained Munro wordmark. */
-export const EXPORT_WORDMARK = 'MUNRO';
+/** The small, restrained field-edition wordmark. */
+export const EXPORT_WORDMARK = 'MUNRO / FIELD EDITION';

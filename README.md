@@ -2,10 +2,9 @@
 
 A clean, map-first hiking tracker for UK peak bagging.
 
-Munro lets you view the UK's major mountain and fell lists on a neutral,
-topographic map, mark peaks as bagged, track your progress by hill list
-or national park, and export a polished, shareable image of your completed
-peaks.
+Munro presents the UK's hills as deliberately framed geographic editions on a
+neutral topographic map. Mark summits as bagged, track each edition, and export
+a bone-and-ink field poster of the selected area and its progress.
 
 The first version is deliberately simple: a flawless tracker — not a social
 network, route planner, GPX library or navigation tool. See
@@ -13,15 +12,17 @@ network, route planner, GPX library or navigation tool. See
 
 ## Description
 
-Open the app, choose a hill list or national park, and see every relevant
-peak plotted on a minimal topographic map. Hollow survey diamonds mark open
+Open the app, choose a geographic edition from the editorial range index, and
+see that complete area fitted to the map. Scotland, Wales and Northern Ireland
+group their full DoBIH geographic sections; Wainwrights combines the 214 core
+fells with every Outlying Fell. Hollow survey diamonds mark open
 summits; solid bone diamonds mark bagged summits. Select a peak to view its details,
 mark it as bagged, and watch your progress update.
 
 Munro is a single product accessible from the **web**, on **iPhone** and on
 **Android** devices. The registry covers the UK with Wainwrights, Munros,
 Corbetts, Grahams, Donalds, Nuttalls, Hewitts, Marilyns, county tops and
-more. Pushes to `main` deploy the app to
+more beneath those editions. Pushes to `main` deploy the app to
 <https://munro.welbournesecurity.com>.
 
 Full product detail lives in the [project wiki](wiki/index.md):
