@@ -30,13 +30,13 @@ interface PersistedProgress {
 }
 
 /**
- * Switch the tracker to a specific hill list via the panel's switcher. The
- * app defaults to the collated "All peaks" view; specs that assert against a
- * single published list (e.g. the 214 Wainwrights) narrow the view first.
- * The choice persists (munro.prefs.v1), so it survives reloads in a spec.
+ * Switch the tracker to a geographic edition through the editorial range
+ * index. The choice persists separately from the legacy hill-list preference.
  */
-export async function selectHillList(page: Page, listId: string): Promise<void> {
-  await page.getByLabel('Hill list').selectOption(listId);
+export async function selectRangeEdition(page: Page, rangeName: string): Promise<void> {
+  await page.getByRole('button', { name: /^Change range,/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Choose a range.' });
+  await dialog.getByRole('button').filter({ hasText: rangeName }).click();
 }
 
 /** Read and unwrap the persisted progress records from localStorage. */

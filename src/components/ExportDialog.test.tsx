@@ -5,6 +5,7 @@ import { vi } from 'vitest';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 
 import type { HillListDefinition } from '../data/lists';
+import type { RangeEditionView } from '../domain';
 import type { ExportPresetId, MapSnapshot } from '../export';
 import { exportFilename } from '../export/download';
 import { ExportDialog } from './ExportDialog';
@@ -166,24 +167,27 @@ describe('ExportDialog', () => {
     );
   });
 
-  it('frames, titles and names the export from the active list', async () => {
-    const munros: HillListDefinition = {
-      ...list,
-      id: 'munros',
-      name: 'Munros',
-      regionLabel: 'Scottish Highlands',
-      peakNoun: 'mountains',
+  it('frames, titles and names the export from the active geographic edition', async () => {
+    const scotland: RangeEditionView = {
+      id: 'scotland',
+      key: 'range:scotland',
+      name: 'Scotland',
+      identity: 'Scotland',
+      descriptor: 'Highlands, islands and Southern Uplands',
+      peakNoun: 'hills',
+      peaks: [],
       bounds: [
         [-6.6, 56.0],
         [-2.7, 58.7],
       ],
+      initialView: list.initialView,
     };
 
     render(
       <ExportDialog
         open
         getMap={getMap}
-        list={munros}
+        list={scotland}
         stats={stats}
         onClose={vi.fn()}
       />,
@@ -193,17 +197,19 @@ describe('ExportDialog', () => {
 
     expect(engine.frameBoundary).toHaveBeenCalledWith(
       map,
-      munros.bounds,
+      scotland.bounds,
       48,
       expect.any(Number),
     );
     expect(engine.composeExport).toHaveBeenCalledWith(
       snapshot,
       { bagged: 37, total: 214 },
-      { preset: 'portrait', title: 'Scottish Highlands · Munros' },
+      { preset: 'portrait', title: 'Scotland' },
     );
-    expect(screen.getByText('Scottish Highlands')).toBeInTheDocument();
-    expect(screen.getByText(/Saved as munro-munros-/)).toBeInTheDocument();
+    expect(
+      screen.getByText('Highlands, islands and Southern Uplands'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Saved as munro-scotland-/)).toBeInTheDocument();
   });
 
   it('shows a quiet busy state while composing', async () => {

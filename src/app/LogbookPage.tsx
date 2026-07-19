@@ -1,14 +1,15 @@
-import {
-  HillListSwitcher,
-  PeakAtlas,
-  PeakInspector,
-  ProgressStats,
-} from '../components';
-import type { HillListDefinition } from '../data/lists';
-import type { Peak, PeakProgress, ProgressStats as Stats } from '../domain';
+import { PeakAtlas, PeakInspector, ProgressStats, RangeSwitcher } from '../components';
+import type {
+  Peak,
+  PeakProgress,
+  ProgressStats as Stats,
+  RangeEditionId,
+  RangeEditionView,
+} from '../domain';
 
 interface LogbookPageProps {
-  list: HillListDefinition;
+  edition: RangeEditionView;
+  allPeaks: Peak[];
   peaks: Peak[];
   progress: PeakProgress[];
   stats: Stats;
@@ -20,10 +21,12 @@ interface LogbookPageProps {
   onClosePeak: () => void;
   onBag: (peak: Peak) => void;
   onUnbag: (peak: Peak) => void;
+  onEditionChange: (editionId: RangeEditionId) => void;
 }
 
 export function LogbookPage({
-  list,
+  edition,
+  allPeaks,
   peaks,
   progress,
   stats,
@@ -35,6 +38,7 @@ export function LogbookPage({
   onClosePeak,
   onBag,
   onUnbag,
+  onEditionChange,
 }: LogbookPageProps) {
   return (
     <section className="bg-bone min-h-[calc(100dvh-3.5rem)] pb-16 md:pb-0">
@@ -42,19 +46,23 @@ export function LogbookPage({
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-end">
           <div>
             <p className="font-label text-stone text-[0.65rem]">
-              {list.regionLabel} · {peaks.length || '—'} {list.peakNoun}
+              {edition.descriptor} · {peaks.length || '—'} {edition.peakNoun}
             </p>
             <h1 className="mt-3 max-w-2xl text-4xl leading-[0.98] font-semibold tracking-[-0.065em] text-balance md:text-6xl">
-              Your {list.name} logbook.
+              Your {edition.name} logbook.
             </h1>
             <p className="text-graphite mt-5 max-w-xl text-sm leading-6">
               A clear record of the hills you have walked and those still waiting.
             </p>
-            <div className="list-switcher-editorial mt-6 max-w-md">
-              <HillListSwitcher />
+            <div className="mt-6 max-w-md">
+              <RangeSwitcher
+                active={edition}
+                allPeaks={allPeaks}
+                onChange={onEditionChange}
+              />
             </div>
           </div>
-          <ProgressStats stats={stats} label={`${list.name} bagged`} />
+          <ProgressStats stats={stats} label={`${edition.name} bagged`} />
         </div>
       </header>
       {loadFailed ? (
@@ -74,7 +82,7 @@ export function LogbookPage({
             peaks={peaks}
             progress={progress}
             selectedPeakId={selectedPeak?.id}
-            {...(list.id === 'wainwrights'
+            {...(edition.id === 'wainwrights'
               ? { regionPrefixToHide: 'Lake District - ' }
               : {})}
             onSelectPeak={onSelectPeak}

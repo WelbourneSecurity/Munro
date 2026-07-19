@@ -29,6 +29,8 @@ headings use tight tracking; body copy stays readable and short.
 - Prefer rules, whitespace and material contrast over cards and shadows.
 - Explore is a full map with temporary search and detail overlays.
 - Logbook is a responsive regional atlas, not a compact dashboard table.
+- Switch geography through the editorial range index, never a dense dropdown.
+- Every selected edition fits its complete summit extent into a composed frame.
 - Use a slim desktop top rail and a safe-area-aware mobile bottom bar.
 - Keep controls square, purposeful and at least 44px on touch devices.
 - Motion is subtle, 160–220ms, and disabled under reduced motion.
@@ -39,6 +41,13 @@ The map uses neutral ink, graphite and stone terrain with blue-black water.
 Summits are authoritative points. Never render generated polygons, silhouettes
 or radial profiles as though they were real hill shapes. Selection receives a
 separate reticle and label; it never implies completion.
+
+## Field posters
+
+Poster exports use bone stock, an ink title and completion count, the selected
+edition's fitted map, a restrained date and licence attribution. They use the
+same hollow/solid survey language as Explore and never reintroduce a green
+completion accent.
 
 ## Avoid
 

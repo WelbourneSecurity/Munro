@@ -5,6 +5,7 @@ export type TrackerRoute = 'explore' | 'logbook' | 'settings';
 interface TrackerNavigationProps {
   current: TrackerRoute;
   stats: ProgressStats;
+  identity: string;
 }
 
 const routes: { href: string; id: TrackerRoute; label: string }[] = [
@@ -13,23 +14,27 @@ const routes: { href: string; id: TrackerRoute; label: string }[] = [
   { href: '#/settings', id: 'settings', label: 'Settings' },
 ];
 
-export function TrackerNavigation({ current, stats }: TrackerNavigationProps) {
+export function TrackerNavigation({
+  current,
+  stats,
+  identity,
+}: TrackerNavigationProps) {
   return (
     <>
       <header className="border-hairline bg-bone relative z-30 flex h-14 items-center justify-between border-b px-4 md:px-7">
         <a
           className="focus-ring flex min-h-11 items-center gap-3"
           href="#/explore"
-          aria-label="Munro — open Explore"
+          aria-label={`${identity} — open Explore`}
         >
           <span
             className="border-ink font-label grid h-7 w-7 place-items-center border text-[0.65rem] font-semibold tracking-[-0.08em]"
             aria-hidden="true"
           >
-            M
+            {identity.slice(0, 1).toUpperCase()}
           </span>
           <span className="text-[0.95rem] font-semibold tracking-[-0.035em]">
-            Munro
+            {identity}
           </span>
         </a>
 

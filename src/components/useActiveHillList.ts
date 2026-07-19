@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { getHillList, type HillListDefinition } from '../data/lists';
+import { getHillList, type HillListDefinition, type HillListId } from '../data/lists';
 import type { Peak } from '../domain';
 import { usePreferencesStore } from '../store';
 
@@ -39,9 +39,9 @@ interface LoadedPeaks {
  * Resolves the active hill list from preferences and lazily loads its peak
  * data. Loaded lists are cached so switching back is instant.
  */
-export function useActiveHillList(): ActiveHillList {
+export function useActiveHillList(requestedListId?: HillListId): ActiveHillList {
   const activeListId = usePreferencesStore((state) => state.activeListId);
-  const list = getHillList(activeListId);
+  const list = getHillList(requestedListId ?? activeListId);
   const [attempt, setAttempt] = useState(0);
   const [loaded, setLoaded] = useState<LoadedPeaks>(() => ({
     listId: list.id,

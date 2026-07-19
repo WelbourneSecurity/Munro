@@ -1,6 +1,12 @@
 import { ATTRIBUTIONS } from '../data/attribution';
 import { composeExport } from './compose';
-import { getExportPreset, layoutExport, marginFor, typeScale } from './layout';
+import {
+  EXPORT_WORDMARK,
+  getExportPreset,
+  layoutExport,
+  marginFor,
+  typeScale,
+} from './layout';
 import type { MapSnapshot } from './snapshot';
 
 interface RecordedOp {
@@ -164,14 +170,14 @@ describe('composeExport', () => {
     expect(canvas.height).toBe(1080);
   });
 
-  it('paints the dark charcoal ground first', async () => {
+  it('paints the warm bone poster stock first', async () => {
     const { context } = await composeOnFakeCanvas();
     const [ground] = context.ops;
 
     expect(ground).toMatchObject({
       op: 'fillRect',
       args: [0, 0, 1600, 2000],
-      fillStyle: '#111713',
+      fillStyle: '#f2efe7',
     });
   });
 
@@ -196,14 +202,14 @@ describe('composeExport', () => {
     expect(sHeight).toBeLessThanOrEqual(4000);
   });
 
-  it('draws the given list title in primary grey-white', async () => {
+  it('draws the given edition title in ink', async () => {
     const { context } = await composeOnFakeCanvas(makeSnapshot(), stats, {
       ...options,
       title: 'Scottish Highlands · Munros',
     });
     const title = findText(context, 'Scottish Highlands · Munros');
 
-    expect(title).toMatchObject({ fillStyle: '#f1f4ee', textAlign: 'left' });
+    expect(title).toMatchObject({ fillStyle: '#11110f', textAlign: 'left' });
   });
 
   it('shrinks an overlong title to fit beside the wordmark', async () => {
@@ -219,7 +225,7 @@ describe('composeExport', () => {
 
     // The space left of the right-aligned wordmark, minus a title-em gap.
     const maxWidth =
-      preset.width - margin * 2 - 'MUNRO'.length * CHAR_WIDTH - scale.title;
+      preset.width - margin * 2 - EXPORT_WORDMARK.length * CHAR_WIDTH - scale.title;
     const expectedSize = Math.floor(
       (scale.title * maxWidth) / (longTitle.length * CHAR_WIDTH),
     );
@@ -228,37 +234,36 @@ describe('composeExport', () => {
     expect(title?.font).toContain(`${String(expectedSize)}px`);
   });
 
-  it('uses the green accent for the bagged count only', async () => {
+  it('uses ink and graphite for progress without a colour-only status accent', async () => {
     const { context } = await composeOnFakeCanvas();
-    const greenOps = textOps(context).filter((op) => op.fillStyle === '#a7d8b6');
-    const rest = findText(context, ' / 214 bagged');
-
-    expect(greenOps.map((op) => op.args[0])).toEqual(['37']);
-    expect(rest).toMatchObject({ fillStyle: '#c8d0c6' });
-
-    // The remainder starts where the accented count ends.
     const count = findText(context, '37');
+    const rest = findText(context, ' / 214 BAGGED');
+
+    expect(count).toMatchObject({ fillStyle: '#11110f' });
+    expect(rest).toMatchObject({ fillStyle: '#34342f' });
+
+    // The remainder starts where the ink count ends.
     expect(rest?.args[1]).toBe(Number(count?.args[1]) + '37'.length * CHAR_WIDTH);
   });
 
   it('draws the wordmark and export date right-aligned in muted grey', async () => {
     const { context } = await composeOnFakeCanvas();
-    const wordmark = findText(context, 'MUNRO');
+    const wordmark = findText(context, EXPORT_WORDMARK);
     const date = findText(context, '10 July 2026');
 
-    expect(wordmark).toMatchObject({ fillStyle: '#96a095', textAlign: 'right' });
-    expect(date).toMatchObject({ fillStyle: '#96a095', textAlign: 'right' });
+    expect(wordmark).toMatchObject({ fillStyle: '#77746b', textAlign: 'right' });
+    expect(date).toMatchObject({ fillStyle: '#77746b', textAlign: 'right' });
   });
 
   it('draws the map border and divider in the --color-line token colour', async () => {
     // compose.ts duplicates the @theme hex values because a 2D canvas cannot
-    // read CSS custom properties; #5b7666 is --color-line in src/index.css.
+    // read CSS custom properties; #c8c1b3 is --color-hairline in src/index.css.
     const { context } = await composeOnFakeCanvas();
     const border = context.ops.find((op) => op.op === 'strokeRect');
     const divider = context.ops.find((op) => op.op === 'fillRect' && op.args[3] === 1);
 
-    expect(border?.strokeStyle).toBe('#5b7666');
-    expect(divider?.fillStyle).toBe('#5b7666');
+    expect(border?.strokeStyle).toBe('#c8c1b3');
+    expect(divider?.fillStyle).toBe('#c8c1b3');
   });
 
   it('draws every attribution constant into the pixels', async () => {
@@ -280,7 +285,7 @@ describe('composeExport', () => {
     const preset = getExportPreset('portrait');
     // Attribution lines are the only left-aligned muted-grey text.
     const attributionOps = textOps(context).filter(
-      (op) => op.textAlign === 'left' && op.fillStyle === '#96a095',
+      (op) => op.textAlign === 'left' && op.fillStyle === '#77746b',
     );
     const lineCount = attributionOps.length;
     const layout = layoutExport(preset, lineCount);

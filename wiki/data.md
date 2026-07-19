@@ -107,20 +107,22 @@ collated **All peaks** view automatically (and changes its expected count
 in `src/data/lists.test.ts`), because that view is built from the registry
 rather than its own data file.
 
-The default view is the collated **All peaks** list: every registered
+The source of every geographic edition is the collated **All peaks** list: every registered
 source list merged and deduplicated by peak id (the published lists
 overlap — a Wainwright can also be a Hewitt and a Marilyn — so it holds
 one record per distinct hill, with the union of its list memberships).
-The active list is a persisted user preference (defaulting to All peaks)
-and is switched from the tracker's peak list panel. Progress records are
+The range-edition registry in `src/domain/editions.ts` groups that national
+set by complete DoBIH sections (or explicit list membership for the combined
+Wainwright and Outlying Fell edition), then calculates padded bounds from the
+edition's actual summits. The active edition is stored separately as
+`munro.range.v1`. Progress records are
 keyed by the globally unique peak id (`dobih-N`), so each list's progress
-coexists in the same store and switching lists never touches existing
-records; stats are computed against the active list's peaks only.
+coexists in the same store and switching editions never touches existing
+records; stats are computed against the active edition only.
 
-The Lake District boundary layers render only on the Wainwrights view; every
-list is framed by its map-fit bounds from the registry (from the Peak District
-up to the whole UK). Authoritative summit markers carry selection and status
-for every list.
+The Lake District boundary layers render only on the Wainwrights edition. Every
+edition is fitted to its calculated data extent, from the Isle of Man to the
+whole UK. Authoritative summit markers carry selection and status throughout.
 
 ## Boundary data
 

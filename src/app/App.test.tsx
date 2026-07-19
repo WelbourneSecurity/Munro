@@ -80,11 +80,23 @@ describe('App shell', () => {
   it('renders the shared Logbook and Settings routes', () => {
     window.location.hash = '#/logbook';
     const { getByRole, rerender } = render(<App />);
-    expect(getByRole('heading', { name: 'Your Wainwrights logbook.' })).toBeVisible();
+    expect(
+      getByRole('heading', { name: 'Your United Kingdom logbook.' }),
+    ).toBeVisible();
     window.location.hash = '#/data';
     fireEvent(window, new HashChangeEvent('hashchange'));
     rerender(<App />);
     expect(getByRole('heading', { name: 'Settings' })).toBeVisible();
+  });
+
+  it('switches geographic editions and changes the product identity', () => {
+    const { getByRole } = render(<App />);
+
+    fireEvent.click(getByRole('button', { name: 'Change range, United Kingdom' }));
+    fireEvent.click(getByRole('button', { name: /Scotland/ }));
+
+    expect(getByRole('link', { name: 'Scotland — open Explore' })).toBeVisible();
+    expect(localStorage.getItem('munro.range.v1')).toBe('scotland');
   });
 
   it('bags from the shared inspector and restores the exact record with Undo', async () => {

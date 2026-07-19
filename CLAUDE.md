@@ -5,11 +5,11 @@ AGENTS.md) when working in this repository.
 
 ## What Munro is
 
-Munro is a clean, map-first hiking tracker for UK peak bagging. Users see
-hill lists (Wainwrights first, then Munros, Corbetts, etc.) in a warm
-bone-and-ink logbook and neutral topographic map, mark peaks as bagged,
-track progress, and export a
-shareable image. It is being developed into an app accessible via the web,
+Munro is a clean, map-first hiking tracker for UK peak bagging. Users choose
+deliberately framed geographic editions (Scotland, the complete Wainwrights
+including Outlying Fells, Wales and other UK ranges) in a warm bone-and-ink
+logbook and neutral topographic map, mark peaks as bagged, track progress, and
+export a field poster. It is being developed into an app accessible via the web,
 on iPhone and on Android.
 
 It is deliberately **not** a social network, route planner, GPX library or
@@ -30,8 +30,8 @@ layout), its test suites, the CI/CD workflows and the documentation site:
 - `index.html` — Vite app entry (preconnects to tile hosts)
 - `src/app/` — shell and hand-rolled hash router (`#/explore`, `#/logbook`,
   `#/settings`; legacy tracker/data aliases remain compatible)
-- `src/components/` — shared peak inspector, atlas, hill search, navigation,
-  progress stats and export dialog
+- `src/components/` — shared peak inspector, atlas, hill search, editorial
+  range index, navigation, progress stats and export dialog
 - `src/domain/` — Zod schemas (`Peak`, `PeakProgress`, `Backup`) and pure
   logic; stays free of React and MapLibre imports
 - `src/data/` — generated peak data for every hill list, boundary/hill-profile
@@ -40,8 +40,9 @@ layout), its test suites, the CI/CD workflows and the documentation site:
   style fork, terrain/contour setup and map layers; runtime MapLibre
   imports stay inside this directory
 - `src/store/` — local-first Zustand stores persisted to localStorage
-  (`munro.progress.v1`, `munro.prefs.v1`)
-- `src/export/` — canvas snapshot/composition engine, loaded as a lazy chunk
+  (`munro.progress.v1`, `munro.prefs.v1`); the active geographic edition uses
+  the separate `munro.range.v1` key
+- `src/export/` — bone-and-ink field-poster composition engine, loaded as a lazy chunk
 - `scripts/` — data generation from DoBIH and Natural England
 - `tests/e2e/` — Playwright specs, run in desktop Chromium and an
   iPhone-13-sized mobile project

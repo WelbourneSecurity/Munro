@@ -14,8 +14,12 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { ExportDialog } from '../components';
 import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
 import { mapAttributionHtml } from '../data/attribution';
-import type { HillListDefinition } from '../data/lists';
-import { peaksToGeoJSON, type Peak, type ProgressStats } from '../domain';
+import {
+  peaksToGeoJSON,
+  type Peak,
+  type ProgressStats,
+  type RangeEditionView,
+} from '../domain';
 import { usePreferencesStore, useProgressStore } from '../store';
 import {
   LIST_FIT_OPTIONS,
@@ -43,7 +47,7 @@ import { getMapSupportError } from './support';
 import { contourTileUrl, setupTerrainProtocols, terrainDemSource } from './terrain';
 
 interface MapViewProps {
-  list: HillListDefinition;
+  edition: RangeEditionView;
   peaks: Peak[];
   stats: ProgressStats;
   selectedPeakId: string | undefined;
@@ -59,7 +63,7 @@ const TERRAIN_DISABLED = null as unknown as TerrainSpecification;
 setupTerrainProtocols();
 
 export function MapView({
-  list,
+  edition,
   peaks,
   stats,
   selectedPeakId,
@@ -87,7 +91,7 @@ export function MapView({
       })),
     };
   }, [peaks, progress, selectedPeakId]);
-  const maxBounds = useMemo(() => listMaxBounds(list.bounds), [list]);
+  const maxBounds = useMemo(() => listMaxBounds(edition.bounds), [edition.bounds]);
   const mapStyle = useMemo<StyleSpecification>(
     () =>
       ({
@@ -108,13 +112,13 @@ export function MapView({
     const map = mapRef.current;
     if (!map) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    map.fitBounds(list.bounds, {
+    map.fitBounds(edition.bounds, {
       ...LIST_FIT_OPTIONS,
-      bearing: list.initialView.bearing,
-      pitch: list.initialView.pitch,
+      bearing: edition.initialView.bearing,
+      pitch: edition.initialView.pitch,
       duration: reduceMotion ? 0 : 600,
     });
-  }, [list, mapReady]);
+  }, [edition, mapReady]);
 
   useEffect(() => {
     if (!selectedPeakId || !mapReady) return;
@@ -159,8 +163,8 @@ export function MapView({
         attributionControl={false}
         canvasContextAttributes={{ preserveDrawingBuffer: true }}
         initialViewState={{
-          ...list.initialView,
-          bounds: list.bounds,
+          ...edition.initialView,
+          bounds: edition.bounds,
           fitBoundsOptions: LIST_FIT_OPTIONS,
         }}
         interactiveLayerIds={['peak-hitbox']}
@@ -202,7 +206,7 @@ export function MapView({
             <Layer {...terrainHillshadeLayer} beforeId={HILLSHADE_ANCHOR_ID} />
           </Source>
         ) : null}
-        {list.id === 'wainwrights' ? (
+        {edition.id === 'wainwrights' ? (
           <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
             <Layer {...boundaryFillLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
             <Layer {...boundaryLineLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
@@ -256,12 +260,12 @@ export function MapView({
           setExportOpen(true);
         }}
       >
-        Export image
+        Export poster
       </button>
       <ExportDialog
         open={exportOpen}
         getMap={getMap}
-        list={list}
+        list={edition}
         stats={{ bagged: stats.bagged, total: stats.total }}
         onClose={() => {
           setExportOpen(false);

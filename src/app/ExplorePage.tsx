@@ -1,12 +1,18 @@
 import { useState } from 'react';
 
-import { HillListSwitcher, HillSearch, PeakInspector } from '../components';
-import type { HillListDefinition } from '../data/lists';
-import type { Peak, PeakProgress, ProgressStats } from '../domain';
+import { HillSearch, PeakInspector, RangeSwitcher } from '../components';
+import type {
+  Peak,
+  PeakProgress,
+  ProgressStats,
+  RangeEditionId,
+  RangeEditionView,
+} from '../domain';
 import { MapView } from '../map';
 
 interface ExplorePageProps {
-  list: HillListDefinition;
+  edition: RangeEditionView;
+  allPeaks: Peak[];
   peaks: Peak[];
   progress: PeakProgress[];
   stats: ProgressStats;
@@ -18,10 +24,12 @@ interface ExplorePageProps {
   onClosePeak: () => void;
   onBag: (peak: Peak) => void;
   onUnbag: (peak: Peak) => void;
+  onEditionChange: (editionId: RangeEditionId) => void;
 }
 
 export function ExplorePage({
-  list,
+  edition,
+  allPeaks,
   peaks,
   progress,
   stats,
@@ -33,21 +41,22 @@ export function ExplorePage({
   onClosePeak,
   onBag,
   onUnbag,
+  onEditionChange,
 }: ExplorePageProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   return (
     <section
       className="explore-shell bg-map relative overflow-hidden"
-      aria-label={`Explore ${list.name}`}
+      aria-label={`Explore ${edition.name}`}
     >
       <MapView
-        list={list}
+        edition={edition}
         peaks={peaks}
         stats={stats}
         selectedPeakId={selectedPeak?.id}
         onSelectPeak={onSelectPeak}
       />
-      <div className="absolute top-3 left-3 z-10 flex max-w-[calc(100%-5.5rem)] items-stretch gap-2 md:top-5 md:left-5">
+      <div className="absolute top-3 left-3 z-10 flex max-w-[calc(100%-5.5rem)] flex-col items-start gap-2 sm:flex-row sm:items-stretch md:top-5 md:left-5">
         <button
           aria-label="Find a hill"
           className="focus-ring bg-bone text-ink border-ink hover:bg-paper flex min-h-12 items-center gap-4 border px-4 text-sm font-semibold shadow-[0_12px_40px_rgb(17_17_15/0.18)]"
@@ -61,9 +70,11 @@ export function ExplorePage({
           </span>
           Find a hill
         </button>
-        <div className="list-switcher-compact bg-bone shadow-[0_12px_40px_rgb(17_17_15/0.14)]">
-          <HillListSwitcher />
-        </div>
+        <RangeSwitcher
+          active={edition}
+          allPeaks={allPeaks}
+          onChange={onEditionChange}
+        />
       </div>
       {loadFailed ? (
         <div
@@ -83,10 +94,10 @@ export function ExplorePage({
       {!selectedPeak && !loadFailed ? (
         <div className="bg-ink/88 text-bone absolute bottom-4 left-3 z-10 hidden max-w-xs px-4 py-3 backdrop-blur-sm md:block">
           <p className="font-label text-[0.62rem]">
-            EXPLORE {list.regionLabel.toUpperCase()}
+            EXPLORE {edition.name.toUpperCase()}
           </p>
           <p className="text-paper mt-1 text-sm">
-            Select a survey marker or search {list.name}.
+            Select a survey marker or search {edition.name}.
           </p>
         </div>
       ) : null}
@@ -101,7 +112,7 @@ export function ExplorePage({
       ) : null}
       <HillSearch
         open={searchOpen}
-        listName={list.name}
+        listName={edition.name}
         peaks={peaks}
         progress={progress}
         onOpenChange={setSearchOpen}
