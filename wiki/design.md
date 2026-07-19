@@ -1,50 +1,49 @@
-# Visual style
+# Visual system
 
-Munro should feel:
+Munro should feel like a well-made outdoor logbook and a precise field
+instrument: warm, functional and quiet. The references are technical outdoor
+equipment and restrained Japanese product design, never their protected assets.
 
-- Dark
-- Minimal
-- Topographic
-- Technical
-- Outdoors-focused
-- Calm and premium
+## Palette
 
-## Suggested styling
+- Bone `#F2EFE7` — primary application surface
+- Paper `#E6E0D4` — secondary material surface
+- Ink `#11110F` — primary type and completed state
+- Soot `#1C1C19` and graphite `#34342F` — dark material and secondary type
+- Stone `#77746B` — open status and technical annotation
+- Hairline `#C8C1B3` — dividers and structure
+- Map water `#182024` — the only restrained cool note
 
-- Dark charcoal background
-- Grey contour lines
-- Muted grey unbagged peaks
-- Pastel green bagged peaks
-- Clean sans-serif typography
-- Small technical labels
-- Thin borders
-- Minimal animations
-- Smooth hover states
+Green is not a completion colour. Open and bagged state must remain clear
+without colour: open hills use hollow survey diamonds and bone tiles; bagged
+hills use solid diamonds and inverted ink tiles.
+
+## Typography
+
+Instrument Sans Variable carries interface and display text. IBM Plex Mono is
+reserved for heights, coordinates, counts, dates and technical labels. Large
+headings use tight tracking; body copy stays readable and short.
+
+## Composition
+
+- Prefer rules, whitespace and material contrast over cards and shadows.
+- Explore is a full map with temporary search and detail overlays.
+- Logbook is a responsive regional atlas, not a compact dashboard table.
+- Use a slim desktop top rail and a safe-area-aware mobile bottom bar.
+- Keep controls square, purposeful and at least 44px on touch devices.
+- Motion is subtle, 160–220ms, and disabled under reduced motion.
+
+## Map language
+
+The map uses neutral ink, graphite and stone terrain with blue-black water.
+Summits are authoritative points. Never render generated polygons, silhouettes
+or radial profiles as though they were real hill shapes. Selection receives a
+separate reticle and label; it never implies completion.
 
 ## Avoid
 
-- Bright gamified colours
-- Overly playful icons
-- Heavy 3D effects
-- Bloated dashboards
-- Social media clutter
-- Complex route planning in MVP
-
-The visual direction should be monochrome, restrained and premium — a
-premium outdoor logbook with a technical map aesthetic, not a cartoon hiking
-app. This applies identically on the web, iPhone and Android: one design
-language on every screen.
-
-## Implementation tokens
-
-The web app defines the first design tokens in `src/index.css` using Tailwind
-v4's CSS `@theme` block:
-
-- `--color-surface`, `--color-panel` and `--color-line` for the dark shell and
-  thin UI borders.
-- `--color-contour`, `--color-unbagged` and `--color-muted` for map-adjacent
-  greys.
-- `--color-bagged` for the single soft green completion accent.
-- `--color-primary` and `--color-secondary` for text.
-- `--font-sans`, `--font-label` and `--text-label` for clean interface
-  typography and small technical labels.
+- Green accents, gradients, glows or pulsing markers
+- Rounded pill controls and repetitive card grids
+- Confetti, badges, streaks or gamified celebration
+- Decorative hill silhouettes or fake terrain outlines
+- Social or route-planning clutter

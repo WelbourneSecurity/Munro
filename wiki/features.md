@@ -2,15 +2,15 @@
 
 ## 1. Map view
 
-The map should show a dark, minimal topographic visual style with:
+The map should show a neutral, minimal topographic visual style with:
 
 - Contour lines
 - Subtle terrain shading where possible
 - National park boundary
 - Peak markers
 - Peak labels at appropriate zoom levels
-- Muted styling for incomplete peaks
-- Soft green styling for completed peaks
+- Hollow stone survey diamonds for incomplete peaks
+- Solid bone survey diamonds for completed peaks
 
 The visual direction should be monochrome, restrained and premium. Avoid
 cartoon hiking app styling.
@@ -52,8 +52,8 @@ hill list.
 The export should include:
 
 - Map area
-- Bagged peaks highlighted in green
-- Unbagged peaks in grey
+- Bagged peaks shown with solid/inverted bone-and-ink status
+- Unbagged peaks shown with hollow/open status
 - Title, for example "Lake District Wainwrights"
 - Progress count, for example "37 / 214 bagged"
 - Date exported
@@ -99,5 +99,5 @@ Constraints that keep it in character:
   preference and the ordinary progress record persist.
 - Detection never overwrites an existing record: a peak already bagged
   keeps its date and notes.
-- Confirmation is a quiet, soft-green notice consistent with the design
+- Confirmation is a quiet ink-and-bone notice consistent with the design
   language — no sounds, badges or pop-ups.

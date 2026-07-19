@@ -7,7 +7,7 @@ item below is built and covered by unit, component and end-to-end tests
 (including a phone-sized viewport). The app deploys to
 <https://munro.welbournesecurity.com> on merges to `main`.
 
-![The Munro tracker: a dark topographic map of the Lake District with bagged fells lit in soft green, alongside progress stats and a peak list panel](images/tracker.png)
+![The Munro tracker: a dark topographic map of the Lake District with bagged fells lit in bone-and-ink, alongside progress stats and a peak list panel](images/tracker.png)
 
 ## Scope
 

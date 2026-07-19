@@ -11,16 +11,11 @@ import type { FeatureCollection, Polygon } from 'geojson';
 import type { StyleSpecification, TerrainSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import {
-  ExportDialog,
-  HillListSwitcher,
-  PeakListPanel,
-  ProgressStats,
-  useActiveHillList,
-} from '../components';
+import { ExportDialog } from '../components';
 import boundaryRaw from '../data/boundaries/lake-district.geojson?raw';
 import { mapAttributionHtml } from '../data/attribution';
-import { calculateProgress, peaksToGeoJSON } from '../domain';
+import type { HillListDefinition } from '../data/lists';
+import { peaksToGeoJSON, type Peak, type ProgressStats } from '../domain';
 import { usePreferencesStore, useProgressStore } from '../store';
 import {
   LIST_FIT_OPTIONS,
@@ -33,204 +28,66 @@ import {
   CONTOURS_ANCHOR_ID,
   HILL_LIGHTING_ANCHOR_ID,
   HILLSHADE_ANCHOR_ID,
-  baggedSummitLightLayer,
   boundaryFillLayer,
   boundaryLineLayer,
-  hillAreaFillLayer,
-  hillAreaLineLayer,
+  peakHitboxLayer,
+  selectedPeakLabelLayer,
+  selectedPeakMarkerLayer,
+  surveyPeakMarkerLayer,
   terrainContourLabelLayer,
   terrainContourLayer,
   terrainHillshadeLayer,
-  peakHitboxLayer,
-  peakLabelLayer,
-  peakMarkerLayer,
 } from './layers';
-import { loadHillAreas, type HillAreaData } from './hillAreas';
 import munroDarkStyle from './style/munro-dark.json';
 import { getMapSupportError } from './support';
 import { contourTileUrl, setupTerrainProtocols, terrainDemSource } from './terrain';
 
-type BoundaryData = FeatureCollection<Polygon> & {
-  metadata?: Record<string, unknown>;
-};
-
+interface MapViewProps {
+  list: HillListDefinition;
+  peaks: Peak[];
+  stats: ProgressStats;
+  selectedPeakId: string | undefined;
+  onSelectPeak: (peakId: string) => void;
+}
+type BoundaryData = FeatureCollection<Polygon> & { metadata?: Record<string, unknown> };
 const boundaryData = JSON.parse(boundaryRaw) as BoundaryData;
-
-// 3D terrain reads DEM tiles from the always-mounted terrain-dem source.
 const TERRAIN_OPTIONS: TerrainSpecification = {
   source: 'terrain-dem',
-  exaggeration: 1.28,
+  exaggeration: 1.2,
 };
-
-// react-maplibre only detaches terrain (map.setTerrain(null)) for an explicit
-// null terrain prop — an undefined prop means "leave terrain unchanged" and
-// would keep the 3D displacement active after the Terrain checkbox is
-// unchecked. The published prop type omits null, hence the cast.
 const TERRAIN_DISABLED = null as unknown as TerrainSpecification;
-
 setupTerrainProtocols();
 
-export function MapView() {
+export function MapView({
+  list,
+  peaks,
+  stats,
+  selectedPeakId,
+  onSelectPeak,
+}: MapViewProps) {
   const mapRef = useRef<MapRef>(null);
-  const notesRef = useRef<HTMLTextAreaElement>(null);
   const progressByPeakId = useProgressStore((state) => state.progressByPeakId);
-  const bag = useProgressStore((state) => state.bag);
-  const unbag = useProgressStore((state) => state.unbag);
-  const setBaggedDate = useProgressStore((state) => state.setBaggedDate);
-  const setNotes = useProgressStore((state) => state.setNotes);
   const terrainEnabled = usePreferencesStore((state) => state.terrainEnabled);
-  const setTerrainEnabled = usePreferencesStore((state) => state.setTerrainEnabled);
-  const { list, peaks, loadFailed, retryLoad } = useActiveHillList();
-  const [selectedPeakId, setSelectedPeakId] = useState<string | undefined>(
-    peaks[0]?.id,
-  );
-  const shownListIdRef = useRef<string>(list.id);
+  const [mapReady, setMapReady] = useState(false);
+  const [mapFailed, setMapFailed] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  // Hardened browsers (iOS Lockdown Mode) disable WebGL2/WebAssembly; the
-  // map can never draw there, so the tracker explains instead of mounting it.
   const mapSupportError = useMemo(() => getMapSupportError(), []);
-  // On small screens the panel is a bottom sheet; this collapses it so the
-  // map is reachable one-handed. Desktop (lg) always shows the panel.
-  const [panelOpen, setPanelOpen] = useState(true);
   const getMap = useCallback(() => mapRef.current?.getMap() ?? null, []);
-
-  // The UK-wide lighting profiles load lazily; until they arrive the summit
-  // markers and bagged summit lights carry the tracker. A failed load keeps
-  // that fallback — lighting is a visual enhancement, never a requirement.
-  const [hillAreas, setHillAreas] = useState<HillAreaData | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    loadHillAreas()
-      .then((data) => {
-        if (!cancelled) {
-          setHillAreas(data);
-        }
-      })
-      .catch(() => {
-        // Markers remain visible; nothing else to do.
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const progress = useMemo(() => Object.values(progressByPeakId), [progressByPeakId]);
-  const peakGeoJson = useMemo(() => peaksToGeoJSON(peaks, progress), [peaks, progress]);
-  const selectedPeak = peaks.find((peak) => peak.id === selectedPeakId) ?? peaks[0];
-  // Highlight the same peak everywhere: the map's hill lighting must match
-  // the panel, which falls back to the first peak before any click.
-  const highlightedPeakId = selectedPeak?.id;
-  const activePeakIds = useMemo(() => new Set(peaks.map((peak) => peak.id)), [peaks]);
-  // Only bagged state is baked into the hill-area features; the transient
-  // selection highlight lives in the hill-area layer filter/paint instead
-  // (see layers.ts), so selecting a peak never re-uploads this ~4 MB
-  // collection through setData. The UK-wide profiles are filtered to the
-  // active list so hills outside it never light up (list switches re-upload
-  // once, like the peak source itself).
-  const hillAreaGeoJson = useMemo(() => {
-    if (!hillAreas) {
-      return null;
-    }
-
+  const peakGeoJson = useMemo(() => {
+    const collection = peaksToGeoJSON(peaks, progress);
     return {
-      ...hillAreas,
-      features: hillAreas.features
-        .filter((feature) => activePeakIds.has(feature.properties?.id as string))
-        .map((feature) => {
-          const peakId = feature.properties?.id as string | undefined;
-
-          return {
-            ...feature,
-            properties: {
-              ...feature.properties,
-              bagged: peakId ? progressByPeakId[peakId]?.bagged === true : false,
-            },
-          };
-        }),
+      ...collection,
+      features: collection.features.map((feature) => ({
+        ...feature,
+        properties: {
+          ...feature.properties,
+          selected: feature.properties.id === selectedPeakId,
+        },
+      })),
     };
-  }, [hillAreas, activePeakIds, progressByPeakId]);
-  const hillLightingReady = hillAreaGeoJson !== null;
-  // Suppress the transient selection highlight while the export dialog is
-  // open: the bright selected outline (and the brightened fill on a bagged
-  // hill) is transient UI state, not part of the tracker's record, and it
-  // would read as one in a captured image.
-  // highlightedPeakId (not raw selectedPeakId) keeps the map in sync with
-  // the panel's peaks[0] fallback.
-  const hillAreaSelectedId = exportOpen ? undefined : highlightedPeakId;
-  const stats = useMemo(() => calculateProgress(peaks, progress), [peaks, progress]);
-  // Pan limits sit well outside the list bounds so the whole-list fit (with
-  // its padding) is never clamped by MapLibre's maxBounds constraint.
+  }, [peaks, progress, selectedPeakId]);
   const maxBounds = useMemo(() => listMaxBounds(list.bounds), [list]);
-  const selectedProgress = selectedPeak ? progressByPeakId[selectedPeak.id] : undefined;
-  const isSelectedBagged = selectedProgress?.bagged === true;
-
-  // Switching hill lists resets the selection and flies the camera to the
-  // new list's bounds, keeping the shared bearing/pitch of the map style.
-  useEffect(() => {
-    if (shownListIdRef.current === list.id) {
-      return;
-    }
-
-    shownListIdRef.current = list.id;
-    setSelectedPeakId(undefined);
-    mapRef.current?.fitBounds(list.bounds, {
-      ...LIST_FIT_OPTIONS,
-      bearing: list.initialView.bearing,
-      pitch: list.initialView.pitch,
-      duration: 900,
-    });
-  }, [list]);
-
-  // The notes textarea only commits on blur, which never fires when the page
-  // is reloaded, closed or a backgrounded PWA is killed — flush pending text
-  // to the store before the page goes away so notes persist across reloads.
-  // hashchange covers focus-preserving navigations (browser Back/Forward,
-  // mobile back gesture): they unmount MapView without blurring the focused
-  // textarea, and the listener runs while the textarea is still attached
-  // because the router's re-render is batched until after the event.
-  useEffect(() => {
-    const peakId = selectedPeak?.id;
-
-    if (!peakId) {
-      return;
-    }
-
-    // Flush only text the user actually typed in THIS view. The textarea is
-    // uncontrolled, so after another context (a second tab, the installed
-    // PWA window) edits the same peak's notes and the storage listener
-    // rehydrates the store, the mounted textarea still shows the old text —
-    // an unconditional flush would write that stale value back and silently
-    // revert the other window's edit just because this tab was hidden.
-    const mountedValue = notesRef.current?.value ?? '';
-
-    function flushNotes() {
-      const textarea = notesRef.current;
-
-      if (textarea && peakId && textarea.value !== mountedValue) {
-        setNotes(peakId, textarea.value || undefined);
-      }
-    }
-
-    function handleVisibilityChange() {
-      if (document.visibilityState === 'hidden') {
-        flushNotes();
-      }
-    }
-
-    window.addEventListener('pagehide', flushNotes);
-    window.addEventListener('hashchange', flushNotes);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('pagehide', flushNotes);
-      window.removeEventListener('hashchange', flushNotes);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [selectedPeak?.id, setNotes]);
-
   const mapStyle = useMemo<StyleSpecification>(
     () =>
       ({
@@ -246,341 +103,161 @@ export function MapView() {
     [],
   );
 
-  function handlePeakClick(event: MapLayerMouseEvent) {
-    const feature = event.features?.[0];
-    const peakId = feature?.properties.id as string | undefined;
-
-    if (peakId) {
-      selectPeak(peakId, { focusMap: false });
-    }
-  }
-
-  function selectPeak(peakId: string, options: { focusMap: boolean }) {
-    setSelectedPeakId(peakId);
-
-    if (!options.focusMap) {
-      return;
-    }
-
-    const peak = peaks.find((candidate) => candidate.id === peakId);
-
-    if (!peak) {
-      return;
-    }
-
-    const currentZoom = mapRef.current?.getZoom() ?? 10.5;
-    const reduceMotion =
-      typeof window.matchMedia === 'function' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    mapRef.current?.flyTo({
-      center: [peak.lon, peak.lat],
-      zoom: Math.max(currentZoom, 11),
-      duration: reduceMotion ? 0 : 520,
+  useEffect(() => {
+    if (!mapReady) return;
+    const map = mapRef.current;
+    if (!map) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    map.fitBounds(list.bounds, {
+      ...LIST_FIT_OPTIONS,
+      bearing: list.initialView.bearing,
+      pitch: list.initialView.pitch,
+      duration: reduceMotion ? 0 : 600,
     });
+  }, [list, mapReady]);
+
+  useEffect(() => {
+    if (!selectedPeakId || !mapReady) return;
+    const map = mapRef.current;
+    if (!map) return;
+    const peak = peaks.find((candidate) => candidate.id === selectedPeakId);
+    if (!peak) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    map.flyTo({
+      center: [peak.lon, peak.lat],
+      zoom: Math.max(map.getZoom(), 11),
+      duration: reduceMotion ? 0 : 420,
+    });
+  }, [mapReady, peaks, selectedPeakId]);
+
+  function handlePeakClick(event: MapLayerMouseEvent) {
+    const peakId = event.features?.[0]?.properties.id as string | undefined;
+    if (peakId) onSelectPeak(peakId);
   }
 
-  function toggleSelectedPeak() {
-    if (!selectedPeak) {
-      return;
-    }
-
-    if (isSelectedBagged) {
-      unbag(selectedPeak.id);
-      return;
-    }
-
-    bag(selectedPeak.id, new Intl.DateTimeFormat('en-CA').format(new Date()));
+  if (mapSupportError) {
+    return (
+      <div className="flex h-full items-center justify-center px-6" role="status">
+        <div className="border-ink bg-bone text-ink max-w-md border p-5">
+          <p className="font-semibold">Map unavailable</p>
+          <p className="text-stone mt-3 text-sm leading-6">{mapSupportError}</p>
+          <a
+            className="focus-ring mt-4 inline-flex min-h-11 items-center underline underline-offset-4"
+            href="#/logbook"
+          >
+            Open the accessible logbook
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <section className="bg-surface text-primary flex h-[calc(100svh-3.5rem)] min-h-[38rem]">
-      <div className="relative min-h-0 flex-1">
-        {mapSupportError ? (
-          <div className="flex h-full items-center justify-center px-6" role="status">
-            <div className="border-line bg-panel max-w-md border p-5">
-              <p className="font-label text-label text-muted">Map unavailable</p>
-              <p className="text-secondary mt-3 text-sm leading-6">{mapSupportError}</p>
-              <p className="text-secondary mt-3 text-sm leading-6">
-                Peak tracking still works: search, bag and edit peaks from the panel,
-                and your progress stays saved on this device.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <Map
-            ref={mapRef}
-            attributionControl={false}
-            canvasContextAttributes={{ preserveDrawingBuffer: true }}
-            initialViewState={{
-              ...list.initialView,
-              bounds: list.bounds,
-              fitBoundsOptions: LIST_FIT_OPTIONS,
-            }}
-            interactiveLayerIds={
-              hillLightingReady
-                ? ['hill-area-fill', 'hill-area-line', 'peak-hitbox']
-                : ['peak-hitbox']
-            }
-            mapStyle={mapStyle}
-            maxBounds={maxBounds}
-            maxPitch={68}
-            maxZoom={MAP_MAX_ZOOM}
-            minZoom={MAP_MIN_ZOOM}
-            onClick={handlePeakClick}
-            style={{ width: '100%', height: '100%' }}
-            terrain={terrainEnabled ? TERRAIN_OPTIONS : TERRAIN_DISABLED}
-          >
-            <AttributionControl compact customAttribution={mapAttributionHtml()} />
-            <NavigationControl position="top-right" showCompass />
-            {/* The DEM source stays mounted while terrain is off (an unused
-              raster-dem source loads no tiles): removing it under active
-              terrain would leave MapLibre holding a dead tile manager, and
-              the toggle must find it already present when re-enabled. */}
-            <Source
-              id="terrain-dem"
-              type="raster-dem"
-              tiles={[terrainDemSource.sharedDemProtocolUrl]}
-              encoding="terrarium"
-              maxzoom={13}
-              tileSize={256}
-            />
-            {/* Conditional overlay layers are pinned with beforeId to the
-              invisible anchor layers committed in munro-dark.json, so
-              toggling Terrain or switching lists remounts them in the same
-              stacking order as a fresh page load — always below the peak
-              markers and labels. */}
-            {terrainEnabled ? (
-              <Source
-                id="terrain-hillshade-dem"
-                type="raster-dem"
-                tiles={[terrainDemSource.sharedDemProtocolUrl]}
-                encoding="terrarium"
-                maxzoom={13}
-                tileSize={256}
-              >
-                <Layer {...terrainHillshadeLayer} beforeId={HILLSHADE_ANCHOR_ID} />
-              </Source>
-            ) : null}
-            {/* The park outline is the Wainwrights' framing device; other
-              lists span regions the committed boundary does not describe. */}
-            {list.id === 'wainwrights' ? (
-              <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
-                <Layer {...boundaryFillLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
-                <Layer {...boundaryLineLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
-              </Source>
-            ) : null}
-            {hillAreaGeoJson ? (
-              <Source id="hill-areas" type="geojson" data={hillAreaGeoJson}>
-                <Layer
-                  {...hillAreaFillLayer(hillAreaSelectedId)}
-                  beforeId={HILL_LIGHTING_ANCHOR_ID}
-                />
-                <Layer
-                  {...hillAreaLineLayer(hillAreaSelectedId)}
-                  beforeId={HILL_LIGHTING_ANCHOR_ID}
-                />
-              </Source>
-            ) : null}
-            {terrainEnabled ? (
-              <Source
-                id="terrain-contours"
-                type="vector"
-                tiles={[contourTileUrl]}
-                maxzoom={16}
-              >
-                <Layer {...terrainContourLayer} beforeId={CONTOURS_ANCHOR_ID} />
-                <Layer {...terrainContourLabelLayer} beforeId={CONTOURS_ANCHOR_ID} />
-              </Source>
-            ) : null}
-            <Source id="list-peaks" type="geojson" data={peakGeoJson}>
-              <Layer {...peakHitboxLayer} />
-              {/* Until the lazy lighting profiles arrive, markers and a
-                soft summit light on bagged peaks carry the tracker; once
-                the lit hill areas mount, both give way to them. */}
-              <Layer {...baggedSummitLightLayer(!hillLightingReady)} />
-              <Layer {...peakMarkerLayer(!hillLightingReady)} />
-              <Layer {...peakLabelLayer} />
-            </Source>
-          </Map>
-        )}
-      </div>
-
-      <aside
-        aria-label="Tracker panel"
-        className="border-line bg-panel flex w-[24rem] flex-col border-l px-5 py-5 max-lg:absolute max-lg:inset-x-3 max-lg:bottom-[calc(0.75rem+env(safe-area-inset-bottom))] max-lg:z-10 max-lg:max-h-[82svh] max-lg:w-auto max-lg:overflow-y-auto max-lg:border"
+    <>
+      <Map
+        ref={mapRef}
+        attributionControl={false}
+        canvasContextAttributes={{ preserveDrawingBuffer: true }}
+        initialViewState={{
+          ...list.initialView,
+          bounds: list.bounds,
+          fitBoundsOptions: LIST_FIT_OPTIONS,
+        }}
+        interactiveLayerIds={['peak-hitbox']}
+        mapStyle={mapStyle}
+        maxBounds={maxBounds}
+        maxPitch={68}
+        maxZoom={MAP_MAX_ZOOM}
+        minZoom={MAP_MIN_ZOOM}
+        onClick={handlePeakClick}
+        onError={() => {
+          if (!mapReady) setMapFailed(true);
+        }}
+        onLoad={() => {
+          setMapReady(true);
+          setMapFailed(false);
+        }}
+        style={{ width: '100%', height: '100%' }}
+        terrain={terrainEnabled ? TERRAIN_OPTIONS : TERRAIN_DISABLED}
       >
-        <button
-          aria-controls="tracker-panel-content"
-          aria-expanded={panelOpen}
-          className={`border-line bg-panel text-secondary hover:text-primary focus-visible:outline-bagged min-h-11 w-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 lg:hidden ${
-            panelOpen ? 'mb-5' : ''
-          }`}
-          type="button"
-          onClick={() => {
-            setPanelOpen((open) => !open);
-          }}
-        >
-          {panelOpen ? 'Hide panel' : 'Show panel'}
-        </button>
-        <div
-          id="tracker-panel-content"
-          className={`flex min-h-0 flex-1 flex-col ${panelOpen ? '' : 'max-lg:hidden'}`}
-        >
-          <div className="mb-5 flex items-start justify-between gap-4">
-            <div>
-              <p className="font-label text-label text-muted">{list.regionLabel}</p>
-              <h1 className="text-primary mt-1 text-2xl font-semibold">{list.name}</h1>
-            </div>
-            <p className="font-label text-label text-muted text-right">
-              {peaks.length > 0 ? `${String(peaks.length)} ${list.peakNoun}` : ''}
-            </p>
-          </div>
-
-          <div className="mb-3 empty:hidden">
-            <HillListSwitcher />
-          </div>
-
-          {loadFailed ? (
-            <div className="border-line bg-surface text-secondary mb-5 border p-4 text-sm">
-              <p>Peak data could not be loaded. Check your connection and try again.</p>
-              <button
-                className="border-line bg-panel text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mt-3 min-h-11 w-full border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                type="button"
-                onClick={retryLoad}
-              >
-                Retry
-              </button>
-            </div>
-          ) : null}
-
-          <label className="border-line text-secondary mb-5 flex min-h-11 items-center justify-between gap-4 border px-3 py-2 text-sm">
-            <span>Terrain</span>
-            <input
-              checked={terrainEnabled}
-              className="accent-bagged focus-visible:outline-bagged h-5 w-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-              type="checkbox"
-              onChange={(event) => {
-                setTerrainEnabled(event.currentTarget.checked);
-              }}
-            />
-          </label>
-
-          <div className="mb-5">
-            <ProgressStats stats={stats} />
-          </div>
-
-          <button
-            className="border-line bg-panel text-secondary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mb-5 min-h-11 w-full border px-4 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            // The export composes from the live map canvas, which never
-            // exists when the map itself cannot render.
-            disabled={mapSupportError !== null}
-            type="button"
-            onClick={() => {
-              setExportOpen(true);
-            }}
+        <AttributionControl compact customAttribution={mapAttributionHtml()} />
+        <NavigationControl position="top-right" showCompass />
+        <Source
+          id="terrain-dem"
+          type="raster-dem"
+          tiles={[terrainDemSource.sharedDemProtocolUrl]}
+          encoding="terrarium"
+          maxzoom={13}
+          tileSize={256}
+        />
+        {terrainEnabled ? (
+          <Source
+            id="terrain-hillshade-dem"
+            type="raster-dem"
+            tiles={[terrainDemSource.sharedDemProtocolUrl]}
+            encoding="terrarium"
+            maxzoom={13}
+            tileSize={256}
           >
-            Export image
-          </button>
-
-          {selectedPeak ? (
-            <div className="border-line bg-surface mb-5 border p-4">
-              <p className="font-label text-label text-muted">Selected peak</p>
-              <h2 className="text-primary mt-2 text-xl font-semibold">
-                {selectedPeak.name}
-              </h2>
-              <dl className="text-secondary mt-4 grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <dt className="font-label text-label text-muted">Height</dt>
-                  <dd>
-                    {Math.round(selectedPeak.heightM)}m
-                    {selectedPeak.heightFt
-                      ? ` / ${String(selectedPeak.heightFt)}ft`
-                      : ''}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="font-label text-label text-muted">Grid</dt>
-                  <dd>{selectedPeak.gridRef}</dd>
-                </div>
-                <div className="col-span-2">
-                  <dt className="font-label text-label text-muted">Area</dt>
-                  <dd>{selectedPeak.region}</dd>
-                </div>
-              </dl>
-              {isSelectedBagged ? (
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <label
-                      className="font-label text-label text-muted block"
-                      htmlFor="peak-bagged-date"
-                    >
-                      Date bagged
-                    </label>
-                    <input
-                      id="peak-bagged-date"
-                      className="border-line bg-panel text-secondary focus-visible:outline-bagged mt-2 min-h-11 w-full border px-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                      type="date"
-                      value={selectedProgress.baggedDate ?? ''}
-                      onChange={(event) => {
-                        setBaggedDate(
-                          selectedPeak.id,
-                          event.currentTarget.value || undefined,
-                        );
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label
-                      className="font-label text-label text-muted block"
-                      htmlFor="peak-notes"
-                    >
-                      Notes
-                    </label>
-                    <textarea
-                      key={selectedPeak.id}
-                      ref={notesRef}
-                      id="peak-notes"
-                      className="border-line bg-panel text-secondary placeholder:text-muted focus-visible:outline-bagged mt-2 min-h-11 w-full border px-3 py-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                      defaultValue={selectedProgress.notes ?? ''}
-                      placeholder="Optional"
-                      rows={2}
-                      onBlur={(event) => {
-                        setNotes(
-                          selectedPeak.id,
-                          event.currentTarget.value || undefined,
-                        );
-                      }}
-                    />
-                  </div>
-                </div>
-              ) : null}
-              <button
-                className="border-line bg-panel text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mt-5 min-h-11 w-full border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                type="button"
-                onClick={toggleSelectedPeak}
-              >
-                {isSelectedBagged ? 'Mark unbagged' : 'Mark bagged'}
-              </button>
-            </div>
-          ) : null}
-
-          <PeakListPanel
-            peaks={peaks}
-            progress={progress}
-            selectedPeakId={selectedPeak?.id}
-            // Only the single-region Wainwrights list shares one redundant
-            // prefix; merged lists keep full region names so headings stay
-            // unambiguous and match their alphabetical order.
-            {...(list.id === 'wainwrights'
-              ? { regionPrefixToHide: 'Lake District - ' }
-              : {})}
-            onSelectPeak={(peakId) => {
-              selectPeak(peakId, { focusMap: true });
-            }}
-          />
+            <Layer {...terrainHillshadeLayer} beforeId={HILLSHADE_ANCHOR_ID} />
+          </Source>
+        ) : null}
+        {list.id === 'wainwrights' ? (
+          <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
+            <Layer {...boundaryFillLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
+            <Layer {...boundaryLineLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
+          </Source>
+        ) : null}
+        {terrainEnabled ? (
+          <Source
+            id="terrain-contours"
+            type="vector"
+            tiles={[contourTileUrl]}
+            maxzoom={16}
+          >
+            <Layer {...terrainContourLayer} beforeId={CONTOURS_ANCHOR_ID} />
+            <Layer {...terrainContourLabelLayer} beforeId={CONTOURS_ANCHOR_ID} />
+          </Source>
+        ) : null}
+        <Source id="list-peaks" type="geojson" data={peakGeoJson}>
+          <Layer {...peakHitboxLayer} />
+          <Layer {...surveyPeakMarkerLayer} />
+          <Layer {...selectedPeakMarkerLayer} />
+          <Layer {...selectedPeakLabelLayer} />
+        </Source>
+      </Map>
+      {!mapReady && !mapFailed ? (
+        <div
+          className="bg-ink/88 text-bone pointer-events-none absolute top-3 right-16 z-10 px-3 py-2 md:top-5"
+          role="status"
+        >
+          <p className="font-label text-[0.6rem]">LOADING TERRAIN</p>
         </div>
-      </aside>
-
+      ) : null}
+      {mapFailed ? (
+        <div
+          className="bg-bone text-ink border-ink absolute top-1/2 left-1/2 z-10 w-[min(22rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 border p-5"
+          role="alert"
+        >
+          <p className="font-semibold">The map could not load.</p>
+          <p className="text-stone mt-2 text-sm">Your logbook remains available.</p>
+          <a
+            className="focus-ring mt-4 inline-flex min-h-11 items-center underline"
+            href="#/logbook"
+          >
+            Open the logbook
+          </a>
+        </div>
+      ) : null}
+      <button
+        className="focus-ring bg-bone text-ink border-ink absolute right-3 bottom-12 z-10 min-h-11 border px-4 text-sm font-semibold md:right-5 md:bottom-16"
+        type="button"
+        onClick={() => {
+          setExportOpen(true);
+        }}
+      >
+        Export image
+      </button>
       <ExportDialog
         open={exportOpen}
         getMap={getMap}
@@ -590,6 +267,6 @@ export function MapView() {
           setExportOpen(false);
         }}
       />
-    </section>
+    </>
   );
 }

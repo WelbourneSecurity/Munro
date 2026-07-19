@@ -1,191 +1,180 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { ProgressStats, SummitDetectionNotice, useActiveHillList } from '../components';
-import { calculateProgress } from '../domain';
-import { useSummitDetection, type SummitDetectionStatus } from '../hooks';
-import { MapView } from '../map';
+import {
+  SummitDetectionNotice,
+  TrackerNavigation,
+  UndoToast,
+  useActiveHillList,
+  type TrackerRoute,
+} from '../components';
+import {
+  calculateProgress,
+  toLocalISODate,
+  type Peak,
+  type PeakProgress,
+} from '../domain';
+import { useSummitDetection } from '../hooks';
 import { useProgressStore, useStorageHealthStore } from '../store';
-import { DataPage } from './DataPage';
+import { ExplorePage } from './ExplorePage';
+import { LogbookPage } from './LogbookPage';
 import { SettingsPage } from './SettingsPage';
 
-type RouteId = 'home' | 'tracker' | 'data' | 'settings';
+interface UndoState {
+  message: string;
+  peakId: string;
+  previous: PeakProgress | undefined;
+}
 
-const routes: { href: string; id: RouteId; label: string }[] = [
-  { href: '#/', id: 'home', label: 'Home' },
-  { href: '#/tracker', id: 'tracker', label: 'Tracker' },
-  { href: '#/data', id: 'data', label: 'Data' },
-  { href: '#/settings', id: 'settings', label: 'Settings' },
-];
-
-function resolveRoute(hash: string): RouteId {
-  switch (hash) {
-    case '#/':
-      return 'home';
-    case '#/data':
-      return 'data';
-    case '#/settings':
-      return 'settings';
-    case '':
-    case '#/tracker':
-    default:
-      return 'tracker';
-  }
+function resolveRoute(hash: string): TrackerRoute {
+  if (hash === '#/logbook') return 'logbook';
+  if (hash === '#/settings' || hash === '#/data') return 'settings';
+  return 'explore';
 }
 
 function useHashRoute() {
-  const [route, setRoute] = useState<RouteId>(() => resolveRoute(window.location.hash));
-
+  const [route, setRoute] = useState<TrackerRoute>(() => resolveRoute(location.hash));
   useEffect(() => {
-    function handleHashChange() {
-      setRoute(resolveRoute(window.location.hash));
-    }
-
-    window.addEventListener('hashchange', handleHashChange);
+    const onHashChange = () => {
+      setRoute(resolveRoute(location.hash));
+    };
+    addEventListener('hashchange', onHashChange);
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+      removeEventListener('hashchange', onHashChange);
     };
   }, []);
-
-  // A route change swaps the rendered page in place, so without a reset the
-  // new page inherits the old page's scroll offset. Skip the initial render
-  // (leaving reload scroll restoration alone); same-route hash changes never
-  // re-run this effect, so same-hash clicks stay inert.
-  const previousRouteRef = useRef(route);
-
-  useEffect(() => {
-    if (previousRouteRef.current === route) {
-      return;
-    }
-
-    previousRouteRef.current = route;
-    window.scrollTo(0, 0);
-  }, [route]);
-
   return route;
 }
 
 export function App() {
   const route = useHashRoute();
-  // Summit detection follows the active hill list, so switching lists also
-  // switches which summits can be detected.
-  const { peaks } = useActiveHillList();
+  const { list, peaks, loadFailed, retryLoad } = useActiveHillList();
   const summitDetection = useSummitDetection(peaks);
   const progressWriteFailed = useStorageHealthStore(
     (state) => state.progressWriteFailed,
   );
+  const progressByPeakId = useProgressStore((state) => state.progressByPeakId);
+  const bag = useProgressStore((state) => state.bag);
+  const unbag = useProgressStore((state) => state.unbag);
+  const restorePeakProgress = useProgressStore((state) => state.restorePeakProgress);
+  const [selectedPeakId, setSelectedPeakId] = useState<string>();
+  const [undoState, setUndoState] = useState<UndoState>();
+  const undoTimer = useRef<number | undefined>(undefined);
+  const progress = useMemo(() => Object.values(progressByPeakId), [progressByPeakId]);
+  const stats = useMemo(() => calculateProgress(peaks, progress), [peaks, progress]);
+  const selectedPeak = peaks.find((peak) => peak.id === selectedPeakId);
+  const selectedProgress = selectedPeak ? progressByPeakId[selectedPeak.id] : undefined;
+
+  useEffect(
+    () => () => {
+      if (undoTimer.current) clearTimeout(undoTimer.current);
+    },
+    [],
+  );
+
+  function queueUndo(next: UndoState) {
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    setUndoState(next);
+    undoTimer.current = window.setTimeout(() => {
+      setUndoState(undefined);
+    }, 6000);
+  }
+  function handleBag(peak: Peak) {
+    const previous = progressByPeakId[peak.id];
+    bag(peak.id, toLocalISODate(new Date()));
+    queueUndo({
+      message: `${peak.name} added to your logbook.`,
+      peakId: peak.id,
+      previous,
+    });
+  }
+  function handleUnbag(peak: Peak) {
+    const previous = progressByPeakId[peak.id];
+    unbag(peak.id);
+    queueUndo({
+      message: `${peak.name} removed from your logbook.`,
+      peakId: peak.id,
+      previous,
+    });
+  }
+  function handleUndo() {
+    if (!undoState) return;
+    restorePeakProgress(undoState.peakId, undoState.previous);
+    setUndoState(undefined);
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+  }
 
   return (
-    <div className="bg-surface text-primary min-h-svh">
-      <header className="border-line bg-panel flex min-h-14 items-center justify-between gap-4 border-b px-4 pt-[env(safe-area-inset-top)] pr-[max(1rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))]">
-        <a
-          className="font-label text-primary focus-visible:outline-bagged -ml-1 inline-flex min-h-11 min-w-11 items-center px-1 text-sm font-semibold tracking-normal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
-          href="#/tracker"
-        >
-          Munro
-        </a>
-        <nav className="flex items-center gap-1 overflow-x-auto" aria-label="Primary">
-          {routes.map((item) => (
-            <a
-              key={item.id}
-              aria-current={route === item.id ? 'page' : undefined}
-              className={`font-label text-label inline-flex min-h-11 items-center px-3 py-3 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 ${
-                route === item.id
-                  ? 'text-bagged'
-                  : 'text-muted hover:text-primary focus-visible:outline-bagged'
-              }`}
-              href={item.href}
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-      </header>
+    <div className="bg-bone text-ink min-h-dvh">
+      <a
+        className="focus-ring bg-ink text-bone fixed top-2 left-2 z-50 -translate-y-20 px-4 py-3 text-sm focus:translate-y-0"
+        href="#main-content"
+      >
+        Skip to content
+      </a>
+      <TrackerNavigation current={route} stats={stats} />
       {progressWriteFailed ? (
         <p
-          className="border-line bg-panel text-secondary border-b px-4 py-3 text-sm leading-6"
+          className="border-hairline bg-paper text-graphite border-b px-4 py-3 text-sm"
           role="alert"
         >
-          Your progress could not be saved to this browser. It is at risk of being lost
-          — export a backup from Settings.
+          Your progress could not be saved to this browser. Export a backup from
+          Settings.
         </p>
       ) : null}
-      <main>{renderRoute(route, summitDetection.status)}</main>
+      <main id="main-content">
+        {route === 'explore' ? (
+          <ExplorePage
+            list={list}
+            peaks={peaks}
+            progress={progress}
+            stats={stats}
+            loadFailed={loadFailed}
+            retryLoad={retryLoad}
+            selectedPeak={selectedPeak}
+            selectedProgress={selectedProgress}
+            onSelectPeak={setSelectedPeakId}
+            onClosePeak={() => {
+              setSelectedPeakId(undefined);
+            }}
+            onBag={handleBag}
+            onUnbag={handleUnbag}
+          />
+        ) : null}
+        {route === 'logbook' ? (
+          <LogbookPage
+            list={list}
+            peaks={peaks}
+            progress={progress}
+            stats={stats}
+            loadFailed={loadFailed}
+            retryLoad={retryLoad}
+            selectedPeak={selectedPeak}
+            selectedProgress={selectedProgress}
+            onSelectPeak={setSelectedPeakId}
+            onClosePeak={() => {
+              setSelectedPeakId(undefined);
+            }}
+            onBag={handleBag}
+            onUnbag={handleUnbag}
+          />
+        ) : null}
+        {route === 'settings' ? (
+          <SettingsPage summitDetectionStatus={summitDetection.status} />
+        ) : null}
+      </main>
       <SummitDetectionNotice
         peaks={summitDetection.detectedPeaks}
         onDismiss={summitDetection.dismissDetections}
       />
+      {undoState ? (
+        <UndoToast
+          message={undoState.message}
+          onUndo={handleUndo}
+          onDismiss={() => {
+            setUndoState(undefined);
+          }}
+        />
+      ) : null}
     </div>
-  );
-}
-
-function renderRoute(
-  route: RouteId,
-  summitDetectionStatus: SummitDetectionStatus,
-): ReactNode {
-  if (route === 'tracker') {
-    return <MapView />;
-  }
-
-  if (route === 'data') {
-    return <DataPage />;
-  }
-
-  if (route === 'settings') {
-    return <SettingsPage summitDetectionStatus={summitDetectionStatus} />;
-  }
-
-  return <HomePage />;
-}
-
-function HomePage() {
-  const { peaks, loadFailed, retryLoad } = useActiveHillList();
-  const progressByPeakId = useProgressStore((state) => state.progressByPeakId);
-  const progress = Object.values(progressByPeakId);
-  const stats = calculateProgress(peaks, progress);
-
-  return (
-    <section className="mx-auto max-w-3xl px-4 py-14">
-      <p className="font-label text-label text-muted">Munro</p>
-      <h1 className="text-primary mt-2 text-3xl font-semibold">
-        A clean, map-first hiking tracker for UK peak bagging.
-      </h1>
-      <p className="text-secondary mt-5 max-w-2xl text-base leading-7">
-        View the UK&apos;s classic hill lists — the Wainwrights, Munros, Corbetts and
-        more — on a dark topographic map, mark peaks as bagged, and keep your progress
-        local to this browser. Track them all together or focus on a single list.
-      </p>
-
-      <div className="border-line bg-panel mt-8 border p-5">
-        {loadFailed ? (
-          <div className="text-secondary text-sm leading-6">
-            <p>Peak data could not be loaded. Check your connection and try again.</p>
-            <button
-              className="border-line bg-surface text-primary hover:border-bagged hover:text-bagged focus-visible:outline-bagged mt-3 min-h-11 border px-4 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-              type="button"
-              onClick={retryLoad}
-            >
-              Retry
-            </button>
-          </div>
-        ) : peaks.length === 0 ? (
-          // Peak data is still loading; without it the stats cannot say
-          // anything truthful about existing progress.
-          <p className="text-secondary text-sm leading-6">Loading peak data…</p>
-        ) : stats.bagged > 0 ? (
-          <ProgressStats stats={stats} />
-        ) : (
-          <p className="text-secondary text-sm leading-6">
-            Start bagging to build your local progress record.
-          </p>
-        )}
-      </div>
-
-      <a
-        className="border-line bg-bagged text-surface focus-visible:outline-bagged mt-8 inline-flex min-h-11 items-center border px-5 text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-        href="#/tracker"
-      >
-        Open tracker
-      </a>
-    </section>
   );
 }

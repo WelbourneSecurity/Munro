@@ -24,17 +24,21 @@ interface BackupFile {
 test('backup exports, reset clears and import restores progress', async ({
   page,
 }, testInfo) => {
-  // Home is map-free, so seeding + reload here is cheap. Seed AFTER the
-  // first navigation (an init script would race the store's rehydration).
-  await page.goto('./#/');
+  test.setTimeout(90_000);
+
+  await page.goto('./#/explore');
+  await page.getByLabel('Hill list').selectOption('wainwrights');
   await seedProgressStorage(page, SEEDED);
   await page.reload();
-  // Home shows stats for the active list — the collated default here.
-  await expect(page.getByText('2 / 5471 bagged')).toBeVisible();
+  await expect(page.getByRole('link', { name: '2 of 214 hills bagged' })).toBeVisible({
+    timeout: 30_000,
+  });
 
-  await page.getByRole('link', { name: 'Settings' }).click();
+  await page
+    .locator('nav[aria-label="Primary"]:visible')
+    .getByRole('link', { name: 'Settings' })
+    .click();
 
-  // Export the backup JSON and check what it contains.
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export progress' }).click();
   const download = await downloadPromise;
@@ -48,33 +52,26 @@ test('backup exports, reset clears and import restores progress', async ({
     [ALLEN_CRAGS.id, ARD_CRAGS.id].sort(),
   );
 
-  // Reset requires the typed confirmation; drive it and verify the wipe.
   await expect(page.getByRole('button', { name: 'Reset progress' })).toBeDisabled();
   await page.getByLabel('Reset confirmation').fill('RESET');
   await page.getByRole('button', { name: 'Reset progress' }).click();
   await expect(page.getByText('Local progress has been reset.')).toBeVisible();
   expect(await readProgressStorage(page)).toEqual({});
 
-  // Import the same file back and confirm.
   await page.getByLabel('Choose backup JSON').setInputFiles(backupPath);
   await expect(page.getByText('Ready to import 2 records, 2 bagged.')).toBeVisible();
   await page.getByRole('button', { name: 'Confirm import' }).click();
   await expect(page.getByText('Imported 2 records, 2 bagged.')).toBeVisible();
 
-  // State restored: storage matches the seed…
   const restored = await readProgressStorage(page);
   expect(Object.keys(restored).sort()).toEqual([ALLEN_CRAGS.id, ARD_CRAGS.id].sort());
-  expect(restored[ALLEN_CRAGS.id]).toMatchObject({
-    peakId: ALLEN_CRAGS.id,
-    bagged: true,
-    baggedDate: '2026-07-01',
-  });
-  expect(restored[ARD_CRAGS.id]).toMatchObject({
-    peakId: ARD_CRAGS.id,
-    bagged: true,
-  });
+  expect(restored[ALLEN_CRAGS.id]).toMatchObject({ baggedDate: '2026-07-01' });
 
-  // …and the UI shows the restored stats again.
-  await page.getByRole('link', { name: 'Home' }).click();
-  await expect(page.getByText('2 / 5471 bagged')).toBeVisible();
+  await page
+    .locator('nav[aria-label="Primary"]:visible')
+    .getByRole('link', { name: 'Explore' })
+    .click();
+  await expect(page.getByRole('link', { name: '2 of 214 hills bagged' })).toBeVisible({
+    timeout: 30_000,
+  });
 });

@@ -22,7 +22,7 @@ hide:
         <p class="munro-hero__kicker">Local-first peak logbook</p>
         <h1 id="munro-hero-title">Project Munro</h1>
         <p class="munro-hero__summary">
-          A dark, map-first tracker for marking the hills you have climbed,
+          A bone-and-ink outdoor logbook for marking the hills you have climbed,
           keeping your record on your device, and exporting it when you need it.
         </p>
         <svg class="munro-fault" viewBox="0 0 640 38" aria-hidden="true">

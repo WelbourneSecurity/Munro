@@ -1,8 +1,14 @@
 export type ComponentsModule = never;
 export { ExportDialog } from './ExportDialog';
 export { HillListSwitcher } from './HillListSwitcher';
+export { HillSearch } from './HillSearch';
+export { PeakAtlas } from './PeakAtlas';
+export { PeakInspector } from './PeakInspector';
 export { PeakListPanel } from './PeakListPanel';
 export { ProgressStats } from './ProgressStats';
+export { TrackerNavigation } from './TrackerNavigation';
+export type { TrackerRoute } from './TrackerNavigation';
+export { UndoToast } from './UndoToast';
 export {
   SUMMIT_NOTICE_DURATION_MS,
   SummitDetectionNotice,

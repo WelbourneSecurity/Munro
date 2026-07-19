@@ -1,91 +1,217 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-surface: #111713;
-  --color-panel: #17201b;
-  /* Lightened from #34433a (1.60:1) so 1px control borders meet the WCAG AA
-     3:1 non-text contrast minimum against the panel (3.36:1) and surface
-     (3.66:1) backgrounds. Same hue and saturation, lightness only. */
-  --color-line: #5b7666;
-  --color-contour: #65786b;
-  --color-primary: #f1f4ee;
-  --color-secondary: #c8d0c6;
-  --color-muted: #96a095;
-  --color-unbagged: #aab3aa;
-  --color-bagged: #a7d8b6;
-
-  --font-sans: 'Aptos', 'Aptos Display', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --color-bone: #f2efe7;
+  --color-paper: #e6e0d4;
+  --color-ink: #11110f;
+  --color-soot: #1c1c19;
+  --color-graphite: #34342f;
+  --color-stone: #77746b;
+  --color-hairline: #c8c1b3;
+  --color-map: #11110f;
+  --color-surface: #f2efe7;
+  --color-panel: #e6e0d4;
+  --color-line: #c8c1b3;
+  --color-contour: #77746b;
+  --color-primary: #11110f;
+  --color-secondary: #34342f;
+  --color-muted: #77746b;
+  --color-unbagged: #77746b;
+  --color-bagged: #11110f;
+  --font-sans:
+    'Instrument Sans Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   --font-label: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
-
-  --text-label: 0.75rem;
+  --text-label: 0.7rem;
   --text-label--line-height: 1rem;
-  --text-label--font-weight: 650;
+  --text-label--font-weight: 500;
 }
 
 :root {
-  background: var(--color-surface);
-  color: var(--color-primary);
+  background: var(--color-bone);
+  color: var(--color-ink);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
 * {
   box-sizing: border-box;
 }
-
+html {
+  scroll-behavior: smooth;
+}
 body {
   margin: 0;
   min-width: 320px;
-  min-height: 100svh;
+  min-height: 100dvh;
+  background-color: var(--color-bone);
+  background-image:
+    radial-gradient(rgb(17 17 15 / 0.025) 0.55px, transparent 0.55px),
+    radial-gradient(rgb(17 17 15 / 0.018) 0.45px, transparent 0.45px);
+  background-position:
+    0 0,
+    8px 9px;
+  background-size:
+    13px 13px,
+    17px 17px;
 }
-
 #root {
-  min-height: 100svh;
+  min-height: 100dvh;
 }
-
 button,
 input,
 textarea,
 select {
+  border-radius: 0;
   font: inherit;
+}
+button,
+select {
+  cursor: pointer;
+}
+.font-label,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+.focus-ring-light:focus-visible {
+  outline: 2px solid var(--color-bone);
+  outline-offset: 3px;
+}
+
+.explore-shell {
+  height: calc(100dvh - 3.5rem - 4rem);
+  min-height: 30rem;
+}
+.peak-inspector {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 15;
+  width: calc(100% - 1.5rem);
+  max-height: min(50dvh, 28rem);
+  overflow-y: auto;
+  box-shadow: 0 1.5rem 4rem rgb(17 17 15 / 0.22);
+  transform: translateY(var(--sheet-offset, 0));
+  transition: transform 180ms ease-out;
+}
+.logbook-inspector {
+  position: fixed;
+  right: 0.75rem;
+  bottom: 4.75rem;
+  left: 0.75rem;
+  z-index: 30;
+}
+.logbook-inspector .peak-inspector {
+  position: static;
+  width: 100%;
+  max-height: 48dvh;
+}
+.atlas-tile-selected {
+  outline: 2px solid var(--color-stone);
+  outline-offset: -5px;
+}
+
+.list-switcher-compact label {
+  border-color: var(--color-ink);
+  min-height: 3rem;
+  background: var(--color-bone);
+  padding: 0 0.6rem;
+}
+.list-switcher-compact label > span {
+  display: none;
+}
+.list-switcher-compact select {
+  border: 0;
+  background: var(--color-bone);
+  color: var(--color-ink);
+  min-height: 2.8rem;
+  max-width: 10rem;
+  font-family: var(--font-label);
+  font-size: 0.65rem;
+}
+.list-switcher-editorial label {
+  border: 0;
+  border-bottom: 1px solid var(--color-hairline);
+  padding-inline: 0;
+}
+.list-switcher-editorial select {
+  border: 0;
+  border-bottom: 1px solid var(--color-ink);
+  background: var(--color-bone);
+  color: var(--color-ink);
 }
 
 .maplibregl-ctrl,
 .maplibregl-ctrl button {
-  border-radius: 0;
+  border-radius: 0 !important;
 }
-
+.maplibregl-ctrl-group {
+  border: 1px solid var(--color-ink) !important;
+  background: var(--color-bone) !important;
+  box-shadow: 0 0.75rem 2rem rgb(17 17 15 / 0.18) !important;
+}
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--color-hairline) !important;
+}
+.maplibregl-ctrl-group button span {
+  filter: grayscale(1) contrast(1.25);
+}
 .maplibregl-ctrl-attrib {
-  background: rgb(17 23 19 / 88%) !important;
-  color: var(--color-secondary) !important;
+  max-width: min(42rem, calc(100vw - 1rem));
+  background: rgb(17 17 15 / 90%) !important;
+  color: var(--color-paper) !important;
   font-family: var(--font-label);
-  font-size: 0.75rem;
+  font-size: 0.56rem;
+  line-height: 1.25;
 }
-
 .maplibregl-ctrl-attrib a {
-  color: var(--color-bagged) !important;
+  color: var(--color-bone) !important;
+  text-decoration-color: var(--color-stone);
 }
 
-/* Map control buttons meet the 44px touch-target minimum on coarse pointers. */
 @media (pointer: coarse) {
   .maplibregl-ctrl button {
     width: 44px;
     height: 44px;
   }
 }
-
-/* Honour prefers-reduced-motion: stop the marker/hover transitions, the
-   progress bar width animation and any scroll animation. Map camera motion
-   is handled in MapView, which passes a zero duration to flyTo. */
+@media (min-width: 48rem) {
+  .explore-shell {
+    height: calc(100dvh - 3.5rem);
+    min-height: 38rem;
+  }
+  .peak-inspector {
+    right: 1.25rem;
+    bottom: 4rem;
+    width: 22rem;
+    max-height: calc(100% - 8rem);
+    transform: none;
+  }
+  .logbook-inspector {
+    top: 4.75rem;
+    right: 1.25rem;
+    bottom: auto;
+    left: auto;
+    width: 21.5rem;
+  }
+  .logbook-inspector .peak-inspector {
+    max-height: calc(100dvh - 6rem);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *,
   *::before,
   *::after {
+    scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
   }
 }

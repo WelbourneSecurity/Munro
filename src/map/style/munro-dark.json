@@ -15,7 +15,7 @@
     {
       "id": "background",
       "type": "background",
-      "paint": { "background-color": "#171f1a" }
+      "paint": { "background-color": "#11110f" }
     },
     {
       "id": "water",
@@ -27,7 +27,7 @@
         ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
         ["!=", ["get", "brunnel"], "tunnel"]
       ],
-      "paint": { "fill-antialias": false, "fill-color": "#182d35" }
+      "paint": { "fill-antialias": false, "fill-color": "#182024" }
     },
     {
       "id": "landcover_ice_shelf",
@@ -40,7 +40,7 @@
         ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
         ["==", ["get", "subclass"], "ice_shelf"]
       ],
-      "paint": { "fill-color": "#171f1a", "fill-opacity": 0.7 }
+      "paint": { "fill-color": "#11110f", "fill-opacity": 0.7 }
     },
     {
       "id": "landcover_glacier",
@@ -54,7 +54,7 @@
         ["==", ["get", "subclass"], "glacier"]
       ],
       "paint": {
-        "fill-color": "#18201d",
+        "fill-color": "#151613",
         "fill-opacity": ["interpolate", ["linear"], ["zoom"], 0, 1, 8, 0.5]
       }
     },
@@ -69,7 +69,7 @@
         ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
         ["==", ["get", "class"], "residential"]
       ],
-      "paint": { "fill-color": "#1d2520", "fill-opacity": 0.52 }
+      "paint": { "fill-color": "#1c1c19", "fill-opacity": 0.52 }
     },
     {
       "id": "landcover_wood",
@@ -83,7 +83,7 @@
         ["==", ["get", "class"], "wood"]
       ],
       "paint": {
-        "fill-color": "#28392d",
+        "fill-color": "#292a26",
         "fill-opacity": [
           "interpolate",
           ["exponential", 0.3],
@@ -108,7 +108,7 @@
         ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
         ["==", ["get", "class"], "park"]
       ],
-      "paint": { "fill-color": "#263529" }
+      "paint": { "fill-color": "#242520" }
     },
     {
       "id": "waterway",
@@ -122,7 +122,7 @@
         true,
         false
       ],
-      "paint": { "line-color": "#23404a" }
+      "paint": { "line-color": "#26333a" }
     },
     {
       "id": "water_name",
@@ -149,7 +149,7 @@
         "text-rotation-alignment": "map",
         "text-size": 12
       },
-      "paint": { "text-color": "#7e9aa0", "text-halo-color": "#111713" }
+      "paint": { "text-color": "#8a9697", "text-halo-color": "#11110f" }
     },
     {
       "id": "building",
@@ -160,8 +160,8 @@
       "filter": ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
       "paint": {
         "fill-antialias": true,
-        "fill-color": "#20261f",
-        "fill-outline-color": "#3d463d"
+        "fill-color": "#22221f",
+        "fill-outline-color": "#46463f"
       }
     },
     {
@@ -173,7 +173,7 @@
       "filter": ["match", ["get", "class"], ["taxiway"], true, false],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#545b50",
+        "line-color": "#575850",
         "line-opacity": 1,
         "line-width": ["interpolate", ["exponential", 1.55], ["zoom"], 13, 1.8, 20, 20]
       }
@@ -187,7 +187,7 @@
       "filter": ["match", ["get", "class"], ["runway"], true, false],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "rgba(92,103,91,0.82)",
+        "line-color": "rgba(104,104,96,0.82)",
         "line-opacity": 1,
         "line-width": ["interpolate", ["exponential", 1.5], ["zoom"], 11, 5, 17, 55]
       }
@@ -203,7 +203,7 @@
         ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
         ["match", ["get", "class"], ["runway", "taxiway"], true, false]
       ],
-      "paint": { "fill-color": "#2f352f", "fill-opacity": 1 }
+      "paint": { "fill-color": "#30312d", "fill-opacity": 1 }
     },
     {
       "id": "aeroway-runway",
@@ -218,7 +218,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#252c27",
+        "line-color": "#282925",
         "line-opacity": 1,
         "line-width": ["interpolate", ["exponential", 1.5], ["zoom"], 11, 4, 17, 50]
       }
@@ -233,7 +233,7 @@
         ["match", ["geometry-type"], ["MultiPolygon", "Polygon"], true, false],
         ["==", ["get", "class"], "pier"]
       ],
-      "paint": { "fill-antialias": true, "fill-color": "#171f1a" }
+      "paint": { "fill-antialias": true, "fill-color": "#11110f" }
     },
     {
       "id": "road_pier",
@@ -247,7 +247,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#171f1a",
+        "line-color": "#11110f",
         "line-width": ["interpolate", ["exponential", 1.2], ["zoom"], 15, 1, 17, 4]
       }
     },
@@ -263,7 +263,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#758070",
+        "line-color": "#77776f",
         "line-dasharray": [1.5, 1.5],
         "line-opacity": 0.9,
         "line-width": ["interpolate", ["exponential", 1.2], ["zoom"], 13, 1, 20, 10]
@@ -282,7 +282,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#545b50",
+        "line-color": "#575850",
         "line-opacity": 0.9,
         "line-width": ["interpolate", ["exponential", 1.55], ["zoom"], 13, 1.8, 20, 20]
       }
@@ -306,7 +306,7 @@
       ],
       "layout": { "line-cap": "butt", "line-join": "miter" },
       "paint": {
-        "line-color": "rgba(92,103,91,0.82)",
+        "line-color": "rgba(104,104,96,0.82)",
         "line-dasharray": [12, 0],
         "line-width": ["interpolate", ["exponential", 1.3], ["zoom"], 10, 3, 20, 23]
       }
@@ -330,7 +330,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#333a33",
+        "line-color": "#383934",
         "line-width": ["interpolate", ["exponential", 1.3], ["zoom"], 10, 2, 20, 20]
       }
     },
@@ -354,7 +354,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#526050",
+        "line-color": "#5e5f57",
         "line-width": ["interpolate", ["linear"], ["zoom"], 6, 0, 8, 2]
       }
     },
@@ -371,7 +371,7 @@
       ],
       "layout": { "line-cap": "butt", "line-join": "miter" },
       "paint": {
-        "line-color": "rgba(92,103,91,0.82)",
+        "line-color": "rgba(104,104,96,0.82)",
         "line-dasharray": [2, 0],
         "line-opacity": 1,
         "line-width": [
@@ -407,7 +407,7 @@
           5.8,
           "hsla(95,14%,77%,0.58)",
           6,
-          "#333a33"
+          "#383934"
         ],
         "line-width": [
           "interpolate",
@@ -471,7 +471,7 @@
       ],
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
-        "line-color": "#454d43",
+        "line-color": "#4b4c46",
         "line-width": ["interpolate", ["exponential", 1.4], ["zoom"], 4, 2, 6, 1.3]
       }
     },
@@ -491,7 +491,7 @@
         ]
       ],
       "layout": { "line-join": "round" },
-      "paint": { "line-color": "#4a544b", "line-width": 3 }
+      "paint": { "line-color": "#54554e", "line-width": 3 }
     },
     {
       "id": "railway_transit_dashline",
@@ -510,7 +510,7 @@
       ],
       "layout": { "line-join": "round" },
       "paint": {
-        "line-color": "#111713",
+        "line-color": "#11110f",
         "line-dasharray": [3, 3],
         "line-width": 2
       }
@@ -527,7 +527,7 @@
         ["all", ["==", ["get", "class"], "rail"], ["has", "service"]]
       ],
       "layout": { "line-join": "round" },
-      "paint": { "line-color": "#4a544b", "line-width": 3 }
+      "paint": { "line-color": "#54554e", "line-width": 3 }
     },
     {
       "id": "railway_minor_dashline",
@@ -542,7 +542,7 @@
       ],
       "layout": { "line-join": "round" },
       "paint": {
-        "line-color": "#111713",
+        "line-color": "#11110f",
         "line-dasharray": [3, 3],
         "line-width": 2
       }
@@ -561,7 +561,7 @@
       ],
       "layout": { "line-join": "round" },
       "paint": {
-        "line-color": "#4a544b",
+        "line-color": "#54554e",
         "line-width": ["interpolate", ["exponential", 1.3], ["zoom"], 16, 3, 20, 7]
       }
     },
@@ -579,7 +579,7 @@
       ],
       "layout": { "line-join": "round" },
       "paint": {
-        "line-color": "#111713",
+        "line-color": "#11110f",
         "line-dasharray": [3, 3],
         "line-width": ["interpolate", ["exponential", 1.3], ["zoom"], 16, 2, 20, 6]
       }
@@ -611,9 +611,9 @@
         "text-transform": "uppercase"
       },
       "paint": {
-        "text-color": "#9aa392",
+        "text-color": "#9e9b92",
         "text-halo-blur": 0,
-        "text-halo-color": "#111713",
+        "text-halo-color": "#11110f",
         "text-halo-width": 1,
         "text-translate": [0, 0]
       }
@@ -637,7 +637,7 @@
         "text-rotation-alignment": "viewport",
         "text-size": 10
       },
-      "paint": { "text-color": "#8f9b8e", "text-translate": [0, 2] }
+      "paint": { "text-color": "#96938b", "text-translate": [0, 2] }
     },
     {
       "id": "boundary_state",
@@ -648,7 +648,7 @@
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
         "line-blur": 0.4,
-        "line-color": "#536251",
+        "line-color": "#5d5e57",
         "line-dasharray": [2, 2],
         "line-opacity": 1,
         "line-width": ["interpolate", ["exponential", 1.3], ["zoom"], 3, 1, 22, 15]
@@ -668,7 +668,7 @@
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
         "line-blur": ["interpolate", ["linear"], ["zoom"], 0, 0.4, 22, 4],
-        "line-color": "#536251",
+        "line-color": "#5d5e57",
         "line-opacity": 1,
         "line-width": ["interpolate", ["exponential", 1.1], ["zoom"], 3, 1, 22, 20]
       }
@@ -683,7 +683,7 @@
       "layout": { "line-cap": "round", "line-join": "round" },
       "paint": {
         "line-blur": ["interpolate", ["linear"], ["zoom"], 0, 0.4, 22, 4],
-        "line-color": "#536251",
+        "line-color": "#5d5e57",
         "line-opacity": 1,
         "line-width": ["interpolate", ["exponential", 1.1], ["zoom"], 3, 1, 22, 20]
       }
@@ -720,9 +720,9 @@
         "text-transform": "uppercase"
       },
       "paint": {
-        "text-color": "#9aa392",
+        "text-color": "#9e9b92",
         "text-halo-blur": 1,
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1
       }
     },
@@ -752,9 +752,9 @@
         "text-transform": "uppercase"
       },
       "paint": {
-        "text-color": "#9aa392",
+        "text-color": "#9e9b92",
         "text-halo-blur": 1,
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1
       }
     },
@@ -786,9 +786,9 @@
       },
       "paint": {
         "icon-opacity": 0.7,
-        "text-color": "#a5ad9d",
+        "text-color": "#aaa69d",
         "text-halo-blur": 1,
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1
       }
     },
@@ -821,9 +821,9 @@
       },
       "paint": {
         "icon-opacity": 0.7,
-        "text-color": "#a5ad9d",
+        "text-color": "#aaa69d",
         "text-halo-blur": 1,
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1
       }
     },
@@ -857,9 +857,9 @@
       },
       "paint": {
         "icon-opacity": 0.7,
-        "text-color": "#a5ad9d",
+        "text-color": "#aaa69d",
         "text-halo-blur": 1,
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1
       }
     },
@@ -893,9 +893,9 @@
       },
       "paint": {
         "icon-opacity": 0.7,
-        "text-color": "#a5ad9d",
+        "text-color": "#aaa69d",
         "text-halo-blur": 1,
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1
       }
     },
@@ -922,9 +922,9 @@
         "text-transform": "uppercase"
       },
       "paint": {
-        "text-color": "#a5ad9d",
+        "text-color": "#aaa69d",
         "text-halo-blur": 1,
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1
       }
     },
@@ -952,8 +952,8 @@
         "text-transform": "uppercase"
       },
       "paint": {
-        "text-color": "#a5ad9d",
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-color": "#aaa69d",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1.4
       }
     },
@@ -982,8 +982,8 @@
         "text-transform": "uppercase"
       },
       "paint": {
-        "text-color": "#a5ad9d",
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-color": "#aaa69d",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1.4
       }
     },
@@ -1023,8 +1023,8 @@
         "text-transform": "uppercase"
       },
       "paint": {
-        "text-color": "#a5ad9d",
-        "text-halo-color": "rgba(17,23,19,0.82)",
+        "text-color": "#aaa69d",
+        "text-halo-color": "rgba(17,17,15,0.82)",
         "text-halo-width": 1.4
       }
     },

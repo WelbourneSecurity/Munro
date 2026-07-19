@@ -1,101 +1,109 @@
-import { act, render } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
+import type { HillListDefinition } from '../data/lists';
+import type { Peak } from '../domain';
 import { useProgressStore } from '../store';
 import { App } from './App';
 
+const peak: Peak = {
+  id: 'dobih-1',
+  dobihId: 1,
+  name: 'Test Summit',
+  list: ['W'],
+  region: 'Lake District - Eastern Fells',
+  heightM: 800,
+  heightFt: 2625,
+  lat: 54.5,
+  lon: -3,
+  gridRef: 'NY123456',
+};
+const list: HillListDefinition = {
+  id: 'wainwrights',
+  name: 'Wainwrights',
+  regionLabel: 'Lake District',
+  peakNoun: 'fells',
+  bounds: [
+    [-3.5, 54.1],
+    [-2.5, 54.8],
+  ],
+  initialView: { longitude: -3, latitude: 54.5, zoom: 8, bearing: 0, pitch: 0 },
+  hasHillLighting: true,
+  loadPeaks: () => Promise.resolve([peak]),
+};
+
+vi.mock('../components/useActiveHillList', () => ({
+  useActiveHillList: () => ({
+    list,
+    peaks: [peak],
+    loadFailed: false,
+    retryLoad: vi.fn(),
+  }),
+}));
 vi.mock('../map', () => ({
-  MapView: () => <main aria-label="Munro tracker">Munro map</main>,
+  MapView: ({ onSelectPeak }: { onSelectPeak: (id: string) => void }) => (
+    <button
+      type="button"
+      onClick={() => {
+        onSelectPeak('dobih-1');
+      }}
+    >
+      Select Test Summit
+    </button>
+  ),
+}));
+vi.mock('../hooks', () => ({
+  useSummitDetection: () => ({
+    status: 'idle',
+    detectedPeaks: [],
+    dismissDetections: vi.fn(),
+  }),
 }));
 
-describe('App', () => {
+describe('App shell', () => {
   beforeEach(() => {
+    window.location.hash = '#/explore';
     localStorage.clear();
-    useProgressStore.getState().resetAll();
-    history.replaceState(null, '', '/');
+    useProgressStore.setState({ progressByPeakId: {} });
   });
 
-  it('renders the Munro tracker shell', () => {
-    const { getByRole } = render(<App />);
-
-    expect(getByRole('main', { name: 'Munro tracker' })).toBeVisible();
-    expect(getByRole('link', { name: 'Tracker' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+  it('uses Explore as the default and preserves legacy tracker routing', () => {
+    const { getByRole, rerender } = render(<App />);
+    expect(getByRole('link', { name: 'Munro — open Explore' })).toBeVisible();
+    expect(getByRole('button', { name: 'Find a hill' })).toBeVisible();
+    window.location.hash = '#/tracker';
+    fireEvent(window, new HashChangeEvent('hashchange'));
+    rerender(<App />);
+    expect(getByRole('button', { name: 'Find a hill' })).toBeVisible();
   });
 
-  it('renders hash route stubs', () => {
-    history.replaceState(null, '', '/#/data');
-
-    const { getByRole } = render(<App />);
-
-    expect(getByRole('heading', { name: 'Data' })).toBeVisible();
-    expect(getByRole('link', { name: 'Data' })).toHaveAttribute('aria-current', 'page');
+  it('renders the shared Logbook and Settings routes', () => {
+    window.location.hash = '#/logbook';
+    const { getByRole, rerender } = render(<App />);
+    expect(getByRole('heading', { name: 'Your Wainwrights logbook.' })).toBeVisible();
+    window.location.hash = '#/data';
+    fireEvent(window, new HashChangeEvent('hashchange'));
+    rerender(<App />);
+    expect(getByRole('heading', { name: 'Settings' })).toBeVisible();
   });
 
-  it('renders the home page with empty progress', async () => {
-    history.replaceState(null, '', '/#/');
-
-    const { findByText, getByRole } = render(<App />);
-
-    expect(
-      getByRole('heading', {
-        name: 'A clean, map-first hiking tracker for UK peak bagging.',
-      }),
-    ).toBeVisible();
-    // The empty-state copy waits for the peak data to load — until then the
-    // page cannot say anything truthful about progress. Loading the full
-    // 22-list collated set takes a while under jsdom, hence the timeout.
-    expect(
-      await findByText(
-        'Start bagging to build your local progress record.',
-        undefined,
-        {
-          timeout: 10_000,
-        },
-      ),
-    ).toBeVisible();
-    expect(getByRole('link', { name: 'Open tracker' })).toHaveAttribute(
-      'href',
-      '#/tracker',
-    );
-  });
-
-  it('renders home progress for the active hill list when records exist', async () => {
-    history.replaceState(null, '', '/#/');
-    useProgressStore.getState().bag('dobih-2319');
-
-    const { findByText } = render(<App />);
-
-    expect(
-      await findByText('1 / 5471 bagged', undefined, { timeout: 10_000 }),
-    ).toBeVisible();
-  });
-
-  it('resets scroll when the route changes, but not on same-route hash changes', () => {
-    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
-
-    render(<App />);
-
-    // Initial render leaves the browser's own scroll restoration alone.
-    expect(scrollTo).not.toHaveBeenCalled();
-
-    act(() => {
-      history.replaceState(null, '', '/#/data');
-      window.dispatchEvent(new HashChangeEvent('hashchange'));
+  it('bags from the shared inspector and restores the exact record with Undo', async () => {
+    useProgressStore.setState({
+      progressByPeakId: {
+        'dobih-1': { peakId: 'dobih-1', bagged: false, notes: 'Keep me' },
+      },
     });
-
-    expect(scrollTo).toHaveBeenCalledTimes(1);
-    expect(scrollTo).toHaveBeenCalledWith(0, 0);
-
-    // A hash change resolving to the same route stays inert.
-    act(() => {
-      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    const { getByRole, getByText } = render(<App />);
+    fireEvent.click(getByRole('button', { name: 'Select Test Summit' }));
+    fireEvent.click(getByRole('button', { name: 'Bag this hill' }));
+    expect(getByText('Test Summit added to your logbook.')).toBeVisible();
+    fireEvent.click(getByRole('button', { name: 'Undo' }));
+    await waitFor(() => {
+      expect(useProgressStore.getState().progressByPeakId['dobih-1']).toEqual({
+        peakId: 'dobih-1',
+        bagged: false,
+        notes: 'Keep me',
+      });
     });
-
-    expect(scrollTo).toHaveBeenCalledTimes(1);
-
-    scrollTo.mockRestore();
   });
 });

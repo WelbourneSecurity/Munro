@@ -1,6 +1,5 @@
 import type {
   CircleLayerSpecification,
-  ExpressionSpecification,
   FillLayerSpecification,
   HillshadeLayerSpecification,
   LineLayerSpecification,
@@ -23,9 +22,9 @@ export const terrainHillshadeLayer: HillshadeLayerSpecification = {
   paint: {
     'hillshade-method': 'standard',
     'hillshade-illumination-direction': 315,
-    'hillshade-shadow-color': '#07100c',
-    'hillshade-highlight-color': '#84937d',
-    'hillshade-accent-color': '#2b4030',
+    'hillshade-shadow-color': '#11110f',
+    'hillshade-highlight-color': '#77746b',
+    'hillshade-accent-color': '#34342f',
     'hillshade-exaggeration': [
       'interpolate',
       ['linear'],
@@ -53,7 +52,7 @@ export const terrainContourLayer: LineLayerSpecification = {
     'line-cap': 'round',
   },
   paint: {
-    'line-color': '#708471',
+    'line-color': '#77746b',
     'line-opacity': [
       'interpolate',
       ['linear'],
@@ -94,78 +93,20 @@ export const terrainContourLabelLayer: SymbolLayerSpecification = {
     'text-size': ['interpolate', ['linear'], ['zoom'], 12, 9, 16, 10],
   },
   paint: {
-    'text-color': '#9aaa93',
-    'text-halo-color': '#111713',
+    'text-color': '#c8c1b3',
+    'text-halo-color': '#1c1c19',
     'text-halo-width': 1,
     'text-opacity': 0.72,
   },
 };
-
-// The transient selection highlight is parameterized into these layer
-// filter/paint expressions rather than written into feature properties:
-// react-maplibre diffs them into cheap setFilter/setPaintProperty calls, so
-// selecting a peak never re-uploads the ~4 MB hill-area GeoJSON via setData.
-// Pass undefined to highlight nothing (an empty id matches no hill).
-function hillAreaSelected(selectedPeakId: string | undefined): ExpressionSpecification {
-  return ['==', ['get', 'id'], selectedPeakId ?? ''];
-}
-
-// The lit fill means exactly one thing: this hill is bagged. Selection must
-// never put it there — an unbagged hill that is still selected after "Mark
-// unbagged" would keep glowing in the bagged green until the selection
-// moved (or the page reloaded). The selected case below only brightens a
-// hill that is already bagged; unbagged selected hills get the outline
-// highlight from hillAreaLineLayer instead.
-export function hillAreaFillLayer(
-  selectedPeakId: string | undefined,
-): FillLayerSpecification {
-  const selected = hillAreaSelected(selectedPeakId);
-
-  return {
-    id: 'hill-area-fill',
-    type: 'fill',
-    source: 'hill-areas',
-    filter: ['==', ['get', 'bagged'], true],
-    paint: {
-      'fill-color': ['case', selected, '#c4e9cd', '#a7d8b6'],
-      'fill-opacity': ['case', selected, 0.24, 0.17],
-    },
-  };
-}
-
-export function hillAreaLineLayer(
-  selectedPeakId: string | undefined,
-): LineLayerSpecification {
-  const selected = hillAreaSelected(selectedPeakId);
-
-  return {
-    id: 'hill-area-line',
-    type: 'line',
-    source: 'hill-areas',
-    filter: ['any', ['!=', ['get', 'bagged'], true], selected],
-    paint: {
-      'line-color': ['case', selected, '#e0f5e5', '#829284'],
-      'line-opacity': ['case', selected, 0.9, 0.16],
-      'line-width': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        7,
-        ['case', selected, 1.2, 0.45],
-        12,
-        ['case', selected, 2.4, 0.72],
-      ],
-    },
-  };
-}
 
 export const boundaryFillLayer: FillLayerSpecification = {
   id: 'lake-district-boundary-fill',
   type: 'fill',
   source: 'lake-district-boundary',
   paint: {
-    'fill-color': '#233025',
-    'fill-opacity': 0.12,
+    'fill-color': '#34342f',
+    'fill-opacity': 0.08,
   },
 };
 
@@ -174,8 +115,8 @@ export const boundaryLineLayer: LineLayerSpecification = {
   type: 'line',
   source: 'lake-district-boundary',
   paint: {
-    'line-color': '#8a9b88',
-    'line-opacity': 0.78,
+    'line-color': '#77746b',
+    'line-opacity': 0.62,
     'line-width': ['interpolate', ['linear'], ['zoom'], 7, 1, 11, 2.2],
   },
 };
@@ -191,88 +132,62 @@ export const peakHitboxLayer: CircleLayerSpecification = {
   },
 };
 
-// Once the lighting profiles are loaded they take over from the markers and
-// the summit light — but only where they are legible. Below ~z8 a ~2 km
-// profile spans under 6 px, so the whole-list views (the UK at z5, Scotland
-// at z6.3) would read as a blank map; markers and lights persist there and
-// hand over across z8–9.2 as the profiles grow readable.
-
-// The bagged summit light. The layer is always mounted (visibility toggles
-// through opacity, like peakMarkerLayer) so switching lists never remounts
-// it above the markers and labels.
-export function baggedSummitLightLayer(
-  alwaysVisible: boolean,
-): CircleLayerSpecification {
-  return {
-    id: 'bagged-summit-light',
-    type: 'circle',
-    source: 'list-peaks',
-    filter: ['==', ['get', 'bagged'], true],
-    paint: {
-      'circle-color': '#a7d8b6',
-      'circle-opacity': alwaysVisible
-        ? ['interpolate', ['linear'], ['zoom'], 7, 0.16, 11, 0.28, 14, 0.34]
-        : ['interpolate', ['linear'], ['zoom'], 7, 0.16, 8, 0.2, 9.2, 0],
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 7, 18, 10, 38, 13, 68],
-      'circle-blur': ['interpolate', ['linear'], ['zoom'], 7, 0.68, 13, 0.52],
-      'circle-pitch-alignment': 'map',
-    },
-  };
-}
-
-// The summit markers: fully visible until the lighting profiles load, then
-// low-zoom only (see the hand-over note above).
-export function peakMarkerLayer(alwaysVisible: boolean): CircleLayerSpecification {
-  return {
-    id: 'peak-markers',
-    type: 'circle',
-    source: 'list-peaks',
-    paint: {
-      'circle-color': ['case', ['==', ['get', 'bagged'], true], '#a7d8b6', '#aab3aa'],
-      'circle-opacity': alwaysVisible
-        ? ['interpolate', ['linear'], ['zoom'], 5, 0.72, 11, 0.9]
-        : ['interpolate', ['linear'], ['zoom'], 5, 0.72, 8, 0.79, 9.2, 0],
-      'circle-radius': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        5,
-        2.5,
-        7,
-        3.5,
-        11,
-        5.5,
-        14,
-        7,
-      ],
-      'circle-stroke-color': '#111713',
-      'circle-stroke-opacity': alwaysVisible
-        ? 0.85
-        : ['interpolate', ['linear'], ['zoom'], 5, 0.85, 8, 0.85, 9.2, 0],
-      'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], 7, 1, 12, 1.6],
-    },
-  };
-}
-
-export const peakLabelLayer: SymbolLayerSpecification = {
-  id: 'peak-labels',
+/** Survey-style summit marks used by the bone-and-ink Explore map. */
+export const surveyPeakMarkerLayer: SymbolLayerSpecification = {
+  id: 'survey-peak-markers',
   type: 'symbol',
   source: 'list-peaks',
-  minzoom: 10.5,
+  filter: ['!=', ['get', 'selected'], true],
+  layout: {
+    'text-field': ['case', ['==', ['get', 'bagged'], true], '◆', '◇'],
+    'text-font': ['Noto Sans Regular'],
+    'text-size': ['interpolate', ['linear'], ['zoom'], 4, 11, 8, 15, 12, 20],
+    'text-allow-overlap': true,
+    'text-ignore-placement': true,
+  },
+  paint: {
+    'text-color': ['case', ['==', ['get', 'bagged'], true], '#f2efe7', '#77746b'],
+    'text-halo-color': '#11110f',
+    'text-halo-width': 1.2,
+    'text-opacity': ['interpolate', ['linear'], ['zoom'], 4, 0.74, 8, 0.92],
+  },
+};
+
+export const selectedPeakMarkerLayer: SymbolLayerSpecification = {
+  id: 'selected-peak-marker',
+  type: 'symbol',
+  source: 'list-peaks',
+  filter: ['==', ['get', 'selected'], true],
+  layout: {
+    'text-field': '◇',
+    'text-font': ['Noto Sans Regular'],
+    'text-size': ['interpolate', ['linear'], ['zoom'], 7, 28, 12, 38],
+    'text-allow-overlap': true,
+    'text-ignore-placement': true,
+  },
+  paint: {
+    'text-color': '#f2efe7',
+    'text-halo-color': '#11110f',
+    'text-halo-width': 2,
+  },
+};
+
+export const selectedPeakLabelLayer: SymbolLayerSpecification = {
+  id: 'selected-peak-label',
+  type: 'symbol',
+  source: 'list-peaks',
+  filter: ['==', ['get', 'selected'], true],
   layout: {
     'text-anchor': 'top',
     'text-field': ['get', 'name'],
     'text-font': ['Noto Sans Regular'],
-    'text-offset': [0, 0.85],
-    'text-size': ['interpolate', ['linear'], ['zoom'], 10.5, 10, 14, 12],
-    'text-max-width': 10,
-    'text-allow-overlap': false,
-    'text-optional': true,
+    'text-offset': [0, 1.45],
+    'text-size': 12,
+    'text-allow-overlap': true,
   },
   paint: {
-    'text-color': '#d0d8cc',
-    'text-halo-color': '#111713',
-    'text-halo-width': 1.4,
-    'text-opacity': ['interpolate', ['linear'], ['zoom'], 10.5, 0, 11.25, 0.9],
+    'text-color': '#f2efe7',
+    'text-halo-color': '#11110f',
+    'text-halo-width': 1.6,
   },
 };

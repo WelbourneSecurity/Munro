@@ -14,10 +14,9 @@
  *   so they are part of the real first-load payload. The ceiling absorbed
  *   the full UK list set (HuMPs and Simms dominate); it is a hard stop
  *   against further growth, not headroom to spend.
- * - Hill-lighting profiles <= 1000 kB — the lazy UK-wide profile chunk
- *   (one profile per distinct hill across every list). It loads after
- *   first render and never blocks it, but it downloads on every first
- *   visit, so it stays budgeted.
+ * - Historical hill-profile data is absent from the runtime bundle. The
+ *   generation pipeline remains available, but approximate polygons must
+ *   not be downloaded or presented as real hill shapes.
  * - CSS <= 20 kB.
  * - Export engine <= 20 kB and present as its own lazy chunk — if it ever
  *   folds into the main chunk this check fails on both counts.
@@ -30,7 +29,6 @@ const ASSETS_DIR = 'dist/assets';
 
 const INITIAL_JS_BUDGET_BYTES = 650 * 1024;
 const DEFAULT_LIST_DATA_BUDGET_BYTES = 560 * 1024;
-const HILL_PROFILE_BUDGET_BYTES = 1000 * 1024;
 const CSS_BUDGET_BYTES = 20 * 1024;
 const EXPORT_CHUNK_BUDGET_BYTES = 20 * 1024;
 
@@ -78,6 +76,15 @@ function check(label: string, files: string[], budgetBytes: number): void {
   }
 }
 
+function checkAbsent(label: string, files: string[]): void {
+  if (files.length > 0) {
+    failures.push(`${label}: unexpected runtime files — ${files.join(', ')}.`);
+    return;
+  }
+
+  console.log(`${label}: absent from runtime (ok)`);
+}
+
 check(
   'Initial JS',
   assets.filter((file) => /^index-.*\.js$/.test(file)),
@@ -88,10 +95,9 @@ check(
   assets.filter((file) => LIST_CHUNK_PATTERN.test(file)),
   DEFAULT_LIST_DATA_BUDGET_BYTES,
 );
-check(
-  'Hill-lighting profiles (lazy)',
+checkAbsent(
+  'Historical hill-profile polygons',
   assets.filter((file) => /^hill-areas.*\.js$/.test(file)),
-  HILL_PROFILE_BUDGET_BYTES,
 );
 check(
   'CSS',

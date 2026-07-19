@@ -66,25 +66,24 @@ to, so regressions are visible in review rather than discovered later.
 ### Measured (July 2026)
 
 Production build (`vite build`), gzip sizes as reported by Vite. Updated
-July 2026 after the hill-lighting profiles went UK-wide (one profile per
-distinct hill across every list), moved out of the main chunk into their
-own lazy chunk, and were quantized and written compact:
+July 2026 after the bone-and-ink overhaul removed approximate hill-profile
+polygons from the runtime and added bundled interface typography:
 
 | Asset | Minified | Gzip |
 | --- | --- | --- |
-| Main JS chunk (`index-*.js`) | 1,379.7 kB | 380.4 kB |
-| Hill-lighting profiles (`hill-areas-*.js`, lazy) | 3,914.2 kB | 949.2 kB |
-| Default-list data (22 lazy list chunks) | 2,942.4 kB | 517.5 kB |
-| Export engine chunk (`export-*.js`, lazy) | 6.9 kB | 2.8 kB |
-| CSS (`index-*.css`) | 91.8 kB | 15.0 kB |
-| `index.html` | 1.8 kB | 0.8 kB |
+| Main JS chunk (`index-*.js`) | 1,383.1 kB | 381.3 kB |
+| Historical hill profiles | not shipped | not shipped |
+| Default-list data (22 lazy list chunks) | 2,942.4 kB | 517.8 kB |
+| Export engine chunk (`export-*.js`, lazy) | 7.0 kB | 2.9 kB |
+| CSS (`index-*.css`) | 107.8 kB | 18.0 kB |
+| `index.html` | 2.0 kB | 0.9 kB |
 
 The main chunk decomposes roughly as: maplibre-gl ≈ 230–270 kB gzip (the
 map engine — accepted, the map is the product) and everything else —
 React, maplibre-contour glue, Zustand stores, the Lake District boundary
-and all app code — in the remaining ≈ 110–150 kB gzip. The hill-lighting
-profiles, per-list peak data and the export engine are all
-dynamic-imported and stay out of the initial bundle.
+and all app code — in the remaining ≈ 110–150 kB gzip. Per-list peak data
+and the export engine are dynamic-imported and stay out of the initial
+bundle; generated hill profiles are not part of the product runtime.
 
 Load timings were measured against a local `vite preview` of the
 production build in headless Chromium, throttled to a Fast-3G-class
@@ -107,9 +106,9 @@ Median of three runs:
 | First map render (canvas shows map pixels) | ~6.5 s |
 
 On the throttled profile the timeline is dominated by downloading the
-main chunk, then style, glyph and tile fetches until the first frame
-draws; the lighting profiles stream in afterwards while markers carry
-the tracker. (The timings above predate the payload reductions.)
+main chunk, then style, glyph and tile fetches until the first frame draws.
+The timings above predate the removal of the profile payload, so a fresh
+measurement should improve on them.
 
 ### Thresholds for future PRs
 
@@ -130,14 +129,12 @@ job, and fails when the gzip output exceeds them.
   the real payload. The ceiling was raised once, deliberately, when the
   full UK list set landed (the HuMPs and Simms dominate it); treat it as a
   hard stop, not headroom to grow into.
-- **Hill-lighting profiles ≤ 1,000 kB gzip** (currently 949 kB) — the lazy
-  UK-wide profile chunk, one profile per distinct hill across every list.
-  It loads after first render (markers carry the tracker until it arrives)
-  but downloads on every first visit.
+- **Historical hill-profile polygons stay out of the runtime bundle.** The
+  performance check fails if a `hill-areas-*.js` chunk reappears.
 - **App code excluding maplibre-gl and the bundled hill/peak data stays
   small** — the non-engine, non-data remainder is ≈ 120–160 kB gzip today
   and should not grow past ≈ 200 kB gzip without justification.
-- **CSS ≤ 20 kB gzip** (currently 15.0 kB).
+- **CSS ≤ 20 kB gzip** (currently 18.0 kB).
 - **First map render ≤ 8 s on a Fast-3G-class throttle** measured as
   above (currently ~6.5 s with the proxy caveat).
 - `build.chunkSizeWarningLimit` in `vite.config.ts` is set to 1,800 kB —

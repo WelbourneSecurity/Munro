@@ -26,7 +26,7 @@ describe('DataPage', () => {
 
     expect(getByText(/one record per distinct hill/)).toBeVisible();
     expect(getByText(/summit points, not boundaries/)).toBeVisible();
-    expect(getByText(/approximate visual aids/)).toBeVisible();
+    expect(getByText(/does not present them as real hill shapes/)).toBeVisible();
     expect(getByText(/Natural England open\s+data/)).toBeVisible();
   });
 

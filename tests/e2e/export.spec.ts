@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
+import { selectHillList } from './helpers';
+
 // The export capture path (T5.1/T5.2) cannot be tested in jsdom: reading the
 // WebGL canvas back yields real pixels only in a browser, and only when the
 // map was created with preserveDrawingBuffer (MapView sets it via
@@ -115,7 +117,9 @@ for (const deviceScaleFactor of [1, 2]) {
         expect(capture.blobType).toBe('image/png');
         expect(capture.blobSize).toBeGreaterThan(0);
         expect(capture.distinctColors).toBeGreaterThan(16);
-        expect(capture.variance).toBeGreaterThan(1);
+        // The neutral basemap is intentionally low contrast, but a preserved
+        // non-blank frame still has measurable luminance variance.
+        expect(capture.variance).toBeGreaterThan(0.1);
         // Physical size follows the DPR, so captures stay sharp on hi-dpi.
         // clientWidth/clientHeight round to whole CSS pixels, so allow the
         // sub-pixel rounding maplibre applies when sizing the canvas.
@@ -133,3 +137,17 @@ for (const deviceScaleFactor of [1, 2]) {
     });
   });
 }
+
+test('offers the map postcard download from Explore', async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await page.goto('./#/explore');
+  await selectHillList(page, 'wainwrights');
+  await page.getByRole('button', { name: 'Export image' }).click();
+
+  const dialog = page.getByRole('dialog', { name: 'Export image' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Download PNG' })).toBeEnabled({
+    timeout: 60_000,
+  });
+});
