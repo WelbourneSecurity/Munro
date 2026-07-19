@@ -64,7 +64,7 @@ Standing rules for working on Munro:
 4. The stack is deliberately key-free: no API keys, tokens or secrets in
    code, config or workflows. If a task seems to need one, stop and report.
 5. Visual work follows wiki/design.md: dark charcoal, monochrome, muted grey
-   unbagged / soft pastel green bagged, no gamified colours or playful icons.
+   unbagged / solid bone bagged, no gamified colours or playful icons.
 6. Before finishing, run the repo verification commands (npm run typecheck,
    lint, format:check, test, build — plus mkdocs build --strict if you
    touched docs) and fix what they report.
@@ -268,7 +268,7 @@ Verify: npm run typecheck passes; npm run build still passes.
 **Scope:** Install Tailwind v4 via `@tailwindcss/vite`. Define the design
 system as CSS `@theme` tokens per `wiki/design.md`: dark charcoal
 background, monochrome greys (borders, contours, muted text, unbagged
-markers), one soft pastel green (bagged), a clean sans-serif stack, small
+markers), solid bone for bagged survey marks, a clean sans-serif stack, small
 technical label sizes. Apply the base theme to the placeholder page. No
 component work.
 
@@ -283,7 +283,7 @@ wiki/implementation-plan.md.
 Do: add Tailwind v4 with the @tailwindcss/vite plugin (no PostCSS config, no
 tailwind.config.js). Define an @theme block with semantic tokens for the
 palette in wiki/design.md — dark charcoal surface, grey scale for text/
-borders/contours/unbagged peaks, one soft pastel green for bagged peaks —
+borders/contours/open peaks, solid bone for bagged peaks —
 plus font stack and technical label sizes. Style the placeholder page with
 them. Append a brief "Implementation tokens" subsection to wiki/design.md
 listing the token names.
@@ -906,14 +906,14 @@ zooms 9–14 in both desktop and mobile widths.
 **Tier:** L · **Depends on:** T3.2, T3.1, T2.2
 
 **Scope:** The emotional core: all 214 Wainwrights as map markers — muted
-grey unbagged, soft green bagged — driven by a pure
+grey unbagged, solid bone bagged — driven by a pure
 `peaksToGeoJSON(peaks, progress)` builder in `src/domain/`. Symbol layer
 with peak-name labels at appropriate zooms; click/tap selects a peak and
 opens a minimal detail card (name, height m/ft, grid ref, region) with a
 bag/unbag action that updates the store and recolours the marker
 immediately (use feature-state, not source rebuilds, for the state flip).
 Hover states on desktop; generous tap targets (44px+) on mobile. A single
-restrained transition on the grey→green change is allowed; nothing
+restrained transition on the hollow-to-solid change is allowed; nothing
 confetti-like.
 
 **Done when:** all 214 markers render accurately positioned; bag/unbag
@@ -928,12 +928,11 @@ Read: SOUL.md, wiki/features.md (Peak tracking), wiki/design.md, task T3.4
 and gotcha 4 in wiki/implementation-plan.md.
 Do: write a pure peaksToGeoJSON(peaks, progress) builder plus marker-styling
 helpers in src/domain/ with exhaustive unit tests. In src/map/, add the
-peaks source and symbol/circle layers: muted grey unbagged, soft pastel
-green bagged (design tokens), name labels appearing at sensible zooms, and
-feature-state driven recolouring so bagging never rebuilds the source.
-Click/tap opens a minimal peak card (name, heights, grid ref, region) with
-a bag/unbag button wired to the progress store; add date-bagged capture as
-an optional field. Desktop hover states; 44px+ touch targets. One subtle
+peaks source and survey-marker symbol layers: hollow stone diamonds for open,
+solid bone diamonds for bagged, and a double reticle plus label for selection.
+Click/tap opens the shared peak inspector (name, heights, grid ref, region)
+with explicit bag and remove actions wired to the progress store; capture the
+local bagged date. Desktop hover states; 44px+ touch targets. One subtle
 transition on state change, nothing more.
 Do not: cluster markers; add photos, notes UI (T4.4) or filters (T3.5);
 import maplibre-gl outside src/map/.
@@ -980,7 +979,7 @@ Verify: npm run verify; check 375px layout.
 **Scope:** Pure stats functions (`total`, `bagged`, `remaining`, percentage,
 recent bags when dates exist) in `src/domain/` plus a restrained stats
 component for the tracker (and reusable on Home): count, percentage, a
-thin monochrome progress bar with the green fill. No charts, no dashboard
+thin monochrome progress bar with the ink fill. No charts, no dashboard
 bloat.
 
 **Done when:** stats functions fully tested including empty/complete edge
@@ -995,7 +994,7 @@ Do: add pure stats functions over Peak + PeakProgress in src/domain/
 (total, bagged, remaining, integer percentage, recent-first bagged list
 when dates exist) with unit tests covering 0, partial and 214/214 states.
 Build one small stats component: "37 / 214 bagged · 17%" and a thin grey
-progress bar with soft green fill, styled with design tokens, reusable on
+progress bar with bone-and-ink fill, styled with design tokens, reusable on
 the Home page later.
 Do not: add charts, streaks, badges or animations beyond a subtle bar
 transition.
@@ -1215,7 +1214,7 @@ line composed from src/data/attribution.ts (DoBIH, OpenFreeMap/OSM, OGL) —
 drawn into the pixels, not overlaid in DOM. Two presets: portrait
 1600×2000 and landscape 1920×1080. Extract layout arithmetic (margins,
 type scale, text wrapping) into pure functions with unit tests. Match the
-design tokens exactly: charcoal ground, grey text, green accent only for
+design tokens exactly: charcoal ground, grey text, ink inversion only for
 bagged count.
 Do not: screenshot DOM UI; omit or shrink attribution to illegibility; add
 decorative flourishes.
@@ -1299,7 +1298,7 @@ spec fails if you temporarily break the persist key locally (revert).
 **Scope:** Systematic pass over every page and the tracker interactions:
 keyboard operability end-to-end (including bagging via the list panel as
 the accessible alternative to map clicks), focus management in dialogs,
-ARIA labelling, colour-contrast checks on the grey/green palette (the
+ARIA labelling, colour-contrast checks on the bone-and-ink palette (the
 muted aesthetic must still meet WCAG AA for text and interactive
 elements — adjust token values, not the aesthetic), reduced-motion
 respect. jsx-a11y is already linting; this task covers what static rules
@@ -1315,7 +1314,7 @@ Read: wiki/mvp.md user stories, wiki/design.md, all pages under src/app/.
 Do: verify keyboard-only completion of every MVP user story (bagging must
 be achievable from the list panel without the map); fix focus traps and
 ordering in dialogs (export, import confirm, reset); label controls and
-landmarks; measure text and control contrast for the charcoal/grey/green
+landmarks; measure text and control contrast for the bone/ink/stone
 tokens against WCAG AA and adjust token values where they fall short
 (keep the restrained look — darken/lighten, don't recolour); honour
 prefers-reduced-motion for the marker transition and progress bar. Record

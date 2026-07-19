@@ -6,8 +6,9 @@ AGENTS.md) when working in this repository.
 ## What Munro is
 
 Munro is a clean, map-first hiking tracker for UK peak bagging. Users see
-hill lists (Wainwrights first, then Munros, Corbetts, etc.) on a dark,
-minimal topographic map, mark peaks as bagged, track progress, and export a
+hill lists (Wainwrights first, then Munros, Corbetts, etc.) in a warm
+bone-and-ink logbook and neutral topographic map, mark peaks as bagged,
+track progress, and export a
 shareable image. It is being developed into an app accessible via the web,
 on iPhone and on Android.
 
@@ -27,9 +28,10 @@ layout), its test suites, the CI/CD workflows and the documentation site:
 - `CLAUDE.md` / `AGENTS.md` — this file is the source of agent instructions;
   edit `CLAUDE.md` only
 - `index.html` — Vite app entry (preconnects to tile hosts)
-- `src/app/` — shell, hand-rolled hash router (`#/`, `#/tracker`, `#/data`,
-  `#/settings`) and pages
-- `src/components/` — peak list panel, progress stats, export dialog
+- `src/app/` — shell and hand-rolled hash router (`#/explore`, `#/logbook`,
+  `#/settings`; legacy tracker/data aliases remain compatible)
+- `src/components/` — shared peak inspector, atlas, hill search, navigation,
+  progress stats and export dialog
 - `src/domain/` — Zod schemas (`Peak`, `PeakProgress`, `Backup`) and pure
   logic; stays free of React and MapLibre imports
 - `src/data/` — generated peak data for every hill list, boundary/hill-profile
@@ -128,25 +130,20 @@ Conventions to preserve:
   types only. Map layer styling lives as data-driven expressions in
   `src/map/layers.ts`, and the tile/terrain URLs stay isolated in
   `src/map/config.ts`.
-- Bagged marker state is written into the peak and hill-profile GeoJSON
-  feature properties (rebuilt from the store) and styled with data-driven
-  expressions; the transient selection highlight is parameterized into the
-  hill-area layer filter/paint expressions in `src/map/layers.ts` (cheap
-  `setFilter`/`setPaintProperty` updates — never a full `setData` of the
-  hill-area collection). Don't move either into component-level markers or
-  DOM overlays.
-- Conditional map overlays (terrain hillshade, hill lighting, contours) are
+- Bagged and selected marker state is written into the summit GeoJSON feature
+  properties and styled with data-driven survey-symbol expressions in
+  `src/map/layers.ts`. Hollow diamonds mean open, solid diamonds mean bagged,
+  and the selected summit receives a separate reticle and label.
+- Conditional map overlays (terrain hillshade and contours) are
   pinned with `beforeId` to the invisible `munro-*-anchor` layers committed
   at the top of `src/map/style/munro-dark.json`, so remounts (Terrain
   toggle, list switches) keep the fresh-load stacking order below the peak
   layers. Keep the anchors when refreshing the style fork, and anchor any
   new conditional layer the same way.
-- Hill lighting uses generated summit-centred hill profiles for every hill
-  on every list (UK-wide, deduplicated by peak id); Lake District hills are
-  clipped to the park boundary. The profiles live in a lazy chunk loaded by
-  `src/map/hillAreas.ts` — never import them eagerly. Treat them as
-  approximate visual lighting profiles, not authoritative legal, route or
-  geomorphological boundaries.
+- The historical generated hill-profile pipeline remains committed for data
+  compatibility, but the product must not render those approximate polygons
+  as real hill shapes. Runtime selection and completion use authoritative
+  summit points only.
 - The export engine (`src/export/`) is dynamic-imported by the export dialog
   and must stay a separate lazy chunk — never statically import it from
   startup code paths. Exported images must draw attribution into the pixels.
@@ -161,9 +158,9 @@ Conventions to preserve:
   `mobile` project for the phone-critical journeys — keep both passing.
 - Mind the performance budget in `wiki/operations.md` before adding
   dependencies or data to the initial bundle.
-- Visual style is dark, monochrome, topographic and restrained — grey for
-  unbagged, soft green for bagged. No gamified colours. See
-  `wiki/design.md`.
+- Visual style is warm bone, ink black, graphite and stone with restrained
+  blue-black map water. Completion is communicated by symbol fill and colour
+  inversion, never green. See `wiki/design.md`.
 - Summit detection is strictly opt-in and never persists location data —
   only the boolean preference and normal `PeakProgress` records are stored.
   The detection logic in `src/domain/summits.ts` is list-agnostic; the

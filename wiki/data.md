@@ -71,11 +71,12 @@ type Peak = {
 };
 ```
 
-Summits are treated as WGS84 point coordinates. They remain the source of
-identity and selection, but they are not the primary visible map mark.
+Summits are treated as authoritative WGS84 point coordinates and are the source
+of identity, selection and map status. The map presents them as survey diamonds:
+hollow for open, solid for bagged and a double reticle when selected.
 
-Bagged peaks light a generated hill-profile polygon rather than only the
-summit marker. The committed file is:
+The historical generated profile file remains committed for data-pipeline
+compatibility:
 
 - `src/data/boundaries/hill-areas.geojson`
 
@@ -85,12 +86,9 @@ The generation command is:
 npm run data:hill-boundaries
 ```
 
-This model builds one summit-centred profile per Wainwright, shapes it by height
-and nearby summits, then clips it to the Lake District National Park boundary.
-The committed geometries are designed for visual hill lighting: roads, paths,
-streams, hillshade and contours remain visible from the basemap so the user can
-read the topography beneath the profile layer. They are not authoritative legal,
-route or geomorphological boundaries.
+This model builds approximate summit-centred profiles. They are not authoritative
+legal, route or geomorphological boundaries, are not imported into the application
+runtime and must never be presented as the real shape of a hill.
 
 ## Hill lists
 
@@ -99,8 +97,7 @@ The lists Munro can track are described by a small registry:
 - `src/data/lists.ts`
 
 Each entry declares the list's id, display name, region label, map-fit
-bounds and initial camera, whether generated hill-lighting profiles exist
-for it, and a lazy loader for its peak-data module. Peak data is loaded with
+bounds and initial camera, and a lazy loader for its peak-data module. Peak data is loaded with
 a dynamic import, so the app bundle does not grow as lists are added.
 
 Adding a hill list is a data-only change: commit its generated peak JSON
@@ -120,13 +117,10 @@ keyed by the globally unique peak id (`dobih-N`), so each list's progress
 coexists in the same store and switching lists never touches existing
 records; stats are computed against the active list's peaks only.
 
-Hill lighting covers every list: the generated profile set holds one
-profile per distinct hill across all registered lists, loaded lazily and
-filtered to the active list on the map. Until the profiles arrive (and on
-any list a future profile set does not cover), summit markers and a soft
-light on bagged peaks carry the tracker. The Lake District boundary layers
-render only on the Wainwrights view; every list is framed by its map-fit
-bounds from the registry (from the Peak District up to the whole UK).
+The Lake District boundary layers render only on the Wainwrights view; every
+list is framed by its map-fit bounds from the registry (from the Peak District
+up to the whole UK). Authoritative summit markers carry selection and status
+for every list.
 
 ## Boundary data
 

@@ -3,8 +3,8 @@
 ## Core idea
 
 Users open the app, choose a hill list or national park, and see all
-relevant peaks plotted on a dark, minimal topographic map. Unbagged peaks
-appear muted grey. Bagged peaks illuminate in a soft green accent. The user
+relevant peaks plotted on a restrained topographic map. Hollow stone survey
+marks identify open peaks; solid bone marks identify bagged peaks. The user
 can click a peak, view basic information, mark it as bagged, and see their
 progress update.
 

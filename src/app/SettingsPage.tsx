@@ -96,8 +96,8 @@ export function SettingsPage({
         devices.
       </p>
 
-      <div className="mt-8 space-y-6">
-        <section className="border-line bg-panel border p-5">
+      <div className="border-hairline mt-10 border-t">
+        <section className="border-hairline border-b py-7">
           <h2 className="text-primary text-xl font-semibold">Backup</h2>
           <p className="text-muted mt-2 text-sm leading-6">
             Download a JSON backup of your local progress.
@@ -111,7 +111,7 @@ export function SettingsPage({
           </button>
         </section>
 
-        <section className="border-line bg-panel border p-5">
+        <section className="border-hairline border-b py-7">
           <h2 className="text-primary text-xl font-semibold">Restore</h2>
           <label className="text-secondary mt-4 block text-sm">
             Choose backup JSON
@@ -149,7 +149,7 @@ export function SettingsPage({
           </button>
         </section>
 
-        <section className="border-line bg-panel border p-5">
+        <section className="border-hairline border-b py-7">
           <h2 className="text-primary text-xl font-semibold">Preferences</h2>
           <label className="text-secondary mt-4 flex min-h-11 items-center justify-between gap-4 text-sm">
             Terrain and contours
@@ -193,7 +193,7 @@ export function SettingsPage({
           ) : null}
         </section>
 
-        <section className="border-line bg-panel border p-5">
+        <section className="border-ink bg-paper mt-10 border-y px-5 py-7">
           <h2 className="text-primary text-xl font-semibold">Reset local progress</h2>
           <p className="text-muted mt-2 text-sm leading-6">
             Type RESET to clear every local progress record in this browser.

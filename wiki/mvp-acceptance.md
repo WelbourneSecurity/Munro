@@ -84,7 +84,7 @@ Verdict: **pass** on mechanics, **pass with reservations** on look.
 - Dimensions are exactly 1600×2000 (portrait) and 1920×1080 (landscape) at
   both device pixel ratios; the filename follows
   `munro-wainwrights-YYYY-MM-DD.png`; the charcoal ground is exactly
-  `#111713`; the bagged count renders in the soft green accent.
+  `#111713`; the bagged count renders in the bone-and-ink completion state.
 - All four licence strings are drawn into the pixels verbatim, verified
   two independent ways (a `fillText` hook and per-line ink-pixel counts).
 - The map viewport is restored exactly after export, even after
@@ -105,13 +105,13 @@ Verdict: **pass** — all six [MVP user stories](mvp.md#key-user-stories)
 complete on iPhone-13 emulation, one-handed-plausibly, with terrain off.
 
 - Story 1 (see all Wainwrights): map draws quickly with all 214 fells as
-  summit-centred outlines. Noted: unbagged fells are deliberately faint at
-  default zoom, so "what's left" leans on the list and Open filter.
-- Story 2 (mark bagged, saved): the full path from search to Mark bagged
+  survey-diamond summit markers, with the atlas providing the complete
+  open/bagged overview.
+- Story 2 (mark bagged, saved): the full path from search to Bag this hill
   writes to `munro.progress.v1` and survives reload; every control on the
   path measured at least 44 px.
-- Story 3 (bagged peaks light up): a same-camera pixel diff shows the
-  green lighting appearing exactly at the bagged fell's position.
+- Story 3 (bagged peaks become solid): a same-camera pixel diff shows the
+  solid survey marker appearing exactly at the bagged fell's position.
 - Story 4 (export): the dialog fits a 375×667 viewport, both presets
   produced verified PNGs on the emulated phone, and attribution is in the
   pixels.
@@ -188,7 +188,7 @@ These would become tracked issues, roughly in priority order:
 7. **Make camera bounds and initial view per-list data.**
    `src/map/config.ts` hard-locks the camera to the Lake District — fine
    for the Outlying Fells, fatal for Munros.
-8. **Per-list hill lighting.** The lighting profiles and the `scripts/`
+8. **Per-list survey-marker status.** The lighting profiles and the `scripts/`
    generation pipeline exist only for the Wainwrights; new lists need
    their own generation or a graceful no-lighting mode.
 9. **Lazy-load list data.** `lists.ts` as prototyped pulls every list into
@@ -200,7 +200,7 @@ These would become tracked issues, roughly in priority order:
     decision.
 11. **Dead paint config on the peak marker layer.** The summit-dot circle
     layer has both opacities at 0 despite a fully specified colour
-    expression — either intentional "hill lighting only" design to
+    expression — either intentional "survey-marker status only" design to
     document, or an oversight to fix.
 12. **Display-name polish decisions.** Whether to note Skiddaw's 930.4 m
     (DoBIH) versus the traditional 931 m on the Data page, and whether to

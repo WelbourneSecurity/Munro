@@ -1,5 +1,6 @@
 export { peaksToGeoJSON } from './geojson';
 export type { PeakFeatureCollection, PeakFeatureProperties } from './geojson';
+export { formatBaggedDate, toLocalISODate } from './date';
 export { getProductName } from './identity';
 export { filterPeaks, getProgressMap, groupPeakItems, mergePeakLists } from './peaks';
 export type {

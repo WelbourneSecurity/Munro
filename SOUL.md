@@ -20,7 +20,8 @@ they belong on the roadmap, not in the app.
 
 Munro should feel like a well-made piece of outdoor equipment: dark, minimal,
 topographic, technical, calm. The map is the hero — a restrained, monochrome
-canvas where a bagged peak glowing soft green is the emotional payoff.
+atlas where an open survey mark becomes a solid ink-and-bone record is the
+emotional payoff.
 
 That means no bright gamified colours, no cartoon hiking mascots, no heavy 3D
 effects, no bloated dashboards, no social clutter. Restraint *is* the brand.

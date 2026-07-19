@@ -49,10 +49,9 @@ export function DataPage() {
               Irish Hills (DoBIH). Peaks are treated as summit points, not boundaries.
             </li>
             <li>
-              The hill lighting shown for bagged Wainwrights uses generated,
-              summit-centred profiles clipped to the Lake District boundary. They are
-              approximate visual aids, not legal, route or geomorphological boundaries.
-              Other lists mark bagged peaks with a summit light instead.
+              Every hill is presented at its authoritative summit point. Historical
+              generated profile polygons remain in the data pipeline for compatibility,
+              but Munro does not present them as real hill shapes.
             </li>
             <li>
               The Lake District National Park boundary comes from Natural England open

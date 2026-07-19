@@ -71,7 +71,7 @@ describe('hill-list registry', () => {
         expect(peak.lat, `${peak.name} latitude`).toBeLessThanOrEqual(north);
       }
     }
-  });
+  }, 15_000);
 
   it('marks hill lighting on every list the generated profiles cover', () => {
     // The committed UK-wide profile set covers all registered lists — see

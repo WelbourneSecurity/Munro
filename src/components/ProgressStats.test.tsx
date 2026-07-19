@@ -1,42 +1,21 @@
 import { render } from '@testing-library/react';
-
 import { ProgressStats } from './ProgressStats';
 
 describe('ProgressStats', () => {
-  it('renders the progress count, percentage and remaining copy', () => {
+  it('renders large tabular progress with a polite live region', () => {
     const { getByText } = render(
       <ProgressStats
-        stats={{
-          total: 214,
-          bagged: 37,
-          remaining: 177,
-          percentage: 17,
-          recent: [],
-        }}
+        label="Wainwrights bagged"
+        stats={{ total: 214, bagged: 37, remaining: 177, percentage: 17, recent: [] }}
       />,
     );
-
-    expect(getByText('37 / 214 bagged')).toBeVisible();
+    expect(getByText('Wainwrights bagged')).toBeVisible();
+    expect(getByText('37').closest('[aria-live]')).toHaveAttribute(
+      'aria-live',
+      'polite',
+    );
+    expect(getByText('/ 214')).toBeVisible();
+    expect(getByText('177 hills remain')).toBeVisible();
     expect(getByText('17%')).toBeVisible();
-    expect(
-      getByText('177 remaining. Progress is stored locally in this browser.'),
-    ).toBeVisible();
-  });
-
-  it('announces count changes through a polite live region', () => {
-    const { getByText } = render(
-      <ProgressStats
-        stats={{
-          total: 214,
-          bagged: 37,
-          remaining: 177,
-          percentage: 17,
-          recent: [],
-        }}
-      />,
-    );
-
-    const liveRegion = getByText('37 / 214 bagged').closest('[aria-live]');
-    expect(liveRegion).toHaveAttribute('aria-live', 'polite');
   });
 });

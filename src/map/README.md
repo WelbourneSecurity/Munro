@@ -10,10 +10,9 @@ Dark style (`https://tiles.openfreemap.org/styles/dark`). Keep the fork close to
 upstream and apply Munro-specific source overlays in code:
 
 - Lake District boundary from `src/data/boundaries/lake-district.geojson`
-  (rendered only while a list with hill lighting is active).
-- Generated Wainwright hill-profile polygons from
-  `src/data/boundaries/hill-areas.geojson` (hill lighting covers every list;
-  lists without profiles skip these layers cleanly).
+  (rendered only for the Wainwright list).
+- Historical generated hill-profile polygons remain in the data pipeline but
+  are not rendered as real hill shapes.
 - Summit points for the active hill list, loaded lazily through the registry
   in `src/data/lists.ts`, which also supplies each list's map-fit bounds and
   initial camera.
@@ -33,11 +32,11 @@ instance stops fitting the MVP, replace that URL with a self-hosted
 PMTiles/OpenMapTiles endpoint rather than editing map components.
 
 The terrain source URL and fallback note live in `config.ts`; protocol setup for
-shared DEM tiles and contour generation lives in `terrain.ts`. Hill lighting
-uses generated summit-centred hill profiles clipped to the Lake District
-boundary. Do not describe those polygons as authoritative mountain boundaries;
-they are approximate visual profiles for the bagged-hill lighting layer.
+shared DEM tiles and contour generation lives in `terrain.ts`. The map uses
+authoritative summit points and survey-style symbols for selection and status.
+Generated profile polygons are not authoritative mountain boundaries and must
+not be returned to the runtime UI.
 
 To edit the style, open `style/munro-dark.json` in Maputnik or another MapLibre
-style editor, keep the palette dark and restrained, and run `npm run verify`
+style editor, keep the palette neutral and restrained, and run `npm run verify`
 after saving.

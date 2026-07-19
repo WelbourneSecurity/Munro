@@ -19,6 +19,7 @@ export interface ProgressState {
   unbag: (peakId: string) => void;
   setBaggedDate: (peakId: string, date?: string) => void;
   setNotes: (peakId: string, notes?: string) => void;
+  restorePeakProgress: (peakId: string, progress?: PeakProgress) => void;
   importProgress: (backup: unknown) => void;
   exportProgress: () => Backup;
   resetAll: () => void;
@@ -218,6 +219,27 @@ export const useProgressStore = create<ProgressState>()(
           }
 
           return withValidatedRecord(state, next);
+        });
+      },
+      restorePeakProgress: (peakId, progress) => {
+        set((state) => {
+          const next = { ...state.progressByPeakId };
+
+          if (progress) {
+            const parsed = peakProgressSchema.safeParse(progress);
+
+            if (!parsed.success || parsed.data.peakId !== peakId) {
+              return state;
+            }
+
+            next[peakId] = parsed.data;
+          } else {
+            const { [peakId]: removed, ...remaining } = next;
+            void removed;
+            return { progressByPeakId: remaining };
+          }
+
+          return { progressByPeakId: next };
         });
       },
       importProgress: (input) => {
