@@ -22,6 +22,30 @@ test('persists each curated appearance while range cameras reset', async ({ page
   expect(stored).not.toMatch(/camera|longitude|latitude|zoom/i);
 });
 
+test('reframes every consecutive range selection', async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto('./#/explore');
+  const canvas = page.locator('.maplibregl-canvas');
+  const frameStatus = page.locator('[data-map-frame-status]');
+  await expect(canvas).toBeVisible();
+
+  await selectRangeEdition(page, 'Wainwrights');
+  await expect(page.getByLabel('Explore Wainwrights')).toBeVisible();
+  await expect(frameStatus).toHaveText('Map framed for Wainwrights.', {
+    timeout: 10_000,
+  });
+
+  await selectRangeEdition(page, 'Cairngorms');
+  await expect(page.getByLabel('Explore Cairngorms')).toBeVisible();
+  await expect(frameStatus).toHaveText('Map framed for Cairngorms.', {
+    timeout: 10_000,
+  });
+
+  await selectRangeEdition(page, 'Wales');
+  await expect(page.getByLabel('Explore Wales')).toBeVisible();
+  await expect(frameStatus).toHaveText('Map framed for Wales.', { timeout: 10_000 });
+});
+
 test('locks a range at its fitted overview and resets it after revisiting', async ({
   page,
 }) => {

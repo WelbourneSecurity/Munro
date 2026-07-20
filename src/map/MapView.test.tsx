@@ -21,6 +21,7 @@ const fakeMap = vi.hoisted(() => {
   return {
     setMaxBounds: vi.fn(),
     setMinZoom: vi.fn(),
+    stop: vi.fn(),
     fitBounds: vi.fn(),
     getBounds: vi.fn(() => bounds),
     getZoom: vi.fn(() => 8.2),
@@ -188,6 +189,8 @@ describe('MapView', () => {
     });
 
     await waitFor(() => {
+      expect(fakeMap.stop).toHaveBeenCalled();
+      expect(fakeMap.once).toHaveBeenCalledWith('moveend', expect.any(Function));
       expect(fakeMap.fitBounds).toHaveBeenCalledWith(
         edition.frameBounds,
         expect.objectContaining({ bearing: 0, pitch: 0 }),
@@ -200,6 +203,50 @@ describe('MapView', () => {
       ]);
       expect(fakeMap.setMinZoom).toHaveBeenLastCalledWith(8.2);
     });
+  });
+
+  it('interrupts the previous camera and reframes consecutive editions', async () => {
+    const { rerender } = render(<MapView {...props} />);
+    const onLoad = mapProps.current.onLoad as () => void;
+    act(() => {
+      onLoad();
+    });
+    await waitFor(() => {
+      expect(fakeMap.fitBounds).toHaveBeenCalledWith(
+        edition.frameBounds,
+        expect.any(Object),
+      );
+    });
+
+    const cairngorms: RangeEditionView = {
+      ...edition,
+      id: 'cairngorms',
+      key: 'range:cairngorms',
+      name: 'Cairngorms',
+      identity: 'Cairngorms',
+      frameBounds: [
+        [-3.95, 56.93],
+        [-3.09, 57.33],
+      ],
+      initialView: {
+        longitude: -3.52,
+        latitude: 57.13,
+        zoom: 8,
+        bearing: -8,
+        pitch: 14,
+      },
+    };
+
+    rerender(<MapView {...props} edition={cairngorms} />);
+
+    await waitFor(() => {
+      expect(fakeMap.fitBounds).toHaveBeenLastCalledWith(
+        cairngorms.frameBounds,
+        expect.objectContaining({ bearing: -8, pitch: 14 }),
+      );
+    });
+    expect(fakeMap.stop).toHaveBeenCalledTimes(2);
+    expect(fakeMap.setMaxBounds).toHaveBeenCalledWith(null);
   });
 
   it('limits UK hit targets and ordinary markers to bagged hills', () => {
