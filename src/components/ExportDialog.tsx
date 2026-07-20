@@ -2,12 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 // maplibre-gl appears here with `import type` ONLY — the type is erased at
 // compile time. The live map object is passed in by reference from MapView,
 // which stays the only module touching maplibre-gl at runtime.
-import type { Map as MapLibreMap } from 'maplibre-gl';
-
 import type { HillListDefinition } from '../data/lists';
 import type { RangeEditionView } from '../domain';
 import { downloadBlob, exportFilename } from '../export/download';
-import type { ExportPresetId, MapSnapshot } from '../export';
+import type { CapturePosterMap, ExportPresetId } from '../export';
+import { VISUAL_PRESETS, type MapPaletteId } from '../theme';
 
 interface ExportStats {
   bagged: number;
@@ -17,11 +16,12 @@ interface ExportStats {
 interface ExportDialogProps {
   open: boolean;
   onClose: () => void;
-  /** The live MapLibre map, or null while it is still loading. */
-  getMap: () => MapLibreMap | null;
+  capturePosterMap: CapturePosterMap;
   /** The active hill list: frames its bounds, titles and names the image. */
   list: HillListDefinition | RangeEditionView;
   stats: ExportStats;
+  activePalette: MapPaletteId;
+  baggedPeakKey: string;
 }
 
 /** One settled composition, tagged with the inputs it was composed from. */
@@ -35,14 +35,14 @@ const PRESET_OPTIONS: { id: ExportPresetId; label: string }[] = [
   { id: 'landscape', label: 'Landscape' },
 ];
 
-// CSS pixels of map kept clear around the fitted boundary in the snapshot.
-const EXPORT_FRAME_PADDING = 48;
-
 // The export layout sizes its map box from how many lines the attribution
 // wraps to, which is only known once compose measures the text. Two lines is
 // the typical count at both presets; the frame padding above absorbs the
 // small aspect drift when the real count differs by a line.
 const ATTRIBUTION_LINES_ESTIMATE = 2;
+// Let a quick preset/palette choice supersede the default preview before it
+// mutates the shared MapLibre style and camera.
+const COMPOSE_SETTLE_MS = 180;
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -63,9 +63,11 @@ function shareApi(): Partial<Pick<Navigator, 'canShare' | 'share'>> {
 export function ExportDialog({
   open,
   onClose,
-  getMap,
+  capturePosterMap,
   list,
   stats,
+  activePalette,
+  baggedPeakKey,
 }: ExportDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   // Compose runs mutate the shared map camera (frame → capture → restore), so
@@ -75,6 +77,8 @@ export function ExportDialog({
   // blocks later ones.
   const composeQueueRef = useRef<Promise<unknown>>(Promise.resolve());
   const [presetId, setPresetId] = useState<ExportPresetId>('portrait');
+  const [paletteOverride, setPaletteOverride] = useState<MapPaletteId>();
+  const paletteId = paletteOverride ?? activePalette;
   const [outcome, setOutcome] = useState<ComposeOutcome | null>(null);
   const { bagged, total } = stats;
   const isEdition = 'identity' in list;
@@ -84,12 +88,13 @@ export function ExportDialog({
 
   // The outcome only applies while its inputs match; otherwise a new
   // composition is in flight and the dialog shows the quiet busy state.
-  const composeKey = `${subjectKey}:${presetId}:${String(bagged)}:${String(total)}`;
+  const composeKey = `${subjectKey}:${presetId}:${paletteId}:${baggedPeakKey}:${String(total)}`;
   const current = open && outcome?.key === composeKey ? outcome.result : null;
   const readyBlob = current && 'blob' in current ? current.blob : null;
 
   function handleClose() {
     setOutcome(null);
+    setPaletteOverride(undefined);
     onClose();
   }
 
@@ -118,6 +123,7 @@ export function ExportDialog({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setOutcome(null);
+        setPaletteOverride(undefined);
         onClose();
         return;
       }
@@ -182,9 +188,14 @@ export function ExportDialog({
     }
 
     let cancelled = false;
-    const key = `${subjectKey}:${presetId}:${String(bagged)}:${String(total)}`;
+    const controller = new AbortController();
+    const key = `${subjectKey}:${presetId}:${paletteId}:${baggedPeakKey}:${String(total)}`;
 
     const compose = async (): Promise<Blob> => {
+      await new Promise<void>((resolve) => {
+        window.setTimeout(resolve, COMPOSE_SETTLE_MS);
+      });
+
       // A queued run whose effect has already been cleaned up (preset
       // toggled again, dialog closed) would frame, capture and restore the
       // shared map camera for an image nobody can see — with the dialog
@@ -192,12 +203,6 @@ export function ExportDialog({
       // framing and back. Bail before touching the map.
       if (cancelled) {
         throw new Error('superseded before composing started');
-      }
-
-      const map = getMap();
-
-      if (!map) {
-        throw new Error('the map has not finished loading yet');
       }
 
       // Dynamic import keeps the composition engine in its own chunk.
@@ -209,20 +214,12 @@ export function ExportDialog({
       // (frameBoundary widens the fit padding via coverCropPadding so the
       // later centre-crop trims only padding), capture, then always restore
       // the user's exact viewport — even when the capture fails.
-      const restore = await engine.frameBoundary(
-        map,
-        list.bounds,
-        EXPORT_FRAME_PADDING,
-        layout.map.width / layout.map.height,
-      );
-
-      let snapshot: MapSnapshot;
-
-      try {
-        snapshot = await engine.captureMap(map);
-      } finally {
-        restore();
-      }
+      const snapshot = await capturePosterMap({
+        palette: paletteId,
+        bounds: isEdition ? list.frameBounds : list.bounds,
+        aspect: layout.map.width / layout.map.height,
+        signal: controller.signal,
+      });
 
       return engine.composeExport(
         snapshot,
@@ -260,8 +257,21 @@ export function ExportDialog({
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [open, presetId, getMap, bagged, total, list, subjectKey, subjectTitle]);
+  }, [
+    open,
+    presetId,
+    paletteId,
+    bagged,
+    total,
+    baggedPeakKey,
+    capturePosterMap,
+    isEdition,
+    list,
+    subjectKey,
+    subjectTitle,
+  ]);
 
   // Release each preview's object URL once it is replaced or discarded.
   const previewUrl =
@@ -404,6 +414,36 @@ export function ExportDialog({
             </button>
           ))}
         </div>
+
+        <fieldset className="mt-5">
+          <legend className="font-label text-stone text-[0.6rem]">MAP COLOUR</legend>
+          <div className="border-hairline mt-2 grid grid-cols-3 border-y">
+            {VISUAL_PRESETS.map((preset) => (
+              <label
+                key={preset.id}
+                className={`export-palette-option focus-within:outline-ink relative cursor-pointer border-r px-2 py-3 text-center last:border-r-0 focus-within:z-10 focus-within:outline focus-within:outline-2 focus-within:-outline-offset-2 ${paletteId === preset.id ? 'export-palette-option-active' : ''}`}
+              >
+                <input
+                  checked={paletteId === preset.id}
+                  className="sr-only"
+                  name="export-map-colour"
+                  type="radio"
+                  value={preset.id}
+                  onChange={() => {
+                    setPaletteOverride(preset.id);
+                  }}
+                />
+                <span
+                  className={`export-palette-swatch appearance-swatch-${preset.id}`}
+                  aria-hidden="true"
+                />
+                <span className="font-label mt-2 block text-[0.58rem]">
+                  {preset.name}
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
 
         <div className="border-ink bg-paper mt-5 border p-2">
           {current === null ? (

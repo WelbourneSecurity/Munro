@@ -1,4 +1,4 @@
-import { buildRangeEdition, parsePeak } from '../domain';
+import { RANGE_EDITIONS, buildRangeEdition, parsePeak } from '../domain';
 import {
   DEFAULT_HILL_LIST_ID,
   HILL_LISTS,
@@ -155,4 +155,30 @@ describe('hill-list registry', () => {
 
     expect(buildRangeEdition('cairngorms', allPeaks).peaks).toHaveLength(124);
   });
+
+  it('keeps every real edition peak inside its committed presentation frame', async () => {
+    const allPeaks = await getHillList('all').loadPeaks();
+
+    for (const summary of RANGE_EDITIONS) {
+      const edition = buildRangeEdition(summary.id, allPeaks);
+      const [[west, south], [east, north]] = edition.frameBounds;
+
+      for (const peak of edition.peaks) {
+        expect(
+          peak.lon,
+          `${summary.name}: ${peak.name} longitude`,
+        ).toBeGreaterThanOrEqual(west);
+        expect(peak.lon, `${summary.name}: ${peak.name} longitude`).toBeLessThanOrEqual(
+          east,
+        );
+        expect(
+          peak.lat,
+          `${summary.name}: ${peak.name} latitude`,
+        ).toBeGreaterThanOrEqual(south);
+        expect(peak.lat, `${summary.name}: ${peak.name} latitude`).toBeLessThanOrEqual(
+          north,
+        );
+      }
+    }
+  }, 15_000);
 });

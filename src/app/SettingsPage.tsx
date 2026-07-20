@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { AppearanceSelector } from '../components';
 import { parseBackup, type Backup } from '../domain';
 import type { SummitDetectionStatus } from '../hooks';
 import { usePreferencesStore, useProgressStore } from '../store';
@@ -27,6 +28,8 @@ export function SettingsPage({
   const resetAll = useProgressStore((state) => state.resetAll);
   const terrainEnabled = usePreferencesStore((state) => state.terrainEnabled);
   const setTerrainEnabled = usePreferencesStore((state) => state.setTerrainEnabled);
+  const visualPreset = usePreferencesStore((state) => state.visualPreset);
+  const setVisualPreset = usePreferencesStore((state) => state.setVisualPreset);
   const summitDetectionEnabled = usePreferencesStore(
     (state) => state.summitDetectionEnabled,
   );
@@ -97,6 +100,15 @@ export function SettingsPage({
       </p>
 
       <div className="border-hairline mt-10 border-t">
+        <section className="border-hairline border-b py-7">
+          <h2 className="text-primary text-xl font-semibold">Appearance</h2>
+          <p className="text-muted mt-2 max-w-xl text-sm leading-6">
+            Choose a composed interface and map palette. Poster colour can be selected
+            separately when exporting.
+          </p>
+          <AppearanceSelector value={visualPreset} onChange={setVisualPreset} />
+        </section>
+
         <section className="border-hairline border-b py-7">
           <h2 className="text-primary text-xl font-semibold">Backup</h2>
           <p className="text-muted mt-2 text-sm leading-6">

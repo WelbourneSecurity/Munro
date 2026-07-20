@@ -148,6 +148,8 @@ test('offers the map postcard download from Explore', async ({ page }) => {
   await page.getByRole('button', { name: 'Export poster' }).click();
 
   const dialog = page.getByRole('dialog', { name: 'Export image' });
+  await dialog.getByText('Nature', { exact: true }).click();
+  await expect(dialog.getByRole('radio', { name: /Nature/ })).toBeChecked();
   await expect(dialog).toBeVisible();
   const downloadButton = dialog.getByRole('button', { name: 'Download PNG' });
   await expect(downloadButton).toBeEnabled({ timeout: 60_000 });

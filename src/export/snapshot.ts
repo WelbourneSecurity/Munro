@@ -7,12 +7,14 @@
 import type { LngLatBoundsLike, Map as MapLibreMap } from 'maplibre-gl';
 
 import { coverCropPadding } from './layout';
+import type { MapPaletteId } from '../theme';
 
 // Runtime capability probe: createImageBitmap is typed as always present in
 // the DOM lib, but node (unit tests) and older browsers lack it.
 const runtime = globalThis as {
   createImageBitmap?: typeof createImageBitmap;
 };
+const MAP_SETTLE_TIMEOUT_MS = 5_000;
 
 export interface MapSnapshot {
   /** PNG-encoded snapshot of the WebGL canvas. */
@@ -30,6 +32,15 @@ export interface MapSnapshot {
   pixelRatio: number;
 }
 
+export interface PosterCaptureRequest {
+  palette: MapPaletteId;
+  bounds: LngLatBoundsLike;
+  aspect: number;
+  signal?: AbortSignal;
+}
+
+export type CapturePosterMap = (request: PosterCaptureRequest) => Promise<MapSnapshot>;
+
 /**
  * Resolve once the map is idle: immediately when the camera is at rest and
  * the map reports loaded() (style and tiles settled), otherwise on the next
@@ -38,17 +49,32 @@ export interface MapSnapshot {
  * capture a mid-flight frame during flyTo/easeTo or drag inertia. The idle
  * event itself fires when !isMoving() && loaded(), so both are checked here.
  */
-export function waitForMapIdle(map: MapLibreMap): Promise<void> {
+export function waitForMapIdle(
+  map: MapLibreMap,
+  timeoutMs = MAP_SETTLE_TIMEOUT_MS,
+): Promise<void> {
   if (!map.isMoving() && map.loaded()) {
     return Promise.resolve();
   }
 
-  return new Promise((resolve) => {
+  return waitForNextIdle(map, timeoutMs);
+}
+
+function waitForNextIdle(map: MapLibreMap, timeoutMs = MAP_SETTLE_TIMEOUT_MS) {
+  return new Promise<void>((resolve) => {
+    const finish = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+
     // void: maplibre types once() as also returning a promise; the
     // listener-style call used here returns the map itself.
-    void map.once('idle', () => {
-      resolve();
-    });
+    void map.once('idle', finish);
+
+    // Hosted terrain requests can fail or remain pending after a useful frame
+    // has rendered. Bound the settle so capture and camera restoration never
+    // deadlock on an external tile request.
+    const timer = setTimeout(finish, timeoutMs);
   });
 }
 
@@ -134,12 +160,7 @@ export async function frameBoundary(
 
   // Listen before moving the camera so the idle after the jump is never
   // missed, then jump without animation for a deterministic frame.
-  const idle = new Promise<void>((resolve) => {
-    // void: see waitForMapIdle — the listener-style once() is not a promise.
-    void map.once('idle', () => {
-      resolve();
-    });
-  });
+  const idle = waitForNextIdle(map);
 
   map.fitBounds(bounds, {
     animate: false,

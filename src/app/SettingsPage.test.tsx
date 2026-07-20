@@ -9,6 +9,7 @@ beforeEach(() => {
   useProgressStore.getState().resetAll();
   usePreferencesStore.getState().setTerrainEnabled(true);
   usePreferencesStore.getState().setSummitDetectionEnabled(false);
+  usePreferencesStore.getState().setVisualPreset('midnight');
 });
 
 describe('SettingsPage', () => {
@@ -149,6 +150,17 @@ describe('SettingsPage', () => {
     await waitFor(() => {
       expect(usePreferencesStore.getState().terrainEnabled).toBe(false);
     });
+  });
+
+  it('selects and persists a curated visual mode without a dropdown', async () => {
+    const user = userEvent.setup();
+    const { getByRole, queryByRole } = render(<SettingsPage />);
+
+    expect(queryByRole('combobox', { name: /appearance/i })).not.toBeInTheDocument();
+    await user.click(getByRole('radio', { name: /Nature/ }));
+
+    expect(usePreferencesStore.getState().visualPreset).toBe('nature');
+    expect(getByRole('radio', { name: /Nature/ })).toBeChecked();
   });
 
   it('shows the summit detection toggle unchecked with a plain explanation', () => {

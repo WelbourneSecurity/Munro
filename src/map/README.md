@@ -6,7 +6,9 @@ only module that imports `@vis.gl/react-maplibre`, and `terrain.ts` imports
 outside `src/map/` may import MapLibre types only.
 
 The base style in `style/munro-dark.json` is a committed fork of OpenFreeMap's
-Dark style (`https://tiles.openfreemap.org/styles/dark`). Keep the fork close to
+Dark style (`https://tiles.openfreemap.org/styles/dark`). `styles.ts` derives
+the committed Midnight, Light and original-green Nature palettes while keeping
+source and anchor ids identical. Keep the base fork close to
 upstream and apply Munro-specific source overlays in code:
 
 - Lake District boundary from `src/data/boundaries/lake-district.geojson`

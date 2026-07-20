@@ -8,7 +8,7 @@ import {
 } from '@vis.gl/react-maplibre';
 import type { MapLayerMouseEvent, MapRef } from '@vis.gl/react-maplibre';
 import type { FeatureCollection, Polygon } from 'geojson';
-import type { StyleSpecification, TerrainSpecification } from 'maplibre-gl';
+import type { LngLatBoundsLike, TerrainSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { ExportDialog } from '../components';
@@ -21,13 +21,8 @@ import {
   type RangeEditionView,
 } from '../domain';
 import { usePreferencesStore, useProgressStore } from '../store';
-import {
-  LIST_FIT_OPTIONS,
-  MAP_MAX_ZOOM,
-  MAP_MIN_ZOOM,
-  OPENFREEMAP_VECTOR_SOURCE_URL,
-  listMaxBounds,
-} from './config';
+import type { CapturePosterMap, MapSnapshot, PosterCaptureRequest } from '../export';
+import { LIST_FIT_OPTIONS, MAP_MAX_ZOOM, MAP_MIN_ZOOM } from './config';
 import {
   CONTOURS_ANCHOR_ID,
   HILL_LIGHTING_ANCHOR_ID,
@@ -42,7 +37,7 @@ import {
   terrainContourLayer,
   terrainHillshadeLayer,
 } from './layers';
-import munroDarkStyle from './style/munro-dark.json';
+import { mapStyleForPalette } from './styles';
 import { getMapSupportError } from './support';
 import { contourTileUrl, setupTerrainProtocols, terrainDemSource } from './terrain';
 
@@ -62,6 +57,52 @@ const TERRAIN_OPTIONS: TerrainSpecification = {
 const TERRAIN_DISABLED = null as unknown as TerrainSpecification;
 setupTerrainProtocols();
 
+interface CaptureTask {
+  request: PosterCaptureRequest;
+  original: {
+    center: [number, number];
+    zoom: number;
+    bearing: number;
+    pitch: number;
+    minZoom: number;
+    maxBounds: LngLatBoundsLike | null;
+  };
+  resolve: (snapshot: MapSnapshot) => void;
+  reject: (error: unknown) => void;
+}
+
+type CaptureState =
+  | { phase: 'capture'; task: CaptureTask }
+  | {
+      phase: 'restore';
+      task: CaptureTask;
+      result: { snapshot: MapSnapshot } | { error: unknown };
+    };
+
+function withAbort<T>(promise: Promise<T>, signal: AbortSignal | undefined) {
+  if (!signal) return promise;
+  if (signal.aborted) {
+    return Promise.reject(new DOMException('Poster capture cancelled', 'AbortError'));
+  }
+
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      reject(new DOMException('Poster capture cancelled', 'AbortError'));
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+    promise.then(
+      (value) => {
+        signal.removeEventListener('abort', onAbort);
+        resolve(value);
+      },
+      (error: unknown) => {
+        signal.removeEventListener('abort', onAbort);
+        reject(error instanceof Error ? error : new Error(String(error)));
+      },
+    );
+  });
+}
+
 export function MapView({
   edition,
   peaks,
@@ -72,12 +113,23 @@ export function MapView({
   const mapRef = useRef<MapRef>(null);
   const progressByPeakId = useProgressStore((state) => state.progressByPeakId);
   const terrainEnabled = usePreferencesStore((state) => state.terrainEnabled);
+  const visualPreset = usePreferencesStore((state) => state.visualPreset);
   const [mapReady, setMapReady] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [captureState, setCaptureState] = useState<CaptureState>();
+  const captureActiveRef = useRef(false);
   const mapSupportError = useMemo(() => getMapSupportError(), []);
-  const getMap = useCallback(() => mapRef.current?.getMap() ?? null, []);
   const progress = useMemo(() => Object.values(progressByPeakId), [progressByPeakId]);
+  const baggedPeakKey = useMemo(
+    () =>
+      peaks
+        .filter((peak) => progressByPeakId[peak.id]?.bagged === true)
+        .map((peak) => peak.id)
+        .sort()
+        .join(','),
+    [peaks, progressByPeakId],
+  );
   const peakGeoJson = useMemo(() => {
     const collection = peaksToGeoJSON(peaks, progress);
     return {
@@ -91,34 +143,187 @@ export function MapView({
       })),
     };
   }, [peaks, progress, selectedPeakId]);
-  const maxBounds = useMemo(() => listMaxBounds(edition.bounds), [edition.bounds]);
-  const mapStyle = useMemo<StyleSpecification>(
-    () =>
-      ({
-        ...munroDarkStyle,
-        sources: {
-          ...munroDarkStyle.sources,
-          openmaptiles: {
-            ...munroDarkStyle.sources.openmaptiles,
-            url: OPENFREEMAP_VECTOR_SOURCE_URL,
-          },
-        },
-      }) as StyleSpecification,
-    [],
-  );
+  const captureActive = captureState?.phase === 'capture';
+  const activePalette = captureActive
+    ? captureState.task.request.palette
+    : visualPreset;
+  const mapStyle = useMemo(() => mapStyleForPalette(activePalette), [activePalette]);
+  const frameSequence = useRef(0);
+  const frameLockTimer = useRef<number | undefined>(undefined);
+  const resizeTimer = useRef<number | undefined>(undefined);
+  const baggedOnly = edition.id === 'uk' || captureActive;
 
-  useEffect(() => {
-    if (!mapReady) return;
-    const map = mapRef.current;
+  const frameEdition = useCallback(() => {
+    if (captureActiveRef.current) return;
+    const map = mapRef.current?.getMap();
     if (!map) return;
+
+    const sequence = ++frameSequence.current;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    map.fitBounds(edition.bounds, {
+    if (frameLockTimer.current) window.clearTimeout(frameLockTimer.current);
+    map.setMaxBounds(null);
+    map.setMinZoom(MAP_MIN_ZOOM);
+
+    const settle = () => {
+      if (sequence !== frameSequence.current) return;
+      if (frameLockTimer.current) window.clearTimeout(frameLockTimer.current);
+      frameLockTimer.current = undefined;
+      const visible = map.getBounds();
+      map.setMaxBounds([
+        [visible.getWest(), visible.getSouth()],
+        [visible.getEast(), visible.getNorth()],
+      ]);
+      map.setMinZoom(map.getZoom());
+    };
+
+    void map.once('idle', settle);
+    frameLockTimer.current = window.setTimeout(settle, 5_000);
+    map.fitBounds(edition.frameBounds, {
       ...LIST_FIT_OPTIONS,
       bearing: edition.initialView.bearing,
       pitch: edition.initialView.pitch,
       duration: reduceMotion ? 0 : 600,
     });
-  }, [edition, mapReady]);
+  }, [edition.frameBounds, edition.initialView.bearing, edition.initialView.pitch]);
+
+  const capturePosterMap = useCallback<CapturePosterMap>((request) => {
+    const map = mapRef.current?.getMap();
+
+    if (!map) {
+      return Promise.reject(new Error('the map is not available'));
+    }
+
+    if (captureActiveRef.current) {
+      return Promise.reject(new Error('another poster capture is still running'));
+    }
+
+    const center = map.getCenter();
+    const maxBounds = map.getMaxBounds();
+
+    return new Promise<MapSnapshot>((resolve, reject) => {
+      captureActiveRef.current = true;
+      setCaptureState({
+        phase: 'capture',
+        task: {
+          request,
+          original: {
+            center: [center.lng, center.lat],
+            zoom: map.getZoom(),
+            bearing: map.getBearing(),
+            pitch: map.getPitch(),
+            minZoom: map.getMinZoom(),
+            maxBounds: maxBounds
+              ? [
+                  [maxBounds.getWest(), maxBounds.getSouth()],
+                  [maxBounds.getEast(), maxBounds.getNorth()],
+                ]
+              : null,
+          },
+          resolve,
+          reject,
+        },
+      });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (captureState?.phase !== 'capture') return;
+
+    const map = mapRef.current?.getMap();
+    if (!map) {
+      setCaptureState({
+        phase: 'restore',
+        task: captureState.task,
+        result: { error: new Error('the map is no longer available') },
+      });
+      return;
+    }
+
+    const { task } = captureState;
+    let restoreCamera: (() => void) | undefined;
+
+    void (async () => {
+      try {
+        const engine = await import('../export');
+        await withAbort(engine.waitForMapIdle(map), task.request.signal);
+        map.setMaxBounds(null);
+
+        restoreCamera = await engine.frameBoundary(
+          map,
+          task.request.bounds,
+          48,
+          task.request.aspect,
+        );
+
+        if (task.request.signal?.aborted) {
+          throw new DOMException('Poster capture cancelled', 'AbortError');
+        }
+
+        const snapshot = await engine.captureMap(map);
+        restoreCamera();
+        restoreCamera = undefined;
+        setCaptureState({ phase: 'restore', task, result: { snapshot } });
+      } catch (error) {
+        restoreCamera?.();
+        setCaptureState({ phase: 'restore', task, result: { error } });
+      }
+    })();
+  }, [captureState]);
+
+  useEffect(() => {
+    if (captureState?.phase !== 'restore') return;
+
+    const map = mapRef.current?.getMap();
+    const { task, result } = captureState;
+
+    void (async () => {
+      try {
+        if (!map) throw new Error('the map is no longer available');
+
+        map.setMinZoom(Math.min(MAP_MIN_ZOOM, task.original.minZoom));
+        map.setMaxBounds(null);
+        map.jumpTo({
+          center: task.original.center,
+          zoom: task.original.zoom,
+          bearing: task.original.bearing,
+          pitch: task.original.pitch,
+        });
+        map.setMinZoom(task.original.minZoom);
+        map.setMaxBounds(task.original.maxBounds);
+
+        const engine = await import('../export');
+        await engine.waitForMapIdle(map);
+
+        if ('error' in result) {
+          task.reject(result.error);
+        } else if (task.request.signal?.aborted) {
+          result.snapshot.bitmap?.close();
+          task.reject(new DOMException('Poster capture cancelled', 'AbortError'));
+        } else {
+          task.resolve(result.snapshot);
+        }
+      } catch (error) {
+        if ('snapshot' in result) result.snapshot.bitmap?.close();
+        task.reject(error);
+      } finally {
+        captureActiveRef.current = false;
+        setCaptureState(undefined);
+      }
+    })();
+  }, [captureState]);
+
+  useEffect(() => {
+    if (!mapReady) return;
+    frameEdition();
+  }, [edition.id, frameEdition, mapReady]);
+
+  useEffect(
+    () => () => {
+      if (resizeTimer.current) window.clearTimeout(resizeTimer.current);
+      if (frameLockTimer.current) window.clearTimeout(frameLockTimer.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!selectedPeakId || !mapReady) return;
@@ -164,15 +369,14 @@ export function MapView({
         canvasContextAttributes={{ preserveDrawingBuffer: true }}
         initialViewState={{
           ...edition.initialView,
-          bounds: edition.bounds,
+          bounds: edition.frameBounds,
           fitBoundsOptions: LIST_FIT_OPTIONS,
         }}
         interactiveLayerIds={['peak-hitbox']}
         mapStyle={mapStyle}
-        maxBounds={maxBounds}
         maxPitch={68}
         maxZoom={MAP_MAX_ZOOM}
-        minZoom={MAP_MIN_ZOOM}
+        renderWorldCopies={false}
         onClick={handlePeakClick}
         onError={() => {
           if (!mapReady) setMapFailed(true);
@@ -180,6 +384,11 @@ export function MapView({
         onLoad={() => {
           setMapReady(true);
           setMapFailed(false);
+        }}
+        onResize={() => {
+          if (!mapReady) return;
+          if (resizeTimer.current) window.clearTimeout(resizeTimer.current);
+          resizeTimer.current = window.setTimeout(frameEdition, 180);
         }}
         style={{ width: '100%', height: '100%' }}
         terrain={terrainEnabled ? TERRAIN_OPTIONS : TERRAIN_DISABLED}
@@ -203,13 +412,22 @@ export function MapView({
             maxzoom={13}
             tileSize={256}
           >
-            <Layer {...terrainHillshadeLayer} beforeId={HILLSHADE_ANCHOR_ID} />
+            <Layer
+              {...terrainHillshadeLayer(activePalette)}
+              beforeId={HILLSHADE_ANCHOR_ID}
+            />
           </Source>
         ) : null}
         {edition.id === 'wainwrights' ? (
           <Source id="lake-district-boundary" type="geojson" data={boundaryData}>
-            <Layer {...boundaryFillLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
-            <Layer {...boundaryLineLayer} beforeId={HILL_LIGHTING_ANCHOR_ID} />
+            <Layer
+              {...boundaryFillLayer(activePalette)}
+              beforeId={HILL_LIGHTING_ANCHOR_ID}
+            />
+            <Layer
+              {...boundaryLineLayer(activePalette)}
+              beforeId={HILL_LIGHTING_ANCHOR_ID}
+            />
           </Source>
         ) : null}
         {terrainEnabled ? (
@@ -219,15 +437,21 @@ export function MapView({
             tiles={[contourTileUrl]}
             maxzoom={16}
           >
-            <Layer {...terrainContourLayer} beforeId={CONTOURS_ANCHOR_ID} />
-            <Layer {...terrainContourLabelLayer} beforeId={CONTOURS_ANCHOR_ID} />
+            <Layer
+              {...terrainContourLayer(activePalette)}
+              beforeId={CONTOURS_ANCHOR_ID}
+            />
+            <Layer
+              {...terrainContourLabelLayer(activePalette)}
+              beforeId={CONTOURS_ANCHOR_ID}
+            />
           </Source>
         ) : null}
         <Source id="list-peaks" type="geojson" data={peakGeoJson}>
-          <Layer {...peakHitboxLayer} />
-          <Layer {...surveyPeakMarkerLayer} />
-          <Layer {...selectedPeakMarkerLayer} />
-          <Layer {...selectedPeakLabelLayer} />
+          <Layer {...peakHitboxLayer(baggedOnly)} />
+          <Layer {...surveyPeakMarkerLayer(activePalette, baggedOnly)} />
+          <Layer {...selectedPeakMarkerLayer(activePalette, captureActive)} />
+          <Layer {...selectedPeakLabelLayer(activePalette, captureActive)} />
         </Source>
       </Map>
       {!mapReady && !mapFailed ? (
@@ -264,9 +488,11 @@ export function MapView({
       </button>
       <ExportDialog
         open={exportOpen}
-        getMap={getMap}
+        capturePosterMap={capturePosterMap}
         list={edition}
         stats={{ bagged: stats.bagged, total: stats.total }}
+        activePalette={visualPreset}
+        baggedPeakKey={baggedPeakKey}
         onClose={() => {
           setExportOpen(false);
         }}

@@ -21,7 +21,7 @@ export function TrackerNavigation({
 }: TrackerNavigationProps) {
   return (
     <>
-      <header className="border-hairline bg-bone relative z-30 flex h-14 items-center justify-between border-b px-4 md:px-7">
+      <header className="tracker-navigation relative z-30 flex h-14 items-center justify-between border-b px-4 md:px-7">
         <a
           className="focus-ring flex min-h-11 items-center gap-3"
           href="#/explore"
@@ -68,7 +68,7 @@ export function TrackerNavigation({
       </header>
 
       <nav
-        className="border-hairline bg-bone fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-3 border-t pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="tracker-navigation fixed inset-x-0 bottom-0 z-40 grid h-16 grid-cols-3 border-t pb-[env(safe-area-inset-bottom)] md:hidden"
         aria-label="Primary"
       >
         {routes.map((route) => (

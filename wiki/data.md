@@ -113,16 +113,18 @@ overlap — a Wainwright can also be a Hewitt and a Marilyn — so it holds
 one record per distinct hill, with the union of its list memberships).
 The range-edition registry in `src/domain/editions.ts` groups that national
 set by complete DoBIH sections (or explicit list membership for the combined
-Wainwright and Outlying Fell edition), then calculates padded bounds from the
-edition's actual summits. The active edition is stored separately as
+Wainwright and Outlying Fell edition). Calculated peak bounds validate
+completeness, while a separate committed frame controls presentation and the
+strict pan/zoom lock. The active edition is stored separately as
 `munro.range.v1`. Progress records are
 keyed by the globally unique peak id (`dobih-N`), so each list's progress
 coexists in the same store and switching editions never touches existing
 records; stats are computed against the active edition only.
 
 The Lake District boundary layers render only on the Wainwrights edition. Every
-edition is fitted to its calculated data extent, from the Isle of Man to the
-whole UK. Authoritative summit markers carry selection and status throughout.
+edition resets to its curated frame, from the Isle of Man to the whole UK.
+Authoritative summit markers carry selection and status throughout. Camera
+position is never written to cookies or local storage.
 
 ## Boundary data
 
@@ -175,9 +177,9 @@ the store.
 
 ## Map data and attribution
 
-The basemap uses OpenFreeMap's public dark MapLibre style with the vector tile
-source isolated in `src/map/config.ts` so it can be swapped for a self-hosted
-fallback if needed.
+The basemap uses the same OpenFreeMap vector source with committed Midnight,
+Light and Nature MapLibre palettes. The tile source remains isolated in
+`src/map/config.ts` so it can be swapped for a self-hosted fallback if needed.
 
 Terrain uses AWS Terrain Tiles in Terrarium format. The map renders a subdued
 hillshade from the DEM and uses `maplibre-contour` to generate contour vector
