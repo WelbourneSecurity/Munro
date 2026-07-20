@@ -55,6 +55,7 @@ const TERRAIN_OPTIONS: TerrainSpecification = {
   exaggeration: 1.2,
 };
 const TERRAIN_DISABLED = null as unknown as TerrainSpecification;
+const FRAME_SETTLE_FALLBACK_MS = 2_000;
 setupTerrainProtocols();
 
 interface CaptureTask {
@@ -116,6 +117,7 @@ export function MapView({
   const visualPreset = usePreferencesStore((state) => state.visualPreset);
   const [mapReady, setMapReady] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
+  const [framedEditionId, setFramedEditionId] = useState<string>();
   const [exportOpen, setExportOpen] = useState(false);
   const [captureState, setCaptureState] = useState<CaptureState>();
   const captureActiveRef = useRef(false);
@@ -151,16 +153,24 @@ export function MapView({
   const frameSequence = useRef(0);
   const frameLockTimer = useRef<number | undefined>(undefined);
   const resizeTimer = useRef<number | undefined>(undefined);
+  const activeEditionId = useRef(edition.id);
   const baggedOnly = edition.id === 'uk' || captureActive;
+
+  useEffect(() => {
+    activeEditionId.current = edition.id;
+  }, [edition.id]);
 
   const frameEdition = useCallback(() => {
     if (captureActiveRef.current) return;
+    if (activeEditionId.current !== edition.id) return;
     const map = mapRef.current?.getMap();
     if (!map) return;
 
     const sequence = ++frameSequence.current;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (frameLockTimer.current) window.clearTimeout(frameLockTimer.current);
+    setFramedEditionId(undefined);
+    map.stop();
     map.setMaxBounds(null);
     map.setMinZoom(MAP_MIN_ZOOM);
 
@@ -174,17 +184,26 @@ export function MapView({
         [visible.getEast(), visible.getNorth()],
       ]);
       map.setMinZoom(map.getZoom());
+      setFramedEditionId(edition.id);
     };
 
-    void map.once('idle', settle);
-    frameLockTimer.current = window.setTimeout(settle, 5_000);
+    // Camera constraints depend on the achieved viewport, not on remote
+    // terrain tiles. Waiting for global `idle` made a finished range change
+    // look frozen whenever a tile request remained pending.
+    void map.once('moveend', settle);
+    frameLockTimer.current = window.setTimeout(settle, FRAME_SETTLE_FALLBACK_MS);
     map.fitBounds(edition.frameBounds, {
       ...LIST_FIT_OPTIONS,
       bearing: edition.initialView.bearing,
       pitch: edition.initialView.pitch,
       duration: reduceMotion ? 0 : 600,
     });
-  }, [edition.frameBounds, edition.initialView.bearing, edition.initialView.pitch]);
+  }, [
+    edition.frameBounds,
+    edition.id,
+    edition.initialView.bearing,
+    edition.initialView.pitch,
+  ]);
 
   const capturePosterMap = useCallback<CapturePosterMap>((request) => {
     const map = mapRef.current?.getMap();
@@ -314,8 +333,12 @@ export function MapView({
 
   useEffect(() => {
     if (!mapReady) return;
+    if (resizeTimer.current) {
+      window.clearTimeout(resizeTimer.current);
+      resizeTimer.current = undefined;
+    }
     frameEdition();
-  }, [edition.id, frameEdition, mapReady]);
+  }, [captureActive, edition.id, frameEdition, mapReady]);
 
   useEffect(
     () => () => {
@@ -462,6 +485,11 @@ export function MapView({
           <p className="font-label text-[0.6rem]">LOADING TERRAIN</p>
         </div>
       ) : null}
+      <p className="sr-only" data-map-frame-status role="status" aria-live="polite">
+        {framedEditionId === edition.id
+          ? `Map framed for ${edition.name}.`
+          : `Framing map for ${edition.name}.`}
+      </p>
       {mapFailed ? (
         <div
           className="bg-bone text-ink border-ink absolute top-1/2 left-1/2 z-10 w-[min(22rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 border p-5"
