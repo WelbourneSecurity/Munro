@@ -8,6 +8,7 @@ import {
   type Backup,
   type PeakProgress,
 } from '../domain';
+import { isVisualPresetId, type VisualPresetId } from '../theme';
 
 export const PROGRESS_STORAGE_KEY = 'munro.progress.v1';
 export const PREFERENCES_STORAGE_KEY = 'munro.prefs.v1';
@@ -306,9 +307,11 @@ export interface PreferencesState {
   activeListId: HillListId;
   terrainEnabled: boolean;
   summitDetectionEnabled: boolean;
+  visualPreset: VisualPresetId;
   setActiveListId: (listId: HillListId) => void;
   setTerrainEnabled: (enabled: boolean) => void;
   setSummitDetectionEnabled: (enabled: boolean) => void;
+  setVisualPreset: (preset: VisualPresetId) => void;
 }
 
 // Like the progress records, persisted preferences are never trusted: a
@@ -327,6 +330,7 @@ function sanitizePersistedPreferences(persisted: unknown): Partial<PreferencesSt
       ? raw.activeListId
       : DEFAULT_HILL_LIST_ID,
     summitDetectionEnabled: raw.summitDetectionEnabled === true,
+    visualPreset: isVisualPresetId(raw.visualPreset) ? raw.visualPreset : 'midnight',
   };
 
   // Terrain defaults to on, so a missing or mis-typed value falls back to
@@ -347,6 +351,7 @@ export const usePreferencesStore = create<PreferencesState>()(
       // enables it in Settings. Only this boolean is ever persisted —
       // never any location data.
       summitDetectionEnabled: false,
+      visualPreset: 'midnight',
       setActiveListId: (listId) => {
         set({ activeListId: listId });
       },
@@ -355,6 +360,9 @@ export const usePreferencesStore = create<PreferencesState>()(
       },
       setSummitDetectionEnabled: (enabled) => {
         set({ summitDetectionEnabled: enabled });
+      },
+      setVisualPreset: (visualPreset) => {
+        set({ visualPreset });
       },
     }),
     {

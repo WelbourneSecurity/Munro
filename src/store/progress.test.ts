@@ -19,6 +19,7 @@ beforeEach(() => {
   usePreferencesStore.getState().setTerrainEnabled(true);
   usePreferencesStore.getState().setActiveListId('wainwrights');
   usePreferencesStore.getState().setSummitDetectionEnabled(false);
+  usePreferencesStore.getState().setVisualPreset('midnight');
 });
 
 describe('useProgressStore', () => {
@@ -416,6 +417,25 @@ describe('usePreferencesStore', () => {
 
     expect(usePreferencesStore.getState().terrainEnabled).toBe(false);
     expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).toContain('false');
+  });
+
+  it('defaults to Midnight and persists only recognised visual presets', async () => {
+    expect(usePreferencesStore.getInitialState().visualPreset).toBe('midnight');
+
+    usePreferencesStore.getState().setVisualPreset('nature');
+    expect(localStorage.getItem(PREFERENCES_STORAGE_KEY)).toContain(
+      '"visualPreset":"nature"',
+    );
+
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({
+        state: { visualPreset: 'ultraviolet' },
+        version: 1,
+      }),
+    );
+    await usePreferencesStore.persist.rehydrate();
+    expect(usePreferencesStore.getState().visualPreset).toBe('midnight');
   });
 
   it('defaults the active hill list to the collated all-peaks view', () => {

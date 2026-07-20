@@ -23,12 +23,15 @@ export interface RangeEditionSummary {
   identity: string;
   descriptor: string;
   peakNoun: string;
+  frameBounds: EditionBounds;
 }
 
 export interface RangeEditionView extends RangeEditionSummary {
   key: string;
   peaks: Peak[];
   bounds: EditionBounds;
+  /** Curated presentation frame. Unlike bounds, this never changes with data order. */
+  frameBounds: EditionBounds;
   initialView: {
     longitude: number;
     latitude: number;
@@ -39,6 +42,7 @@ export interface RangeEditionView extends RangeEditionSummary {
 }
 
 type EditionDefinition = RangeEditionSummary & {
+  camera: { bearing: number; pitch: number };
   includes: (peak: Peak) => boolean;
 };
 
@@ -169,6 +173,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Munro',
     descriptor: 'Every supported hill, one national atlas',
     peakNoun: 'peaks',
+    frameBounds: [
+      [-9.45, 49.25],
+      [2.05, 61.7],
+    ],
+    camera: { bearing: 0, pitch: 0 },
     includes: () => true,
   },
   {
@@ -177,6 +186,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Scotland',
     descriptor: 'Highlands, islands and Southern Uplands',
     peakNoun: 'hills',
+    frameBounds: [
+      [-9.3, 54.15],
+      [-0.1, 61.35],
+    ],
+    camera: { bearing: -3, pitch: 8 },
     includes: (peak) => SCOTLAND_REGIONS.has(peak.region),
   },
   {
@@ -185,6 +199,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Cairngorms',
     descriptor: 'The complete Cairngorm plateau and outlying massifs',
     peakNoun: 'hills',
+    frameBounds: [
+      [-3.95, 56.93],
+      [-3.09, 57.33],
+    ],
+    camera: { bearing: -8, pitch: 14 },
     includes: (peak) => peak.region === 'Cairngorms',
   },
   {
@@ -193,6 +212,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Wainwrights',
     descriptor: 'The 214 fells and every Outlying Fell',
     peakNoun: 'fells',
+    frameBounds: [
+      [-3.57, 54.1],
+      [-2.62, 54.82],
+    ],
+    camera: { bearing: -5, pitch: 10 },
     includes: (peak) =>
       peak.list.includes('wainwrights') ||
       peak.list.includes('wainwright-outlying-fells'),
@@ -203,6 +227,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Wales',
     descriptor: 'Eryri, the Cambrians and Bannau Brycheiniog',
     peakNoun: 'hills',
+    frameBounds: [
+      [-5.6, 51.38],
+      [-2.08, 53.56],
+    ],
+    camera: { bearing: -3, pitch: 8 },
     includes: (peak) => WALES_REGIONS.has(peak.region),
   },
   {
@@ -211,6 +240,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Peak District',
     descriptor: 'The complete Dark Peak and White Peak frame',
     peakNoun: 'hills',
+    frameBounds: [
+      [-2.22, 52.99],
+      [-1.49, 53.63],
+    ],
+    camera: { bearing: -4, pitch: 10 },
     includes: (peak) => peak.region === 'The Peak District',
   },
   {
@@ -219,6 +253,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Yorkshire Dales',
     descriptor: 'Northern and Southern Fells together',
     peakNoun: 'hills',
+    frameBounds: [
+      [-2.64, 53.83],
+      [-1.59, 54.56],
+    ],
+    camera: { bearing: -5, pitch: 10 },
     includes: (peak) => peak.region.startsWith('Yorkshire Dales - '),
   },
   {
@@ -227,6 +266,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Pennines',
     descriptor: 'North Pennines and the southern chain',
     peakNoun: 'hills',
+    frameBounds: [
+      [-2.91, 52.74],
+      [-1.34, 55.12],
+    ],
+    camera: { bearing: -2, pitch: 6 },
     includes: (peak) =>
       peak.region.startsWith('North Pennines') ||
       peak.region === 'Lancashire, Cheshire and S Pennines',
@@ -237,6 +281,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Northern Ireland',
     descriptor: 'Mournes, Sperrins, Antrim and Armagh',
     peakNoun: 'hills',
+    frameBounds: [
+      [-8.1, 53.95],
+      [-5.4, 55.42],
+    ],
+    camera: { bearing: -4, pitch: 8 },
     includes: (peak) => NORTHERN_IRELAND_REGIONS.has(peak.region),
   },
   {
@@ -245,6 +294,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'South West',
     descriptor: 'Dartmoor and the peninsula',
     peakNoun: 'hills',
+    frameBounds: [
+      [-5.83, 50.02],
+      [-3.05, 51.27],
+    ],
+    camera: { bearing: -5, pitch: 8 },
     includes: (peak) =>
       peak.region === 'Dartmoor' || peak.region === 'South West England',
   },
@@ -254,6 +308,11 @@ const EDITIONS: readonly EditionDefinition[] = [
     identity: 'Isle of Man',
     descriptor: 'The island ridge in one complete frame',
     peakNoun: 'hills',
+    frameBounds: [
+      [-4.9, 54.0],
+      [-4.32, 54.35],
+    ],
+    camera: { bearing: -8, pitch: 12 },
     includes: (peak) => peak.region === 'Isle of Man',
   },
 ];
@@ -265,6 +324,7 @@ export const RANGE_EDITIONS: readonly RangeEditionSummary[] = EDITIONS.map(
     identity: edition.identity,
     descriptor: edition.descriptor,
     peakNoun: edition.peakNoun,
+    frameBounds: edition.frameBounds,
   }),
 );
 
@@ -286,7 +346,8 @@ export function buildRangeEdition(
 
   const peaks = allPeaks.filter(definition.includes);
   const bounds = boundsForPeaks(peaks);
-  const [[west, south], [east, north]] = bounds;
+  const frameBounds = definition.frameBounds;
+  const [[west, south], [east, north]] = frameBounds;
 
   return {
     id: definition.id,
@@ -297,12 +358,13 @@ export function buildRangeEdition(
     peakNoun: definition.peakNoun,
     peaks,
     bounds,
+    frameBounds,
     initialView: {
       longitude: (west + east) / 2,
       latitude: (south + north) / 2,
       zoom: definition.id === 'uk' ? 5 : 7,
-      bearing: -12,
-      pitch: 38,
+      bearing: definition.camera.bearing,
+      pitch: definition.camera.pitch,
     },
   };
 }

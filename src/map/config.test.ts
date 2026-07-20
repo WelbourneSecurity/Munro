@@ -1,5 +1,6 @@
 import { HILL_LISTS, type HillListBounds } from '../data/lists';
-import { LIST_FIT_OPTIONS, MAP_MAX_ZOOM, MAP_MIN_ZOOM, listMaxBounds } from './config';
+import { RANGE_EDITIONS } from '../domain';
+import { LIST_FIT_OPTIONS, MAP_MAX_ZOOM, MAP_MIN_ZOOM } from './config';
 
 // Mirrors MapLibre's mercator maths: at zoom z the world is 512 * 2^z px.
 const TILE_SIZE = 512;
@@ -44,19 +45,6 @@ function fitZoom(bounds: HillListBounds, viewport: Viewport): number {
   );
 }
 
-/**
- * The lowest zoom MapLibre's maxBounds constraint allows: it zooms in until
- * the bounds fill the viewport in BOTH dimensions.
- */
-function maxBoundsClampZoom(bounds: HillListBounds, viewport: Viewport): number {
-  const spans = mercatorSpans(bounds);
-
-  return Math.max(
-    Math.log2(viewport.width / (TILE_SIZE * spans.x)),
-    Math.log2(viewport.height / (TILE_SIZE * spans.y)),
-  );
-}
-
 describe('map zoom constraints', () => {
   it('keeps every list initial view inside the zoom limits', () => {
     for (const list of HILL_LISTS) {
@@ -76,13 +64,13 @@ describe('map zoom constraints', () => {
     }
   });
 
-  it('pads pan limits so maxBounds never clamps the whole-list fit', () => {
-    for (const list of HILL_LISTS) {
+  it('fits every curated edition frame before applying its runtime lock', () => {
+    for (const edition of RANGE_EDITIONS) {
       for (const viewport of VIEWPORTS) {
         expect(
-          maxBoundsClampZoom(listMaxBounds(list.bounds), viewport),
-          `${list.id} at ${String(viewport.width)}x${String(viewport.height)}`,
-        ).toBeLessThanOrEqual(fitZoom(list.bounds, viewport));
+          fitZoom(edition.frameBounds, viewport),
+          `${edition.id} at ${String(viewport.width)}x${String(viewport.height)}`,
+        ).toBeGreaterThanOrEqual(MAP_MIN_ZOOM);
       }
     }
   });

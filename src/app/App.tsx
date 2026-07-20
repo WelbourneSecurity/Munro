@@ -17,7 +17,8 @@ import {
   type RangeEditionId,
 } from '../domain';
 import { useSummitDetection } from '../hooks';
-import { useProgressStore, useStorageHealthStore } from '../store';
+import { usePreferencesStore, useProgressStore, useStorageHealthStore } from '../store';
+import { applyVisualPreset } from '../theme';
 import { ExplorePage } from './ExplorePage';
 import { LogbookPage } from './LogbookPage';
 import { SettingsPage } from './SettingsPage';
@@ -73,6 +74,7 @@ export function App() {
     (state) => state.progressWriteFailed,
   );
   const progressByPeakId = useProgressStore((state) => state.progressByPeakId);
+  const visualPreset = usePreferencesStore((state) => state.visualPreset);
   const bag = useProgressStore((state) => state.bag);
   const unbag = useProgressStore((state) => state.unbag);
   const restorePeakProgress = useProgressStore((state) => state.restorePeakProgress);
@@ -88,6 +90,10 @@ export function App() {
     document.title =
       edition.identity === 'Munro' ? 'Munro' : `${edition.identity} · Munro`;
   }, [edition.identity]);
+
+  useEffect(() => {
+    applyVisualPreset(visualPreset);
+  }, [visualPreset]);
 
   useEffect(
     () => () => {
@@ -138,7 +144,7 @@ export function App() {
   }
 
   return (
-    <div className="bg-bone text-ink min-h-dvh">
+    <div className="app-shell min-h-dvh">
       <a
         className="focus-ring bg-ink text-bone fixed top-2 left-2 z-50 -translate-y-20 px-4 py-3 text-sm focus:translate-y-0"
         href="#main-content"

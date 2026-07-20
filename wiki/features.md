@@ -2,15 +2,18 @@
 
 ## 1. Map view
 
-The map should show a neutral, minimal topographic visual style with:
+The map offers Midnight, Light and Nature topographic visual styles with:
 
 - Contour lines
 - Subtle terrain shading where possible
 - National park boundary
 - Peak markers
 - Peak labels at appropriate zoom levels
-- Hollow stone survey diamonds for incomplete peaks
+- Hollow stone survey diamonds for incomplete peaks inside individual ranges
 - Solid bone survey diamonds for completed peaks
+
+The UK overview shows completed hills only. Every edition opens in a curated
+frame and cannot be panned or zoomed beyond that frame.
 
 The visual direction should be monochrome, restrained and premium. Avoid
 cartoon hiking app styling.
@@ -53,7 +56,8 @@ The export should include:
 
 - Map area
 - Bagged peaks shown with solid/inverted bone-and-ink status
-- Unbagged peaks shown with hollow/open status
+- No unbagged markers or selected reticle
+- Midnight, Light or Nature map colour chosen independently in the dialog
 - Edition title, for example "Wainwrights" or "Scotland"
 - Edition progress count, for example "37 / 330 BAGGED"
 - Date exported
@@ -71,6 +75,8 @@ Use:
 - LocalStorage or IndexedDB for user progress
 - Import/export JSON backup
 - No authentication in the MVP
+- Persist the selected range and appearance, but deliberately reset each map
+  camera to its curated frame
 
 This keeps the project simple and avoids unnecessary backend complexity.
 

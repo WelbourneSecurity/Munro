@@ -2,9 +2,9 @@
 
 A clean, map-first hiking tracker for UK peak bagging.
 
-Munro presents the UK's hills as deliberately framed geographic editions on a
-neutral topographic map. Mark summits as bagged, track each edition, and export
-a bone-and-ink field poster of the selected area and its progress.
+Munro presents the UK's hills as deliberately framed geographic editions with
+Midnight, Light and Nature topographic palettes. Mark summits as bagged, track
+each edition, and export a bone-and-ink field poster in the map colour you want.
 
 The first version is deliberately simple: a flawless tracker — not a social
 network, route planner, GPX library or navigation tool. See
@@ -15,9 +15,10 @@ network, route planner, GPX library or navigation tool. See
 Open the app, choose a geographic edition from the editorial range index, and
 see that complete area fitted to the map. Scotland, Wales and Northern Ireland
 group their full DoBIH geographic sections; Wainwrights combines the 214 core
-fells with every Outlying Fell. Hollow survey diamonds mark open
-summits; solid bone diamonds mark bagged summits. Select a peak to view its details,
-mark it as bagged, and watch your progress update.
+fells with every Outlying Fell. Individual ranges use hollow survey diamonds
+for open summits and solid diamonds for bagged summits; the national overview
+shows the bagged record alone. Select a peak to view its details, mark it as
+bagged, and watch your progress update.
 
 Munro is a single product accessible from the **web**, on **iPhone** and on
 **Android** devices. The registry covers the UK with Wainwrights, Munros,
@@ -42,10 +43,11 @@ Full product detail lives in the [project wiki](wiki/index.md):
 
 ## Visual direction
 
-The tracker uses a bone-and-ink outdoor-logbook interface over a restrained
-neutral OpenFreeMap basemap. Authoritative DoBIH summit points, optional
-terrain hillshade and contour lines provide mountain context without
-pretending generated outlines are real hills. See [Design](wiki/design.md).
+The tracker uses a bone-and-ink outdoor-logbook interface with three composed
+looks: the ink map of Midnight, the pale topography of Light and the restored
+green terrain of Nature. Authoritative DoBIH summit points, optional terrain
+hillshade and contour lines provide context without pretending generated
+outlines are real hills. See [Design](wiki/design.md).
 
 ## Installation
 
@@ -152,11 +154,11 @@ attribution requirements.
 
 ## Project status
 
-**Wainwrights MVP implemented.** The app is complete against the
+**UK tracker implemented.** The app is complete against the
 [MVP scope](wiki/mvp.md): the map tracker, bag/unbag with dates and notes,
 local-first progress with JSON backup and restore, progress stats, image
 export, terrain hillshade and contours, and a responsive mobile layout — all
-covered by unit, component and end-to-end tests. It awaits merge to `main`
-and its first deployment to <https://munro.welbournesecurity.com>. The build
-history lives in the [implementation plan](wiki/implementation-plan.md); what
-comes next is on the [roadmap](wiki/roadmap.md).
+covered by unit, component and end-to-end tests and deployed from `main` to
+<https://munro.welbournesecurity.com>. The build history lives in the
+[implementation plan](wiki/implementation-plan.md); what comes next is on the
+[roadmap](wiki/roadmap.md).

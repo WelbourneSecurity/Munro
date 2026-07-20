@@ -1,5 +1,6 @@
 export type ComponentsModule = never;
 export { ExportDialog } from './ExportDialog';
+export { AppearanceSelector } from './AppearanceSelector';
 export { HillListSwitcher } from './HillListSwitcher';
 export { HillSearch } from './HillSearch';
 export { PeakAtlas } from './PeakAtlas';

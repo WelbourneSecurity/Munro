@@ -8,8 +8,8 @@ AGENTS.md) when working in this repository.
 Munro is a clean, map-first hiking tracker for UK peak bagging. Users choose
 deliberately framed geographic editions (Scotland, the complete Wainwrights
 including Outlying Fells, Wales and other UK ranges) in a warm bone-and-ink
-logbook and neutral topographic map, mark peaks as bagged, track progress, and
-export a field poster. It is being developed into an app accessible via the web,
+logbook and curated Midnight, Light or Nature topographic map, mark peaks as
+bagged, track progress, and export a field poster. It is being developed into an app accessible via the web,
 on iPhone and on Android.
 
 It is deliberately **not** a social network, route planner, GPX library or
@@ -36,8 +36,8 @@ layout), its test suites, the CI/CD workflows and the documentation site:
   logic; stays free of React and MapLibre imports
 - `src/data/` — generated peak data for every hill list, boundary/hill-profile
   GeoJSON and attribution constants
-- `src/map/` — the MapLibre/OpenFreeMap tracker wrapper, committed dark
-  style fork, terrain/contour setup and map layers; runtime MapLibre
+- `src/map/` — the MapLibre/OpenFreeMap tracker wrapper, three palette
+  variants, terrain/contour setup and map layers; runtime MapLibre
   imports stay inside this directory
 - `src/store/` — local-first Zustand stores persisted to localStorage
   (`munro.progress.v1`, `munro.prefs.v1`); the active geographic edition uses
@@ -107,7 +107,7 @@ The MVP was built from `wiki/implementation-plan.md` (stack research-verified
 July 2026); the shipped stack is described in `wiki/tech-stack.md`. In brief:
 
 - React 19 + Vite 8 + TypeScript (strict) + Tailwind v4
-- MapLibre GL JS via `@vis.gl/react-maplibre`; OpenFreeMap dark basemap
+- MapLibre GL JS via `@vis.gl/react-maplibre`; OpenFreeMap vector basemaps
   (key-free); AWS Terrarium terrain with `maplibre-contour`
 - Zustand + `persist` (localStorage) — local-first, no accounts or backend
 - Static JSON data for peaks (DoBIH, CC BY 4.0); Natural England boundary
@@ -137,7 +137,7 @@ Conventions to preserve:
   and the selected summit receives a separate reticle and label.
 - Conditional map overlays (terrain hillshade and contours) are
   pinned with `beforeId` to the invisible `munro-*-anchor` layers committed
-  at the top of `src/map/style/munro-dark.json`, so remounts (Terrain
+  in the shared base style, so remounts (Terrain
   toggle, list switches) keep the fresh-load stacking order below the peak
   layers. Keep the anchors when refreshing the style fork, and anchor any
   new conditional layer the same way.
@@ -159,9 +159,11 @@ Conventions to preserve:
   `mobile` project for the phone-critical journeys — keep both passing.
 - Mind the performance budget in `wiki/operations.md` before adding
   dependencies or data to the initial bundle.
-- Visual style is warm bone, ink black, graphite and stone with restrained
-  blue-black map water. Completion is communicated by symbol fill and colour
-  inversion, never green. See `wiki/design.md`.
+- Visual style uses the curated Midnight, Light and Nature presets. Green is
+  permitted only as Nature's terrain language; completion is always
+  communicated by solid/hollow geometry and inversion, never green alone.
+  Geographic cameras are deliberately framed and never persisted. See
+  `wiki/design.md`.
 - Summit detection is strictly opt-in and never persists location data —
   only the boolean preference and normal `PeakProgress` records are stored.
   The detection logic in `src/domain/summits.ts` is list-agnostic; the

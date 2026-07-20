@@ -14,7 +14,8 @@ equipment and restrained Japanese product design, never their protected assets.
 - Hairline `#C8C1B3` — dividers and structure
 - Map water `#182024` — the only restrained cool note
 
-Green is not a completion colour. Open and bagged state must remain clear
+Green is not a completion colour. It is allowed only as the terrain language
+of the curated Nature preset. Open and bagged state must remain clear
 without colour: open hills use hollow survey diamonds and bone tiles; bagged
 hills use solid diamonds and inverted ink tiles.
 
@@ -30,14 +31,18 @@ headings use tight tracking; body copy stays readable and short.
 - Explore is a full map with temporary search and detail overlays.
 - Logbook is a responsive regional atlas, not a compact dashboard table.
 - Switch geography through the editorial range index, never a dense dropdown.
-- Every selected edition fits its complete summit extent into a composed frame.
+- Every selected edition uses its committed frame, resets to that overview and
+  locks panning and zooming inside it.
 - Use a slim desktop top rail and a safe-area-aware mobile bottom bar.
 - Keep controls square, purposeful and at least 44px on touch devices.
 - Motion is subtle, 160–220ms, and disabled under reduced motion.
 
 ## Map language
 
-The map uses neutral ink, graphite and stone terrain with blue-black water.
+The map has three deliberate modes: Midnight uses ink and blue-black water,
+Light uses bone land with ink labels, and Nature restores the original green
+terrain palette. The interface combinations are fixed rather than freely
+mixed. Appearance persists locally, but camera position never does.
 Summits are authoritative points. Never render generated polygons, silhouettes
 or radial profiles as though they were real hill shapes. Selection receives a
 separate reticle and label; it never implies completion.
@@ -45,13 +50,13 @@ separate reticle and label; it never implies completion.
 ## Field posters
 
 Poster exports use bone stock, an ink title and completion count, the selected
-edition's fitted map, a restrained date and licence attribution. They use the
-same hollow/solid survey language as Explore and never reintroduce a green
-completion accent.
+edition's fitted map, a restrained date and licence attribution. The map colour
+is selected independently as Midnight, Light or Nature. Posters show bagged
+summits only; green Nature terrain never becomes a completion cue.
 
 ## Avoid
 
-- Green accents, gradients, glows or pulsing markers
+- Green completion accents, gradients, glows or pulsing markers
 - Rounded pill controls and repetitive card grids
 - Confetti, badges, streaks or gamified celebration
 - Decorative hill silhouettes or fake terrain outlines

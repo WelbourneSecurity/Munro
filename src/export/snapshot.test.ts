@@ -132,6 +132,17 @@ describe('waitForMapIdle', () => {
     await pending;
     expect(resolved).toBe(true);
   });
+
+  it('falls back after a bounded settle when hosted tiles never become idle', async () => {
+    vi.useFakeTimers();
+    const map = createMockMap({ loaded: false });
+
+    const pending = waitForMapIdle(asMap(map), 25);
+    await vi.advanceTimersByTimeAsync(25);
+
+    await expect(pending).resolves.toBeUndefined();
+    vi.useRealTimers();
+  });
 });
 
 describe('captureMap', () => {

@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 
 import type { HillListDefinition } from '../data/lists';
 import type { Peak } from '../domain';
-import { useProgressStore } from '../store';
+import { usePreferencesStore, useProgressStore } from '../store';
 import { App } from './App';
 
 const peak: Peak = {
@@ -65,6 +65,7 @@ describe('App shell', () => {
     window.location.hash = '#/explore';
     localStorage.clear();
     useProgressStore.setState({ progressByPeakId: {} });
+    usePreferencesStore.setState({ visualPreset: 'midnight' });
   });
 
   it('uses Explore as the default and preserves legacy tracker routing', () => {
@@ -97,6 +98,20 @@ describe('App shell', () => {
 
     expect(getByRole('link', { name: 'Scotland — open Explore' })).toBeVisible();
     expect(localStorage.getItem('munro.range.v1')).toBe('scotland');
+  });
+
+  it('applies the persisted visual mode and matching browser chrome', async () => {
+    const themeColor = document.createElement('meta');
+    themeColor.name = 'theme-color';
+    document.head.append(themeColor);
+    usePreferencesStore.setState({ visualPreset: 'light' });
+    render(<App />);
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.visualPreset).toBe('light');
+      expect(themeColor.content).toBe('#11110F');
+    });
+    themeColor.remove();
   });
 
   it('bags from the shared inspector and restores the exact record with Undo', async () => {

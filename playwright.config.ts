@@ -7,6 +7,11 @@ const chromiumExecutable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
 
 export default defineConfig({
   fullyParallel: true,
+  // MapLibre, terrain workers and real canvas export are GPU/CPU intensive.
+  // Ten concurrent workers starved otherwise healthy journeys locally and on
+  // hosted CI; two keeps independent browser tests parallel without making
+  // clicks wait minutes for a stable frame. Pure Vitest checks stay parallel.
+  workers: 2,
   reporter: [['list'], ['html', { open: 'never' }]],
   testDir: './tests/e2e',
   use: {

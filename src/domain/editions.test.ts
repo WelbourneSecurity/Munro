@@ -82,4 +82,20 @@ describe('range editions', () => {
       [-1.92, 55.08],
     ]);
   });
+
+  it('uses a committed presentation frame that contains every included peak', () => {
+    const samples = [
+      peak({ lat: 57, lon: -3.7 }),
+      peak({ id: 'dobih-2', dobihId: 2, region: 'Ochil Hills', lat: 56.2, lon: -3.8 }),
+    ];
+    const edition = buildRangeEdition('scotland', samples);
+    const [[west, south], [east, north]] = edition.frameBounds;
+
+    for (const item of edition.peaks) {
+      expect(item.lon).toBeGreaterThanOrEqual(west);
+      expect(item.lon).toBeLessThanOrEqual(east);
+      expect(item.lat).toBeGreaterThanOrEqual(south);
+      expect(item.lat).toBeLessThanOrEqual(north);
+    }
+  });
 });

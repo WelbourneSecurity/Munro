@@ -25,4 +25,4 @@ export type {
   TextSegment,
 } from './layout';
 export { captureMap, frameBoundary, waitForMapIdle } from './snapshot';
-export type { MapSnapshot } from './snapshot';
+export type { CapturePosterMap, MapSnapshot, PosterCaptureRequest } from './snapshot';
